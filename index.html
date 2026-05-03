@@ -45,7 +45,7 @@
     .size-btn .check { display: none; position: absolute; top: 3px; right: 3px; width: 14px; height: 14px; border-radius: 50%; background: #C0392B; color: white; font-size: 9px; line-height: 14px; text-align: center; }
     .size-btn.selected .check { display: block; }
     .info-box { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #1565c0; margin-bottom: 1rem; }
-    .success-box { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 8px 14px; font-size: 13px; color: #2e7d32; margin-top: 8px; display: none; }
+    .age-badge { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 8px 14px; font-size: 13px; color: #2e7d32; margin-top: 8px; display: none; }
     .btn-next { width: 100%; padding: 13px; background: #C0392B; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: sans-serif; margin-top: 8px; }
     .btn-next:hover { background: #a93226; }
     .btn-next:disabled { background: #ccc; cursor: not-allowed; }
@@ -79,11 +79,10 @@
     <div class="step-line"></div>
     <div class="step"><div class="step-dot" id="dot2">3</div><div class="step-label" id="lbl2">T-shirt</div></div>
     <div class="step-line"></div>
-    <div class="step"><div class="step-dot" id="dot3">4</div><div class="step-label" id="lbl3">Historique</div></div>
-    <div class="step-line"></div>
-    <div class="step"><div class="step-dot" id="dot4">5</div><div class="step-label" id="lbl4">Paiement</div></div>
+    <div class="step"><div class="step-dot" id="dot3">4</div><div class="step-label" id="lbl3">Paiement</div></div>
   </div>
 
+  <!-- STEP 0 : PROFIL -->
   <div id="step0">
     <div class="card">
       <div class="section-title">Informations personnelles</div>
@@ -91,7 +90,10 @@
         <div class="field"><label class="label">Nom</label><input type="text" id="nom" placeholder="DUPONT"></div>
         <div class="field"><label class="label">Prénom</label><input type="text" id="prenom" placeholder="Jean"></div>
       </div>
-      <div class="field"><label class="label">Date de naissance</label><input type="date" id="dob" onchange="calcAge()"><div class="success-box" id="age-badge"></div></div>
+      <div class="field">
+        <label class="label">Date de naissance</label>
+        <input type="date" id="dob">
+      </div>
       <div class="field"><label class="label">Email</label><input type="email" id="email" placeholder="jean@email.fr"></div>
       <div class="field"><label class="label">Téléphone</label><input type="tel" id="tel" placeholder="06 12 34 56 78"></div>
       <div class="field"><label class="label">Genre</label>
@@ -100,10 +102,23 @@
           <button type="button" class="toggle-btn" id="g-f" onclick="setGenre('femme')"><span class="check">✓</span>Femme</button>
         </div>
       </div>
+      <div class="field">
+        <label class="label">Temps estimé</label>
+        <select id="temps-estime">
+          <option value="">-- Sélectionner --</option>
+          <option value="moins-1h">Moins d'1h</option>
+          <option value="1h-1h10">Entre 1h et 1h10</option>
+          <option value="1h10-1h20">Entre 1h10 et 1h20</option>
+          <option value="1h20-1h30">Entre 1h20 et 1h30</option>
+          <option value="1h30-1h40">Entre 1h30 et 1h40</option>
+          <option value="1h40+">1h40 et plus</option>
+        </select>
+      </div>
     </div>
     <button type="button" class="btn-next" onclick="goStep(1)">Continuer →</button>
   </div>
 
+  <!-- STEP 1 : CATEGORIE -->
   <div id="step1" style="display:none;">
     <div class="card">
       <div class="section-title">Choix de la catégorie</div>
@@ -128,8 +143,12 @@
         </div>
       </div>
       <div class="field">
-        <div class="group-label">Relais — 2H + 2F, Scaled — 1 inscription pour 4 athlètes</div>
-        <button type="button" class="cat-btn" style="width:100%;" onclick="setCat(this,'relais',136,'Relais (2H+2F)')"><span class="check">✓</span><div>Relais</div><div class="niveau">Scaled · Mixte · 4 personnes</div><div class="prix-tag">136 €</div></button>
+        <div class="group-label">Relais — 1 inscription pour 4 athlètes</div>
+        <div class="grid2" style="margin-bottom:0;">
+          <button type="button" class="cat-btn" onclick="setCat(this,'relais-h',136,'Relais Hommes')"><span class="check">✓</span><div>Relais Hommes</div><div class="prix-tag">136 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'relais-f',136,'Relais Femmes')"><span class="check">✓</span><div>Relais Femmes</div><div class="prix-tag">136 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'relais-mix',136,'Relais Mixte')"><span class="check">✓</span><div>Relais Mixte</div><div class="prix-tag">136 €</div></button>
+        </div>
       </div>
       <div class="field"><label class="label">Nom d'équipe <span style="color:#bbb;font-weight:400">(duo & relais)</span></label><input type="text" id="nom-equipe" placeholder="Ex : Les Barbares"></div>
     </div>
@@ -138,6 +157,7 @@
     <button type="button" class="btn-back" onclick="goStep(0)">← Retour</button>
   </div>
 
+  <!-- STEP 2 : T-SHIRT -->
   <div id="step2" style="display:none;">
     <div class="card">
       <div class="section-title">Taille de t-shirt — Capitaine</div>
@@ -153,46 +173,13 @@
     <button type="button" class="btn-back" onclick="goStep(1)">← Retour</button>
   </div>
 
+  <!-- STEP 3 : PAIEMENT -->
   <div id="step3" style="display:none;">
     <div class="card">
-      <div class="section-title">Historique de courses</div>
-      <div class="info-box">Si tu as participé au 26 avril 2025, ton temps est déjà dans notre base — on croisera les données automatiquement !</div>
-      <div class="field"><label class="label">As-tu déjà participé à une course Hyrox Challenge La Buse ?</label>
-        <select id="deja-participe" onchange="toggleHistorique()">
-          <option value="">-- Sélectionner --</option>
-          <option value="oui">Oui</option>
-          <option value="non">Non, c'est ma première fois</option>
-        </select>
-      </div>
-      <div id="bloc-historique" style="display:none;">
-        <div class="field"><label class="label">Ton meilleur temps sur une édition précédente</label>
-          <select id="temps-select">
-            <option value="">-- Sélectionner ton temps --</option>
-            <option value="moins-1h">Moins d'1h</option>
-            <option value="1h-1h10">Entre 1h et 1h10</option>
-            <option value="1h10-1h20">Entre 1h10 et 1h20</option>
-            <option value="1h20-1h30">Entre 1h20 et 1h30</option>
-            <option value="1h30-1h40">Entre 1h30 et 1h40</option>
-            <option value="1h40+">1h40 et plus</option>
-          </select>
-        </div>
-      </div>
-      <div class="field"><label class="label">Niveau estimé</label>
-        <select id="niveau-auto">
-          <option value="">-- Sélectionner --</option>
-          <option>Débutant (première compét)</option>
-          <option>Intermédiaire (1-2 compéts)</option>
-          <option>Confirmé (3+ compéts ou résultats solides)</option>
-          <option>Élite</option>
-        </select>
-      </div>
+      <div class="section-title">Récapitulatif</div>
+      <div id="recap-content"></div>
+      <div id="age-badge" class="age-badge"></div>
     </div>
-    <button type="button" class="btn-next" onclick="goStep(4)">Continuer →</button>
-    <button type="button" class="btn-back" onclick="goStep(2)">← Retour</button>
-  </div>
-
-  <div id="step4" style="display:none;">
-    <div class="card"><div class="section-title">Récapitulatif</div><div id="recap-content"></div></div>
     <div class="card">
       <div class="section-title">Paiement sécurisé</div>
       <div style="display:flex;justify-content:space-between;font-size:14px;padding:8px 0;border-bottom:1px solid #f0f0f0;color:#888;"><span>Inscription — <span id="prix-label"></span></span><span id="prix-val"></span></div>
@@ -202,10 +189,11 @@
       </div>
     </div>
     <button type="button" class="btn-next" id="btn-payer" onclick="payer()">Payer et confirmer l'inscription</button>
-    <button type="button" class="btn-back" onclick="goStep(3)">← Retour</button>
+    <button type="button" class="btn-back" onclick="goStep(2)">← Retour</button>
   </div>
 
-  <div id="step5" style="display:none;">
+  <!-- STEP 4 : CONFIRMATION -->
+  <div id="step4" style="display:none;">
     <div class="card">
       <div class="confirm">
         <div class="confirm-icon">✅</div>
@@ -230,14 +218,27 @@
   var state = { genre:'', cat:'', catLabel:'', prix:0, coupe:'', taille:'' };
   var currentStep = 0;
 
-  function calcAge() {
-    var dob = document.getElementById('dob').value;
-    if (!dob) return;
+  function getAgeCat(dob) {
+    if (!dob) return null;
     var age = new Date().getFullYear() - parseInt(dob.split('-')[0]);
-    var cat = age < 16 ? null : age <= 24 ? '16-24 ans' : age <= 34 ? '25-34 ans' : age <= 44 ? '35-44 ans' : age <= 54 ? '45-54 ans' : '55 ans et +';
-    var badge = document.getElementById('age-badge');
-    badge.textContent = cat ? '✓ Catégorie d\'âge : ' + cat : '⚠️ Âge minimum requis : 16 ans';
-    badge.style.display = 'block';
+    if (age < 16) return null;
+    if (age <= 24) return '16-24 ans';
+    if (age <= 34) return '25-34 ans';
+    if (age <= 44) return '35-44 ans';
+    if (age <= 54) return '45-54 ans';
+    return '55 ans et +';
+  }
+
+  function getMoyenneAge(dobs) {
+    var ages = dobs.filter(Boolean).map(function(d){ return new Date().getFullYear() - parseInt(d.split('-')[0]); });
+    if (ages.length === 0) return null;
+    var moy = Math.round(ages.reduce(function(a,b){ return a+b; }, 0) / ages.length);
+    if (moy < 16) return null;
+    if (moy <= 24) return '16-24 ans (moyenne équipe)';
+    if (moy <= 34) return '25-34 ans (moyenne équipe)';
+    if (moy <= 44) return '35-44 ans (moyenne équipe)';
+    if (moy <= 54) return '45-54 ans (moyenne équipe)';
+    return '55 ans et + (moyenne équipe)';
   }
 
   function setGenre(g) {
@@ -250,7 +251,8 @@
     document.querySelectorAll('.cat-btn').forEach(function(b){ b.classList.remove('selected'); });
     el.classList.add('selected');
     state.cat = id; state.prix = prix; state.catLabel = label;
-    var isDuo = id.startsWith('duo'), isRelais = id === 'relais';
+    var isDuo = id.startsWith('duo');
+    var isRelais = id.startsWith('relais');
     var bloc = document.getElementById('membres-bloc');
     if (isDuo || isRelais) {
       var count = isRelais ? 3 : 1, html = '';
@@ -283,15 +285,11 @@
     state.taille = t;
   }
 
-  function toggleHistorique() {
-    var val = document.getElementById('deja-participe').value;
-    document.getElementById('bloc-historique').style.display = val === 'oui' ? 'block' : 'none';
-  }
-
   function goStep(n) {
     document.getElementById('step'+currentStep).style.display = 'none';
     document.getElementById('step'+n).style.display = 'block';
-    for (var i = 0; i <= 4; i++) {
+    var labels = ['Profil','Catégorie','T-shirt','Paiement'];
+    for (var i = 0; i <= 3; i++) {
       var dot = document.getElementById('dot'+i);
       var lbl = document.getElementById('lbl'+i);
       if (!dot) continue;
@@ -299,27 +297,61 @@
       dot.textContent = i < n ? '✓' : (i+1);
       lbl.className = 'step-label' + (i === n ? ' active' : '');
     }
-    if (n === 4) buildRecap();
+    if (n === 3) buildRecap();
     currentStep = n;
     window.scrollTo(0,0);
   }
 
   function buildRecap() {
-    var tempsSelect = document.getElementById('temps-select');
-    var tempsVal = tempsSelect && tempsSelect.value ? tempsSelect.options[tempsSelect.selectedIndex].text : null;
-    var dejaP = document.getElementById('deja-participe').value;
+    var isRelais = state.cat.startsWith('relais');
+    var isDuo = state.cat.startsWith('duo');
+    var tempsEstime = document.getElementById('temps-estime');
+    var tempsVal = tempsEstime && tempsEstime.value ? tempsEstime.options[tempsEstime.selectedIndex].text : '—';
+
     var rows = [
       ['Athlète', (document.getElementById('nom').value||'—') + ' ' + (document.getElementById('prenom').value||'')],
       ['Email', document.getElementById('email').value||'—'],
       ['Catégorie', state.catLabel||'—'],
-      ['T-shirt', (state.taille||'—') + ' ' + (state.coupe||'')],
-      ['Participation', dejaP === 'oui' ? 'Oui — ' + (tempsVal||'') : 'Première fois'],
+      ['T-shirt capitaine', (state.taille||'—') + ' ' + (state.coupe||'')],
+      ['Temps estimé', tempsVal],
     ];
+
     var eq = document.getElementById('nom-equipe').value;
-    if (eq) rows.push(['Équipe', eq]);
+    if (eq) rows.splice(2, 0, ['Équipe', eq]);
+
+    if (isDuo || isRelais) {
+      var count = isRelais ? 3 : 1;
+      for (var i = 0; i < count; i++) {
+        var n = i + 2;
+        var mnom = document.getElementById('m'+i+'nom') ? document.getElementById('m'+i+'nom').value : '';
+        var mprenom = document.getElementById('m'+i+'prenom') ? document.getElementById('m'+i+'prenom').value : '';
+        var mts = document.getElementById('m'+i+'ts') ? document.getElementById('m'+i+'ts').value : '';
+        rows.push(['Coéquipier ' + n, (mnom||'—') + ' ' + (mprenom||'') + ' — ' + mts]);
+      }
+    }
+
     document.getElementById('recap-content').innerHTML = rows.map(function(r){
       return '<div class="recap-row"><span class="recap-label">'+r[0]+'</span><span class="recap-val">'+r[1]+'</span></div>';
     }).join('');
+
+    // Catégorie d'âge
+    var badge = document.getElementById('age-badge');
+    if (isDuo || isRelais) {
+      var dobs = [document.getElementById('dob').value];
+      var count2 = isRelais ? 3 : 1;
+      for (var j = 0; j < count2; j++) {
+        var el = document.getElementById('m'+j+'dob');
+        if (el) dobs.push(el.value);
+      }
+      var ageCat = getMoyenneAge(dobs);
+      if (ageCat) { badge.textContent = '🎂 Catégorie d\'âge équipe : ' + ageCat; badge.style.display = 'block'; }
+      else { badge.style.display = 'none'; }
+    } else {
+      var ageCatSolo = getAgeCat(document.getElementById('dob').value);
+      if (ageCatSolo) { badge.textContent = '🎂 Catégorie d\'âge : ' + ageCatSolo; badge.style.display = 'block'; }
+      else { badge.style.display = 'none'; }
+    }
+
     document.getElementById('prix-label').textContent = state.catLabel;
     document.getElementById('prix-val').textContent = state.prix + ' €';
     document.getElementById('prix-total').textContent = state.prix + ' €';
@@ -329,7 +361,7 @@
     var btn = document.getElementById('btn-payer');
     btn.disabled = true;
     btn.textContent = 'Enregistrement...';
-    var tempsSelect = document.getElementById('temps-select');
+    var tempsEstime = document.getElementById('temps-estime');
     var data = {
       nom: document.getElementById('nom').value,
       prenom: document.getElementById('prenom').value,
@@ -342,9 +374,7 @@
       nom_equipe: document.getElementById('nom-equipe').value,
       tshirt_coupe: state.coupe,
       tshirt_taille: state.taille,
-      deja_participe: document.getElementById('deja-participe').value,
-      temps_precedent: tempsSelect && tempsSelect.value ? tempsSelect.options[tempsSelect.selectedIndex].text : '',
-      niveau: document.getElementById('niveau-auto').value,
+      temps_precedent: tempsEstime && tempsEstime.value ? tempsEstime.options[tempsEstime.selectedIndex].text : '',
       statut_paiement: 'en_attente'
     };
     var { error } = await db.from('Inscriptions').insert([data]);
@@ -354,7 +384,7 @@
       btn.textContent = 'Payer et confirmer l\'inscription';
       return;
     }
-    var lien = state.cat === 'relais' ? STRIPE_RELAIS : state.cat.startsWith('duo') ? STRIPE_DUO : STRIPE_SOLO;
+    var lien = state.cat.startsWith('relais') ? STRIPE_RELAIS : state.cat.startsWith('duo') ? STRIPE_DUO : STRIPE_SOLO;
     window.location.href = lien;
   }
 </script>
