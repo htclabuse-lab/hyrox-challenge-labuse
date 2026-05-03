@@ -415,7 +415,7 @@
       nom_equipe: document.getElementById('nom-equipe').value,
       tshirt_coupe: state.coupe,
       tshirt_taille: state.taille,
-      temps_precedent: tempsEstime && tempsEstime.value ? tempsEstime.options[tempsEstime.selectedIndex].text : '',
+      temps_estime: tempsEstime && tempsEstime.value ? tempsEstime.options[tempsEstime.selectedIndex].text : '',
       statut_paiement: 'en_attente'
     };
     var { error } = await db.from('Inscriptions').insert([data]);
