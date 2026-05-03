@@ -31,20 +31,19 @@
     .step-label.active { color: #C0392B; font-weight: 600; }
     .cat-btn { position: relative; padding: 10px 8px; border-radius: 10px; border: 1.5px solid #eee; background: #fafafa; color: #888; font-size: 12px; cursor: pointer; text-align: center; font-family: sans-serif; line-height: 1.5; width: 100%; }
     .cat-btn.selected { border-color: #C0392B; background: #fff5f5; color: #C0392B; font-weight: 600; }
-    .cat-btn .check { display: none; position: absolute; top: 5px; right: 6px; width: 16px; height: 16px; border-radius: 50%; background: #C0392B; color: white; font-size: 10px; align-items: center; justify-content: center; }
-    .cat-btn.selected .check { display: flex; }
+    .cat-btn .check { display: none; position: absolute; top: 5px; right: 6px; width: 16px; height: 16px; border-radius: 50%; background: #C0392B; color: white; font-size: 10px; line-height: 16px; text-align: center; }
+    .cat-btn.selected .check { display: block; }
     .cat-btn .niveau { font-size: 10px; color: #aaa; margin-top: 2px; }
     .cat-btn .prix-tag { font-size: 12px; font-weight: 700; color: #C0392B; margin-top: 4px; }
     .cat-btn.selected .niveau { color: #C0392B; opacity: 0.7; }
     .toggle-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid #eee; background: #fafafa; color: #888; font-size: 13px; cursor: pointer; font-family: sans-serif; position: relative; }
     .toggle-btn.selected { border-color: #C0392B; background: #fff5f5; color: #C0392B; font-weight: 600; }
-    .toggle-btn .check { display: none; position: absolute; top: 5px; right: 6px; width: 16px; height: 16px; border-radius: 50%; background: #C0392B; color: white; font-size: 10px; align-items: center; justify-content: center; line-height: 16px; text-align: center; }
-.toggle-btn.selected .check { display: flex; }
-    .toggle-btn.selected .check { display: flex; }
+    .toggle-btn .check { display: none; position: absolute; top: 5px; right: 6px; width: 16px; height: 16px; border-radius: 50%; background: #C0392B; color: white; font-size: 10px; line-height: 16px; text-align: center; }
+    .toggle-btn.selected .check { display: block; }
     .size-btn { padding: 8px 4px; border-radius: 8px; border: 1.5px solid #eee; background: #fafafa; color: #888; font-size: 13px; cursor: pointer; text-align: center; font-family: sans-serif; position: relative; }
     .size-btn.selected { border-color: #C0392B; color: #C0392B; font-weight: 600; background: #fff5f5; }
-    .size-btn .check { display: none; position: absolute; top: 3px; right: 3px; width: 14px; height: 14px; border-radius: 50%; background: #C0392B; color: white; font-size: 9px; align-items: center; justify-content: center; }
-    .size-btn.selected .check { display: flex; }
+    .size-btn .check { display: none; position: absolute; top: 3px; right: 3px; width: 14px; height: 14px; border-radius: 50%; background: #C0392B; color: white; font-size: 9px; line-height: 14px; text-align: center; }
+    .size-btn.selected .check { display: block; }
     .info-box { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #1565c0; margin-bottom: 1rem; }
     .success-box { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px; padding: 8px 14px; font-size: 13px; color: #2e7d32; margin-top: 8px; display: none; }
     .btn-next { width: 100%; padding: 13px; background: #C0392B; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: sans-serif; margin-top: 8px; }
@@ -59,7 +58,7 @@
     .stripe-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
     .stripe-badge { background: #f5f5f5; border: 1px solid #eee; border-radius: 6px; padding: 4px 10px; font-size: 11px; color: #888; }
     .confirm { text-align: center; padding: 1.5rem 0; }
-    .confirm-icon { width: 56px; height: 56px; border-radius: 50%; background: #e8f5e9; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 28px; }
+    .confirm-icon { font-size: 48px; margin-bottom: 1rem; }
     .dossard { font-size: 44px; font-weight: 800; color: #C0392B; font-family: monospace; }
     .member-card { background: #fafafa; border-radius: 10px; padding: 12px; margin-bottom: 10px; border: 1px solid #eee; }
     .member-title { font-size: 12px; font-weight: 600; color: #888; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -223,7 +222,7 @@
 <script>
   const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co ';
   const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
-  const STRIPE_SOLO = 'https://buy.stripe.com/test_28E8wP4zlct67jYglhb3q00 ';
+  const STRIPE_SOLO = 'https://buy.stripe.com/test_28E8wP4zlct67jYglhb3q00';
   const STRIPE_DUO = 'https://buy.stripe.com/test_fZu4gz5DpeBe7jYb0Xb3q01';
   const STRIPE_RELAIS = 'https://buy.stripe.com/test_00wfZh8PB2Sw47Mb0Xb3q02';
 
@@ -235,4 +234,129 @@
     var dob = document.getElementById('dob').value;
     if (!dob) return;
     var age = new Date().getFullYear() - parseInt(dob.split('-')[0]);
-    var cat = age < 16 ? null : age <= 24 ? '16-24 ans' : age <= 34 ? '25-34 ans' : age <= 44 ? '35-44 ans' : age <= 54
+    var cat = age < 16 ? null : age <= 24 ? '16-24 ans' : age <= 34 ? '25-34 ans' : age <= 44 ? '35-44 ans' : age <= 54 ? '45-54 ans' : '55 ans et +';
+    var badge = document.getElementById('age-badge');
+    badge.textContent = cat ? '✓ Catégorie d\'âge : ' + cat : '⚠️ Âge minimum requis : 16 ans';
+    badge.style.display = 'block';
+  }
+
+  function setGenre(g) {
+    state.genre = g;
+    document.getElementById('g-h').classList.toggle('selected', g==='homme');
+    document.getElementById('g-f').classList.toggle('selected', g==='femme');
+  }
+
+  function setCat(el, id, prix, label) {
+    document.querySelectorAll('.cat-btn').forEach(function(b){ b.classList.remove('selected'); });
+    el.classList.add('selected');
+    state.cat = id; state.prix = prix; state.catLabel = label;
+    var isDuo = id.startsWith('duo'), isRelais = id === 'relais';
+    var bloc = document.getElementById('membres-bloc');
+    if (isDuo || isRelais) {
+      var count = isRelais ? 3 : 1, html = '';
+      for (var i = 0; i < count; i++) {
+        var n = i + 2;
+        html += '<div class="card"><div class="member-card"><div class="member-title">Coéquipier ' + n + '</div>';
+        html += '<div class="grid2"><div class="field"><label class="label">Nom</label><input type="text" id="m'+i+'nom" placeholder="NOM"></div>';
+        html += '<div class="field"><label class="label">Prénom</label><input type="text" id="m'+i+'prenom" placeholder="Prénom"></div></div>';
+        html += '<div class="field"><label class="label">Date de naissance</label><input type="date" id="m'+i+'dob"></div>';
+        html += '<div class="field"><label class="label">Taille t-shirt</label><select id="m'+i+'ts"><option>XS Homme</option><option>S Homme</option><option>M Homme</option><option>L Homme</option><option>XL Homme</option><option>XXL Homme</option><option>XS Femme</option><option>S Femme</option><option>M Femme</option><option>L Femme</option><option>XL Femme</option></select></div>';
+        html += '</div></div>';
+      }
+      bloc.innerHTML = html;
+    } else { bloc.innerHTML = ''; }
+  }
+
+  function setCoupe(c) {
+    state.coupe = c;
+    document.getElementById('c-h').classList.toggle('selected', c==='Homme');
+    document.getElementById('c-f').classList.toggle('selected', c==='Femme');
+    var tailles = c === 'Femme' ? ['XS','S','M','L','XL'] : ['XS','S','M','L','XL','XXL'];
+    document.getElementById('tailles-grid').innerHTML = tailles.map(function(t){
+      return '<button class="size-btn" onclick="setTaille(this,\''+t+'\')"><span class="check">✓</span>' + t + '</button>';
+    }).join('');
+  }
+
+  function setTaille(el, t) {
+    document.querySelectorAll('.size-btn').forEach(function(b){ b.classList.remove('selected'); });
+    el.classList.add('selected');
+    state.taille = t;
+  }
+
+  function toggleHistorique() {
+    var val = document.getElementById('deja-participe').value;
+    document.getElementById('bloc-historique').style.display = val === 'oui' ? 'block' : 'none';
+  }
+
+  function goStep(n) {
+    document.getElementById('step'+currentStep).style.display = 'none';
+    document.getElementById('step'+n).style.display = 'block';
+    for (var i = 0; i <= 4; i++) {
+      var dot = document.getElementById('dot'+i);
+      var lbl = document.getElementById('lbl'+i);
+      if (!dot) continue;
+      dot.className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
+      dot.textContent = i < n ? '✓' : (i+1);
+      lbl.className = 'step-label' + (i === n ? ' active' : '');
+    }
+    if (n === 4) buildRecap();
+    currentStep = n;
+    window.scrollTo(0,0);
+  }
+
+  function buildRecap() {
+    var tempsSelect = document.getElementById('temps-select');
+    var tempsVal = tempsSelect && tempsSelect.value ? tempsSelect.options[tempsSelect.selectedIndex].text : null;
+    var dejaP = document.getElementById('deja-participe').value;
+    var rows = [
+      ['Athlète', (document.getElementById('nom').value||'—') + ' ' + (document.getElementById('prenom').value||'')],
+      ['Email', document.getElementById('email').value||'—'],
+      ['Catégorie', state.catLabel||'—'],
+      ['T-shirt', (state.taille||'—') + ' ' + (state.coupe||'')],
+      ['Participation', dejaP === 'oui' ? 'Oui — ' + (tempsVal||'') : 'Première fois'],
+    ];
+    var eq = document.getElementById('nom-equipe').value;
+    if (eq) rows.push(['Équipe', eq]);
+    document.getElementById('recap-content').innerHTML = rows.map(function(r){
+      return '<div class="recap-row"><span class="recap-label">'+r[0]+'</span><span class="recap-val">'+r[1]+'</span></div>';
+    }).join('');
+    document.getElementById('prix-label').textContent = state.catLabel;
+    document.getElementById('prix-val').textContent = state.prix + ' €';
+    document.getElementById('prix-total').textContent = state.prix + ' €';
+  }
+
+  async function payer() {
+    var btn = document.getElementById('btn-payer');
+    btn.disabled = true;
+    btn.textContent = 'Enregistrement...';
+    var tempsSelect = document.getElementById('temps-select');
+    var data = {
+      nom: document.getElementById('nom').value,
+      prenom: document.getElementById('prenom').value,
+      email: document.getElementById('email').value,
+      telephone: document.getElementById('tel').value,
+      date_naissance: document.getElementById('dob').value,
+      genre: state.genre,
+      categorie: state.catLabel,
+      prix: state.prix,
+      nom_equipe: document.getElementById('nom-equipe').value,
+      tshirt_coupe: state.coupe,
+      tshirt_taille: state.taille,
+      deja_participe: document.getElementById('deja-participe').value,
+      temps_precedent: tempsSelect && tempsSelect.value ? tempsSelect.options[tempsSelect.selectedIndex].text : '',
+      niveau: document.getElementById('niveau-auto').value,
+      statut_paiement: 'en_attente'
+    };
+    var { error } = await db.from('inscriptions').insert([data]);
+    if (error) {
+      alert('Erreur lors de l\'enregistrement. Merci de réessayer.');
+      btn.disabled = false;
+      btn.textContent = 'Payer et confirmer l\'inscription';
+      return;
+    }
+    var lien = state.cat === 'relais' ? STRIPE_RELAIS : state.cat.startsWith('duo') ? STRIPE_DUO : STRIPE_SOLO;
+    window.location.href = lien;
+  }
+</script>
+</body>
+</html>
