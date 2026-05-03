@@ -347,7 +347,7 @@
       niveau: document.getElementById('niveau-auto').value,
       statut_paiement: 'en_attente'
     };
-    var { error } = await db.from('inscriptions').insert([data]);
+    var { error } = await db.from('Inscriptions').insert([data]);
     if (error) {
       alert('Erreur lors de l\'enregistrement. Merci de réessayer.');
       btn.disabled = false;
