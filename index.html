@@ -330,8 +330,46 @@
   }
 
   function goStep(n) {
-    // Si solo, on saute l'étape équipe (step 3)
     var isSolo = !state.cat.startsWith('duo') && !state.cat.startsWith('relais');
+
+    // Validation étape 0 : Profil
+    if (currentStep === 0) {
+      if (!document.getElementById('nom').value.trim()) { alert('Merci de renseigner ton nom.'); return; }
+      if (!document.getElementById('prenom').value.trim()) { alert('Merci de renseigner ton prénom.'); return; }
+      if (!document.getElementById('dob').value) { alert('Merci de renseigner ta date de naissance.'); return; }
+      if (!document.getElementById('email').value.trim()) { alert('Merci de renseigner ton email.'); return; }
+      if (!document.getElementById('tel').value.trim()) { alert('Merci de renseigner ton téléphone.'); return; }
+      if (!state.genre) { alert('Merci de sélectionner ton genre.'); return; }
+    }
+
+    // Validation étape 1 : Catégorie
+    if (currentStep === 1) {
+      if (!state.cat) { alert('Merci de choisir une catégorie.'); return; }
+    }
+
+    // Validation étape 2 : T-shirt
+    if (currentStep === 2) {
+      if (!state.coupe) { alert('Merci de choisir une coupe de t-shirt.'); return; }
+      if (!state.taille) { alert('Merci de choisir une taille de t-shirt.'); return; }
+    }
+
+    // Validation étape 3 : Coéquipiers
+    if (currentStep === 3 && !isSolo) {
+      var count = state.cat.startsWith('relais') ? 3 : 1;
+      for (var i = 0; i < count; i++) {
+        var n2 = i + 2;
+        if (!document.getElementById('m'+i+'nom') || !document.getElementById('m'+i+'nom').value.trim()) { alert('Merci de renseigner le nom du coéquipier ' + n2 + '.'); return; }
+        if (!document.getElementById('m'+i+'prenom') || !document.getElementById('m'+i+'prenom').value.trim()) { alert('Merci de renseigner le prénom du coéquipier ' + n2 + '.'); return; }
+        if (!document.getElementById('m'+i+'dob') || !document.getElementById('m'+i+'dob').value) { alert('Merci de renseigner la date de naissance du coéquipier ' + n2 + '.'); return; }
+      }
+    }
+
+    // Validation étape 4 : Temps estimé
+    if (currentStep === 4) {
+      if (!document.getElementById('temps-estime').value) { alert('Merci de sélectionner un temps estimé.'); return; }
+    }
+
+    // Navigation solo saute l'étape équipe
     if (isSolo && n === 3 && currentStep === 2) n = 4;
     if (isSolo && n === 3 && currentStep === 4) n = 2;
 
