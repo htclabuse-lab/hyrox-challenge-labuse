@@ -96,12 +96,12 @@
       <div class="field"><label class="label">Téléphone</label><input type="tel" id="tel" placeholder="06 12 34 56 78"></div>
       <div class="field"><label class="label">Genre</label>
         <div style="display:flex;gap:10px;margin-top:4px;">
-          <button class="toggle-btn" id="g-h" onclick="setGenre('homme')"><span class="check">✓</span>Homme</button>
-          <button class="toggle-btn" id="g-f" onclick="setGenre('femme')"><span class="check">✓</span>Femme</button>
+          <button type="button" class="toggle-btn" id="g-h" onclick="setGenre('homme')"><span class="check">✓</span>Homme</button>
+          <button type="button" class="toggle-btn" id="g-f" onclick="setGenre('femme')"><span class="check">✓</span>Femme</button>
         </div>
       </div>
     </div>
-    <button class="btn-next" onclick="goStep(1)">Continuer →</button>
+    <button type="button" class="btn-next" onclick="goStep(1)">Continuer →</button>
   </div>
 
   <div id="step1" style="display:none;">
@@ -110,32 +110,32 @@
       <div class="field">
         <div class="group-label">Solo</div>
         <div class="grid2">
-          <button class="cat-btn" onclick="setCat(this,'solo-h-rx',49,'Solo Homme RX')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">RX</div><div class="prix-tag">49 €</div></button>
-          <button class="cat-btn" onclick="setCat(this,'solo-h-sc',49,'Solo Homme Scaled')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">Scaled</div><div class="prix-tag">49 €</div></button>
-          <button class="cat-btn" onclick="setCat(this,'solo-f-rx',49,'Solo Femme RX')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">RX</div><div class="prix-tag">49 €</div></button>
-          <button class="cat-btn" onclick="setCat(this,'solo-f-sc',49,'Solo Femme Scaled')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">Scaled</div><div class="prix-tag">49 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'solo-h-rx',49,'Solo Homme RX')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">RX</div><div class="prix-tag">49 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'solo-h-sc',49,'Solo Homme Scaled')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">Scaled</div><div class="prix-tag">49 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'solo-f-rx',49,'Solo Femme RX')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">RX</div><div class="prix-tag">49 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'solo-f-sc',49,'Solo Femme Scaled')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">Scaled</div><div class="prix-tag">49 €</div></button>
         </div>
       </div>
       <div class="field">
         <div class="group-label">Duo — 1 inscription pour 2 athlètes</div>
         <div class="grid2">
-          <button class="cat-btn" onclick="setCat(this,'duo-h-rx',98,'Duo Homme RX')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">RX</div><div class="prix-tag">98 €</div></button>
-          <button class="cat-btn" onclick="setCat(this,'duo-h-sc',98,'Duo Homme Scaled')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">Scaled</div><div class="prix-tag">98 €</div></button>
-          <button class="cat-btn" onclick="setCat(this,'duo-f-rx',98,'Duo Femme RX')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">RX</div><div class="prix-tag">98 €</div></button>
-          <button class="cat-btn" onclick="setCat(this,'duo-f-sc',98,'Duo Femme Scaled')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">Scaled</div><div class="prix-tag">98 €</div></button>
-          <button class="cat-btn" onclick="setCat(this,'duo-mix-rx',98,'Duo Mixte RX')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">RX</div><div class="prix-tag">98 €</div></button>
-          <button class="cat-btn" onclick="setCat(this,'duo-mix-sc',98,'Duo Mixte Scaled')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">Scaled</div><div class="prix-tag">98 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-h-rx',98,'Duo Homme RX')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">RX</div><div class="prix-tag">98 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-h-sc',98,'Duo Homme Scaled')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">Scaled</div><div class="prix-tag">98 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-f-rx',98,'Duo Femme RX')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">RX</div><div class="prix-tag">98 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-f-sc',98,'Duo Femme Scaled')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">Scaled</div><div class="prix-tag">98 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-mix-rx',98,'Duo Mixte RX')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">RX</div><div class="prix-tag">98 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-mix-sc',98,'Duo Mixte Scaled')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">Scaled</div><div class="prix-tag">98 €</div></button>
         </div>
       </div>
       <div class="field">
         <div class="group-label">Relais — 2H + 2F, Scaled — 1 inscription pour 4 athlètes</div>
-        <button class="cat-btn" style="width:100%;" onclick="setCat(this,'relais',136,'Relais (2H+2F)')"><span class="check">✓</span><div>Relais</div><div class="niveau">Scaled · Mixte · 4 personnes</div><div class="prix-tag">136 €</div></button>
+        <button type="button" class="cat-btn" style="width:100%;" onclick="setCat(this,'relais',136,'Relais (2H+2F)')"><span class="check">✓</span><div>Relais</div><div class="niveau">Scaled · Mixte · 4 personnes</div><div class="prix-tag">136 €</div></button>
       </div>
       <div class="field"><label class="label">Nom d'équipe <span style="color:#bbb;font-weight:400">(duo & relais)</span></label><input type="text" id="nom-equipe" placeholder="Ex : Les Barbares"></div>
     </div>
     <div id="membres-bloc"></div>
-    <button class="btn-next" onclick="goStep(2)">Continuer →</button>
-    <button class="btn-back" onclick="goStep(0)">← Retour</button>
+    <button type="button" class="btn-next" onclick="goStep(2)">Continuer →</button>
+    <button type="button" class="btn-back" onclick="goStep(0)">← Retour</button>
   </div>
 
   <div id="step2" style="display:none;">
@@ -143,14 +143,14 @@
       <div class="section-title">Taille de t-shirt — Capitaine</div>
       <div class="field"><label class="label">Coupe</label>
         <div style="display:flex;gap:10px;margin-top:4px;">
-          <button class="toggle-btn" id="c-h" onclick="setCoupe('Homme')"><span class="check">✓</span>Homme</button>
-          <button class="toggle-btn" id="c-f" onclick="setCoupe('Femme')"><span class="check">✓</span>Femme</button>
+          <button type="button" class="toggle-btn" id="c-h" onclick="setCoupe('Homme')"><span class="check">✓</span>Homme</button>
+          <button type="button" class="toggle-btn" id="c-f" onclick="setCoupe('Femme')"><span class="check">✓</span>Femme</button>
         </div>
       </div>
       <div class="field"><label class="label">Taille</label><div class="grid3" id="tailles-grid" style="margin-top:4px;"></div></div>
     </div>
-    <button class="btn-next" onclick="goStep(3)">Continuer →</button>
-    <button class="btn-back" onclick="goStep(1)">← Retour</button>
+    <button type="button" class="btn-next" onclick="goStep(3)">Continuer →</button>
+    <button type="button" class="btn-back" onclick="goStep(1)">← Retour</button>
   </div>
 
   <div id="step3" style="display:none;">
@@ -187,8 +187,8 @@
         </select>
       </div>
     </div>
-    <button class="btn-next" onclick="goStep(4)">Continuer →</button>
-    <button class="btn-back" onclick="goStep(2)">← Retour</button>
+    <button type="button" class="btn-next" onclick="goStep(4)">Continuer →</button>
+    <button type="button" class="btn-back" onclick="goStep(2)">← Retour</button>
   </div>
 
   <div id="step4" style="display:none;">
@@ -201,8 +201,8 @@
         <div class="stripe-badge">Visa</div><div class="stripe-badge">Mastercard</div><div class="stripe-badge">Apple Pay</div><div class="stripe-badge">Google Pay</div><div class="stripe-badge">🔒 Stripe</div>
       </div>
     </div>
-    <button class="btn-next" id="btn-payer" onclick="payer()">Payer et confirmer l'inscription</button>
-    <button class="btn-back" onclick="goStep(3)">← Retour</button>
+    <button type="button" class="btn-next" id="btn-payer" onclick="payer()">Payer et confirmer l'inscription</button>
+    <button type="button" class="btn-back" onclick="goStep(3)">← Retour</button>
   </div>
 
   <div id="step5" style="display:none;">
@@ -273,7 +273,7 @@
     document.getElementById('c-f').classList.toggle('selected', c==='Femme');
     var tailles = c === 'Femme' ? ['XS','S','M','L','XL'] : ['XS','S','M','L','XL','XXL'];
     document.getElementById('tailles-grid').innerHTML = tailles.map(function(t){
-      return '<button class="size-btn" onclick="setTaille(this,\''+t+'\')"><span class="check">✓</span>' + t + '</button>';
+      return '<button type="button" class="size-btn" onclick="setTaille(this,\''+t+'\')"><span class="check">✓</span>' + t + '</button>';
     }).join('');
   }
 
