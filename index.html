@@ -7,94 +7,114 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: sans-serif; background: #0a0a0a; color: #fff; }
-    .hero { background: #0a0a0a; border-bottom: 3px solid #CCFF00; padding: 2rem 1rem 1.5rem; text-align: center; }
-    .hero-logo { width: 110px; height: 110px; border-radius: 16px; margin: 0 auto 1rem; overflow: hidden; border: 2px solid #CCFF00; }
+    .hero { position: relative; min-height: 420px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 3rem 1rem 2rem; border-bottom: 3px solid #FFEE00; overflow: hidden; }
+    .hero-slides { position: absolute; inset: 0; z-index: 0; }
+    .hero-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 1.5s ease; filter: grayscale(100%) brightness(0.25); }
+    .hero-slide.active { opacity: 1; }
+    .hero-content { position: relative; z-index: 1; }
+    .hero-logo { width: 100px; height: 100px; border-radius: 16px; margin: 0 auto 1rem; overflow: hidden; border: 2px solid #FFEE00; }
     .hero-logo img { width: 100%; height: 100%; object-fit: cover; }
-    .hero-title { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
-    .hero-title span { color: #CCFF00; }
-    .hero-sub { font-size: 13px; color: #888; margin-top: 4px; }
-    .hero-desc { font-size: 14px; color: #ccc; max-width: 480px; margin: 1rem auto 0; line-height: 1.7; }
-    .hero-cta { display: inline-block; background: #CCFF00; color: #0a0a0a; font-weight: 800; font-size: 15px; padding: 12px 32px; border-radius: 10px; margin-top: 1.5rem; cursor: pointer; border: none; font-family: sans-serif; text-decoration: none; }
-    .hero-cta:hover { background: #b8e600; }
-    .nav { display: flex; background: #111; border-bottom: 1px solid #222; overflow-x: auto; position: sticky; top: 0; z-index: 100; }
-    .nav-btn { flex: 1; min-width: 80px; padding: 14px 8px; background: transparent; border: none; border-bottom: 3px solid transparent; color: #666; font-size: 12px; font-weight: 700; cursor: pointer; font-family: sans-serif; white-space: nowrap; }
-    .nav-btn.active { color: #CCFF00; border-bottom-color: #CCFF00; }
-    .nav-btn:hover { color: #fff; }
+    .hero-title { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -0.5px; text-shadow: 0 2px 8px rgba(0,0,0,0.8); }
+    .hero-title span { color: #FFEE00; }
+    .hero-sub { font-size: 13px; color: #ccc; margin-top: 4px; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+    .hero-desc { font-size: 14px; color: #ddd; max-width: 480px; margin: 1rem auto 0; line-height: 1.7; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
+    .hero-cta { display: inline-block; background: #FFEE00; color: #0a0a0a; font-weight: 800; font-size: 15px; padding: 13px 36px; border-radius: 10px; margin-top: 1.5rem; cursor: pointer; border: none; font-family: sans-serif; text-decoration: none; }
+    .hero-cta:hover { background: #e6d800; }
+    .nav { display: flex; background: #111; border-bottom: 3px solid #FFEE00; overflow-x: auto; position: sticky; top: 0; z-index: 100; }
+    .nav-btn { flex: 1; min-width: 80px; padding: 16px 8px; background: transparent; border: none; border-bottom: 4px solid transparent; color: #666; font-size: 13px; font-weight: 800; cursor: pointer; font-family: sans-serif; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.15s; }
+    .nav-btn.active { color: #0a0a0a; background: #FFEE00; }
+    .nav-btn:hover:not(.active) { color: #fff; background: #1a1a1a; }
     .content { max-width: 600px; margin: 0 auto; padding: 1.5rem 1rem; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
     .section-title { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 1rem; }
-    .section-title span { color: #CCFF00; }
-    .event-card { background: #111; border-radius: 14px; border: 1px solid #222; margin-bottom: 1.5rem; overflow: hidden; }
-    .event-header { background: #0a0a0a; border-bottom: 2px solid #CCFF00; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; }
-    .event-title { font-size: 16px; font-weight: 800; color: #fff; }
-    .event-date { font-size: 12px; color: #CCFF00; font-weight: 700; margin-top: 2px; }
-    .event-lieu { font-size: 11px; color: #888; margin-top: 2px; }
-    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-    .badge-open { background: #0a1a0a; color: #CCFF00; border: 1px solid #CCFF00; }
-    .badge-closed { background: #1a1a1a; color: #666; border: 1px solid #444; }
-    .event-body { padding: 1.25rem; }
-    .format-tag { display: inline-block; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 4px 12px; font-size: 12px; color: #ccc; margin: 0 4px 4px 0; }
-    .format-tag.fluo { border-color: #CCFF00; color: #CCFF00; background: #0d1400; }
-    .btn-inscrire { width: 100%; padding: 14px; background: #CCFF00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: sans-serif; margin-bottom: 10px; }
-    .btn-inscrire:hover { background: #b8e600; }
-    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .action-btn { padding: 10px; border-radius: 10px; border: 1px solid #333; background: #0a0a0a; color: #ccc; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; font-family: sans-serif; }
-    .action-btn:hover { border-color: #CCFF00; color: #CCFF00; }
-    .action-btn.active-section { border-color: #CCFF00; color: #CCFF00; }
-    .sub-section { display: none; margin-top: 1.25rem; border-top: 1px solid #222; padding-top: 1.25rem; }
-    .sub-title { font-size: 14px; font-weight: 800; color: #CCFF00; margin-bottom: 12px; }
-    .epreuve-table { width: 100%; border-collapse: collapse; font-size: 12px; overflow-x: auto; display: block; }
-    .epreuve-table th { background: #1a1a1a; color: #CCFF00; padding: 8px 10px; text-align: left; white-space: nowrap; font-size: 11px; border: 1px solid #333; }
-    .epreuve-table td { padding: 8px 10px; border: 1px solid #222; color: #ccc; white-space: nowrap; }
-    .epreuve-table tr:nth-child(even) td { background: #111; }
-    .epreuve-table tr:nth-child(odd) td { background: #0d0d0d; }
-    .epreuve-table td:first-child { color: #fff; font-weight: 700; }
-    .leaderboard-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1a1a1a; }
-    .leaderboard-row:last-child { border-bottom: none; }
-    .pos { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
-    .pos-1 { background: #CCFF00; color: #0a0a0a; }
-    .pos-2 { background: #888; color: #fff; }
-    .pos-3 { background: #c87941; color: #fff; }
-    .pos-n { background: #1a1a1a; color: #666; }
-    .pos-name { flex: 1; font-size: 13px; color: #fff; font-weight: 600; }
-    .pos-cat { font-size: 11px; color: #666; }
-    .pos-time { font-family: monospace; font-size: 14px; color: #CCFF00; font-weight: 700; }
-    .planning-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1a1a1a; }
-    .planning-row:last-child { border-bottom: none; }
-    .planning-heure { background: #0d1400; border: 1px solid #CCFF00; color: #CCFF00; font-family: monospace; font-weight: 700; font-size: 13px; padding: 4px 10px; border-radius: 8px; min-width: 64px; text-align: center; flex-shrink: 0; }
-    .planning-cat { flex: 1; font-size: 13px; color: #ccc; }
-    .planning-nb { font-size: 12px; color: #666; white-space: nowrap; }
-    .cta-banner { background: #0d1400; border: 1px solid #CCFF00; border-radius: 12px; padding: 1.25rem; text-align: center; margin-bottom: 1.5rem; }
-    .cta-banner p { color: #aaa; font-size: 13px; margin-bottom: 1rem; line-height: 1.6; }
+    .section-title span { color: #FFEE00; }
     .cat-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
     .cat-name { font-weight: 700; color: #fff; font-size: 14px; }
     .cat-sub { font-size: 12px; color: #888; margin-top: 2px; }
-    .cat-prix { font-weight: 800; color: #CCFF00; font-size: 16px; flex-shrink: 0; }
+    .cat-prix { font-weight: 800; color: #FFEE00; font-size: 16px; flex-shrink: 0; }
+    .btn-inscrire { width: 100%; padding: 14px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: sans-serif; margin-top: 12px; display: block; text-align: center; text-decoration: none; }
+    .btn-inscrire:hover { background: #e6d800; }
+    .cta-banner { background: #0d1400; border: 1px solid #FFEE00; border-radius: 12px; padding: 1.25rem; text-align: center; margin-bottom: 1.5rem; }
+    .cta-banner p { color: #aaa; font-size: 13px; margin-bottom: 1rem; line-height: 1.6; }
+    .patch-section { background: #111; border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem; border: 1px solid #222; display: flex; gap: 1rem; align-items: center; }
+    .patch-img { width: 90px; height: 90px; border-radius: 10px; object-fit: cover; flex-shrink: 0; border: 2px solid #FFEE00; }
+    .patch-title { font-size: 15px; font-weight: 800; color: #FFEE00; margin-bottom: 6px; }
+    .patch-desc { font-size: 13px; color: #aaa; line-height: 1.6; }
+    .event-card { background: #111; border-radius: 14px; border: 1px solid #222; margin-bottom: 1.5rem; overflow: hidden; }
+    .event-header { background: #0a0a0a; border-bottom: 2px solid #FFEE00; padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; }
+    .event-title { font-size: 16px; font-weight: 800; color: #fff; }
+    .event-date { font-size: 12px; color: #FFEE00; font-weight: 700; margin-top: 2px; }
+    .event-lieu { font-size: 11px; color: #888; margin-top: 2px; }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .badge-open { background: #0a1a0a; color: #FFEE00; border: 1px solid #FFEE00; }
+    .badge-closed { background: #1a1a1a; color: #666; border: 1px solid #444; }
+    .event-body { padding: 1.25rem; }
+    .format-tag { display: inline-block; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 4px 12px; font-size: 12px; color: #ccc; margin: 0 4px 4px 0; }
+    .format-tag.fluo { border-color: #FFEE00; color: #FFEE00; background: #0d1400; }
+    .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .action-btn { padding: 10px; border-radius: 10px; border: 1px solid #333; background: #0a0a0a; color: #ccc; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; font-family: sans-serif; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .action-btn:hover { border-color: #FFEE00; color: #FFEE00; }
+    .action-btn.active-btn { border-color: #FFEE00; color: #FFEE00; }
+    .sub-section { display: none; margin-top: 1.25rem; border-top: 1px solid #222; padding-top: 1.25rem; }
+    .sub-title { font-size: 14px; font-weight: 800; color: #FFEE00; margin-bottom: 12px; }
+    .gallery { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 1rem; }
+    .gallery img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; filter: grayscale(100%); transition: filter 0.3s; cursor: pointer; }
+    .gallery img:hover { filter: grayscale(0%); }
     .format-block { background: #111; border: 1px solid #222; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
-    .format-block-title { font-size: 15px; font-weight: 800; color: #CCFF00; margin-bottom: 10px; }
+    .format-block-title { font-size: 15px; font-weight: 800; color: #FFEE00; margin-bottom: 10px; }
     .epreuve-row { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid #1a1a1a; }
     .epreuve-row:last-child { border-bottom: none; }
     .epreuve-nom { color: #fff; font-weight: 600; }
-    .epreuve-detail { color: #888; text-align: right; }
+    .epreuve-detail { color: #888; }
     .poids-block { margin-top: 12px; background: #0d0d0d; border-radius: 8px; padding: 10px 14px; }
-    .poids-title { font-size: 11px; color: #CCFF00; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
     .poids-row { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; }
     .poids-label { color: #888; }
     .poids-val { color: #fff; font-weight: 600; }
-    .relais-info { background: #0d1400; border: 1px solid #CCFF00; border-radius: 10px; padding: 12px 14px; margin-bottom: 1rem; font-size: 13px; color: #ccc; line-height: 1.7; }
+    .relais-info { background: #0d1400; border: 1px solid #FFEE00; border-radius: 10px; padding: 12px 14px; margin-bottom: 1rem; font-size: 13px; color: #ccc; line-height: 1.7; }
+    .planning-row { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #1a1a1a; font-size: 13px; }
+    .planning-heure { color: #FFEE00; font-family: monospace; font-weight: 700; min-width: 56px; flex-shrink: 0; }
+    .planning-cat { color: #ccc; }
+    /* LEADERBOARD */
+    .lb-filters { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 10px; }
+    .filter-label { font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .filter-group { display: flex; flex-wrap: wrap; gap: 6px; }
+    .filter-btn { padding: 6px 12px; border-radius: 20px; border: 1px solid #333; background: #111; color: #888; font-size: 11px; font-weight: 700; cursor: pointer; font-family: sans-serif; white-space: nowrap; }
+    .filter-btn.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
+    .lb-cat-section { margin-bottom: 1.25rem; }
+    .lb-cat-title { font-size: 13px; font-weight: 800; color: #FFEE00; background: #111; padding: 8px 12px; border-radius: 8px 8px 0 0; border: 1px solid #222; border-bottom: none; text-transform: uppercase; letter-spacing: 0.5px; }
+    .lb-cat-body { background: #111; border: 1px solid #222; border-radius: 0 0 8px 8px; overflow: hidden; }
+    .lb-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-bottom: 1px solid #1a1a1a; }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-pos { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; flex-shrink: 0; }
+    .lb-pos-1 { background: #FFEE00; color: #0a0a0a; }
+    .lb-pos-2 { background: #888; color: #fff; }
+    .lb-pos-3 { background: #c87941; color: #fff; }
+    .lb-pos-n { background: #1a1a1a; color: #666; }
+    .lb-name { flex: 1; font-size: 13px; color: #fff; font-weight: 600; }
+    .lb-team { font-size: 11px; color: #888; }
+    .lb-age { font-size: 11px; color: #666; }
+    .lb-time { font-family: monospace; font-size: 13px; color: #FFEE00; font-weight: 700; flex-shrink: 0; }
+    .no-results { text-align: center; color: #666; font-size: 13px; padding: 1.5rem; }
   </style>
 </head>
 <body>
 
 <div class="hero">
-  <div class="hero-logo">
-    <img src="logo.jpg" alt="Hyrox Training Club La Buse">
+  <div class="hero-slides" id="slides">
+    <div class="hero-slide active" style="background-image:url('photo2.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('photo3.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('photo4.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('photo5.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('photo6.jpg')"></div>
   </div>
-  <div class="hero-title">Hyrox Challenge <span>La Buse</span></div>
-  <div class="hero-sub">Hyrox Training Club La Buse — Saint-Paul, La Réunion</div>
-  <div class="hero-desc">Viens tester tes limites sur notre Hyrox Challenge ! Deux formats accessibles à tous : Hyrox 1000 et Hyrox 500. Solo, Duo ou Relais — que tu sois débutant ou confirmé, viens vivre une expérience intense, fun et accessible 🔥</div>
-  <a href="inscription.html" class="hero-cta">S'inscrire au prochain événement</a>
+  <div class="hero-content">
+    <div class="hero-logo"><img src="logo.jpg" alt="HTC La Buse"></div>
+    <div class="hero-title">Hyrox Challenge <span>La Buse</span></div>
+    <div class="hero-sub">Hyrox Training Club La Buse — Saint-Paul, La Réunion</div>
+    <div class="hero-desc">Viens tester tes limites ! Deux formats accessibles à tous : Hyrox 1000 et Hyrox 500. Solo, Duo ou Relais 🔥</div>
+    <a href="inscription.html" class="hero-cta">S'inscrire au prochain événement</a>
+  </div>
 </div>
 
 <div class="nav">
@@ -110,23 +130,20 @@
   <div class="tab-content active" id="tab-accueil">
     <div style="margin-bottom:1.5rem;">
       <div class="section-title">Les <span>catégories</span></div>
-      <div class="cat-card">
-        <div><div class="cat-name">Solo</div><div class="cat-sub">Homme / Femme · RX ou Scaled</div></div>
-        <div class="cat-prix">49 €</div>
-      </div>
-      <div class="cat-card">
-        <div><div class="cat-name">Duo</div><div class="cat-sub">Homme / Femme / Mixte · RX ou Scaled</div></div>
-        <div class="cat-prix">98 €</div>
-      </div>
-      <div class="cat-card">
-        <div><div class="cat-name">Relais</div><div class="cat-sub">4 personnes · Hommes / Femmes / Mixte</div></div>
-        <div class="cat-prix">136 €</div>
-      </div>
-      <a href="inscription.html" class="btn-inscrire" style="display:block;text-align:center;text-decoration:none;margin-top:12px;">S'inscrire maintenant</a>
+      <div class="cat-card"><div><div class="cat-name">Solo</div><div class="cat-sub">Homme / Femme · RX ou Scaled</div></div><div class="cat-prix">49 €</div></div>
+      <div class="cat-card"><div><div class="cat-name">Duo</div><div class="cat-sub">Homme / Femme / Mixte · RX ou Scaled</div></div><div class="cat-prix">98 €</div></div>
+      <div class="cat-card"><div><div class="cat-name">Relais</div><div class="cat-sub">4 personnes · Hommes / Femmes / Mixte</div></div><div class="cat-prix">136 €</div></div>
+      <a href="inscription.html" class="btn-inscrire">S'inscrire maintenant</a>
     </div>
-
+    <div class="patch-section">
+      <img src="photo1.jpg" alt="Patch finisher" class="patch-img">
+      <div>
+        <div class="patch-title">🏅 Patch Finisher</div>
+        <div class="patch-desc">Chaque athlète qui franchit la ligne d'arrivée repart avec son patch exclusif Hyrox Challenge La Buse !</div>
+      </div>
+    </div>
     <div class="cta-banner">
-      <div style="font-size:16px;font-weight:800;color:#CCFF00;margin-bottom:8px;">Prochain événement — 12 juillet 2026</div>
+      <div style="font-size:16px;font-weight:800;color:#FFEE00;margin-bottom:8px;">Prochain événement — 12 juillet 2026</div>
       <p>Les inscriptions sont ouvertes !<br>Réserve ta place avant qu'il ne soit trop tard.</p>
       <a href="inscription.html" class="hero-cta">S'inscrire maintenant</a>
     </div>
@@ -134,9 +151,7 @@
 
   <!-- ÉPREUVES -->
   <div class="tab-content" id="tab-epreuves">
-
     <div class="section-title" style="margin-bottom:1.5rem;">Les <span>8 épreuves</span></div>
-
     <div class="format-block">
       <div class="format-block-title">Épreuves communes à tous les formats</div>
       <div class="epreuve-row"><span class="epreuve-nom">SkiErg</span><span class="epreuve-detail">1 000 m</span></div>
@@ -148,11 +163,13 @@
       <div class="epreuve-row"><span class="epreuve-nom">Sandbag Lunges</span><span class="epreuve-detail">100 m</span></div>
       <div class="epreuve-row"><span class="epreuve-nom">Wall Balls</span><span class="epreuve-detail">100 répétitions</span></div>
     </div>
-
+    <div style="background:#0d1400;border:1px solid #FFEE00;border-radius:10px;padding:10px 14px;margin-bottom:1rem;font-size:13px;color:#ccc;">
+      ⚡ <strong style="color:#FFEE00;">Scaled</strong> — mêmes épreuves et mêmes poids, course de <strong>500 m</strong> entre les stations (au lieu de 1 000 m)
+    </div>
     <div class="section-title" style="margin-bottom:1rem;">Les <span>poids par catégorie</span></div>
-
     <div class="format-block">
-      <div class="format-block-title">RX Homme / Duo Homme RX / Relais (poids homme)</div>
+      <div class="format-block-title">RX Homme / Duo Homme RX / Relais</div>
+      <div style="font-size:12px;color:#888;margin-bottom:8px;">⚠️ En catégorie Mixte, les poids Homme s'appliquent</div>
       <div class="poids-block">
         <div class="poids-row"><span class="poids-label">Sled Push</span><span class="poids-val">152 kg</span></div>
         <div class="poids-row"><span class="poids-label">Sled Pull</span><span class="poids-val">103 kg</span></div>
@@ -161,7 +178,6 @@
         <div class="poids-row"><span class="poids-label">Wall Balls</span><span class="poids-val">100 × 6 kg</span></div>
       </div>
     </div>
-
     <div class="format-block">
       <div class="format-block-title">RX Femme / Duo Femme RX</div>
       <div class="poids-block">
@@ -172,39 +188,11 @@
         <div class="poids-row"><span class="poids-label">Wall Balls</span><span class="poids-val">100 × 4 kg</span></div>
       </div>
     </div>
-
     <div class="format-block">
-      <div class="format-block-title">Duo Mixte RX — poids hommes appliqués</div>
-      <div style="font-size:12px;color:#888;margin-bottom:10px;">En catégorie Mixte, les poids standards Homme s'appliquent.</div>
-      <div class="poids-block">
-        <div class="poids-row"><span class="poids-label">Sled Push</span><span class="poids-val">152 kg</span></div>
-        <div class="poids-row"><span class="poids-label">Sled Pull</span><span class="poids-val">103 kg</span></div>
-        <div class="poids-row"><span class="poids-label">Farmer's Carry</span><span class="poids-val">2 × 24 kg</span></div>
-        <div class="poids-row"><span class="poids-label">Sandbag Lunges</span><span class="poids-val">20 kg</span></div>
-        <div class="poids-row"><span class="poids-label">Wall Balls</span><span class="poids-val">100 × 6 kg</span></div>
-      </div>
+      <div class="format-block-title">Format Relais — 4 personnes</div>
+      <div class="relais-info">En équipe de 4, chaque coéquipier enchaîne course + workout à tour de rôle. Chaque membre effectue 2 fois 1 km de course à pied suivi d'une station 💪</div>
     </div>
-
-    <div class="format-block">
-      <div class="format-block-title">Scaled — Homme & Femme</div>
-      <div style="font-size:12px;color:#888;margin-bottom:10px;">Les poids Scaled seront communiqués prochainement.</div>
-    </div>
-
-    <div class="format-block">
-      <div class="format-block-title">Format Relais</div>
-      <div class="relais-info">
-        En équipe de 4, chaque coéquipier enchaîne course + workout à tour de rôle. Chaque membre effectue 2 fois 1 km de course à pied suivi d'une station d'entraînement. Les poids hommes s'appliquent.
-      </div>
-      <div class="poids-block">
-        <div class="poids-row"><span class="poids-label">Sled Push</span><span class="poids-val">152 kg</span></div>
-        <div class="poids-row"><span class="poids-label">Sled Pull</span><span class="poids-val">103 kg</span></div>
-        <div class="poids-row"><span class="poids-label">Farmer's Carry</span><span class="poids-val">2 × 24 kg</span></div>
-        <div class="poids-row"><span class="poids-label">Sandbag Lunges</span><span class="poids-val">20 kg</span></div>
-        <div class="poids-row"><span class="poids-label">Wall Balls</span><span class="poids-val">100 × 6 kg</span></div>
-      </div>
-    </div>
-
-    <a href="inscription.html" class="btn-inscrire" style="display:block;text-align:center;text-decoration:none;">S'inscrire maintenant</a>
+    <a href="inscription.html" class="btn-inscrire">S'inscrire maintenant</a>
   </div>
 
   <!-- À VENIR -->
@@ -226,32 +214,28 @@
           <span class="format-tag">Duo</span>
           <span class="format-tag">Relais</span>
         </div>
-        <a href="inscription.html" class="btn-inscrire" style="display:block;text-align:center;text-decoration:none;">S'inscrire</a>
+        <a href="inscription.html" class="btn-inscrire">S'inscrire</a>
         <div class="actions-grid">
-          <button type="button" class="action-btn" onclick="toggleSection('planning-avenir', this)">Planning</button>
-          <button type="button" class="action-btn" onclick="toggleSection('rulebook-avenir', this)">Rule book</button>
-          <button type="button" class="action-btn" onclick="toggleSection('leaderboard-avenir', this)">Leaderboard</button>
-          <button type="button" class="action-btn" onclick="toggleSection('photos-avenir', this)">Photos</button>
+          <button type="button" class="action-btn" onclick="toggleSection('planning-avenir', this)">📅 Planning</button>
+          <button type="button" class="action-btn" onclick="toggleSection('rulebook-avenir', this)">📋 Rule book</button>
+          <button type="button" class="action-btn" onclick="toggleSection('lb-avenir', this)">🏆 Leaderboard</button>
+          <button type="button" class="action-btn" onclick="toggleSection('photos-avenir', this)">📸 Photos</button>
         </div>
-
         <div class="sub-section" id="planning-avenir">
           <div class="sub-title">Planning de passage</div>
           <div style="font-size:13px;color:#666;">Sera publié après la clôture des inscriptions.</div>
         </div>
-
         <div class="sub-section" id="rulebook-avenir">
           <div class="sub-title">Rule book</div>
-          <div style="font-size:13px;color:#666;">Disponible prochainement en téléchargement.</div>
+          <div style="font-size:13px;color:#666;">Disponible prochainement.</div>
         </div>
-
-        <div class="sub-section" id="leaderboard-avenir">
+        <div class="sub-section" id="lb-avenir">
           <div class="sub-title">Leaderboard</div>
           <div style="font-size:13px;color:#666;">Disponible le jour de la compétition en temps réel.</div>
         </div>
-
         <div class="sub-section" id="photos-avenir">
           <div class="sub-title">Photos</div>
-          <div style="font-size:13px;color:#666;">Photos disponibles après l'événement.</div>
+          <div style="font-size:13px;color:#666;">Disponibles après l'événement.</div>
         </div>
       </div>
     </div>
@@ -275,41 +259,78 @@
           <span class="format-tag">110 participants</span>
         </div>
         <div class="actions-grid">
-          <button type="button" class="action-btn" onclick="toggleSection('leaderboard-passe', this)">Leaderboard</button>
-          <button type="button" class="action-btn" onclick="toggleSection('planning-passe', this)">Planning</button>
-          <button type="button" class="action-btn" onclick="toggleSection('photos-passe', this)">Photos</button>
-          <button type="button" class="action-btn" onclick="showTab('avenir')">Prochaine édition</button>
+          <button type="button" class="action-btn" onclick="toggleSection('lb-passe', this)">🏆 Leaderboard</button>
+          <button type="button" class="action-btn" onclick="toggleSection('planning-passe', this)">📅 Planning</button>
+          <button type="button" class="action-btn" onclick="toggleSection('photos-passe', this)">📸 Photos</button>
+          <button type="button" class="action-btn" onclick="showTab('avenir')">➡️ Prochaine édition</button>
         </div>
 
-        <div class="sub-section" id="leaderboard-passe">
-          <div class="sub-title">Top résultats — 26 avril 2026</div>
-          <div class="leaderboard-row"><div class="pos pos-1">1</div><div class="pos-name">BEGUE Bastien<div class="pos-cat">RX Hommes · 16-24 ans</div></div><div class="pos-time">1:12:43</div></div>
-          <div class="leaderboard-row"><div class="pos pos-2">2</div><div class="pos-name">LAURET David<div class="pos-cat">RX Hommes · 45-54 ans</div></div><div class="pos-time">1:23:18</div></div>
-          <div class="leaderboard-row"><div class="pos pos-3">3</div><div class="pos-name">AJORQUE David<div class="pos-cat">RX Hommes · 45-54 ans</div></div><div class="pos-time">2:17:39</div></div>
-          <div style="font-size:12px;color:#666;margin-top:10px;text-align:center;">Résultats complets disponibles sur demande</div>
+        <!-- LEADERBOARD INTÉGRÉ -->
+        <div class="sub-section" id="lb-passe">
+          <div class="sub-title">Leaderboard — 26 avril 2026</div>
+          <div class="lb-filters">
+            <div>
+              <div class="filter-label">Catégorie</div>
+              <div class="filter-group" id="filter-cat">
+                <button type="button" class="filter-btn active" onclick="filterCat('all',this)">Toutes</button>
+                <button type="button" class="filter-btn" onclick="filterCat('rx hommes',this)">RX Hommes</button>
+                <button type="button" class="filter-btn" onclick="filterCat('scaled hommes',this)">Scaled Hommes</button>
+                <button type="button" class="filter-btn" onclick="filterCat('rx femme',this)">RX Femmes</button>
+                <button type="button" class="filter-btn" onclick="filterCat('scaled femmes',this)">Scaled Femmes</button>
+                <button type="button" class="filter-btn" onclick="filterCat('duo rx homme',this)">Duo RX H</button>
+                <button type="button" class="filter-btn" onclick="filterCat('duo rx femme',this)">Duo RX F</button>
+                <button type="button" class="filter-btn" onclick="filterCat('duo rx mixte',this)">Duo RX Mixte</button>
+                <button type="button" class="filter-btn" onclick="filterCat('duo scaled hommes',this)">Duo SC H</button>
+                <button type="button" class="filter-btn" onclick="filterCat('duo scaled femmes',this)">Duo SC F</button>
+                <button type="button" class="filter-btn" onclick="filterCat('duo scaled mixte',this)">Duo SC Mixte</button>
+                <button type="button" class="filter-btn" onclick="filterCat('relais',this)">Relais</button>
+              </div>
+            </div>
+            <div>
+              <div class="filter-label">Catégorie d'âge</div>
+              <div class="filter-group" id="filter-age">
+                <button type="button" class="filter-btn active" onclick="filterAge('all',this)">Tous</button>
+                <button type="button" class="filter-btn" onclick="filterAge('16-24',this)">16-24</button>
+                <button type="button" class="filter-btn" onclick="filterAge('25-34',this)">25-34</button>
+                <button type="button" class="filter-btn" onclick="filterAge('35-44',this)">35-44</button>
+                <button type="button" class="filter-btn" onclick="filterAge('45-54',this)">45-54</button>
+                <button type="button" class="filter-btn" onclick="filterAge('55+',this)">55+</button>
+              </div>
+            </div>
+          </div>
+          <div id="leaderboard-content"></div>
         </div>
 
+        <!-- PLANNING -->
         <div class="sub-section" id="planning-passe">
           <div class="sub-title">Planning — 26 avril 2026</div>
-          <div class="planning-row"><div class="planning-heure">08h00</div><div class="planning-cat">Solo Homme RX</div><div class="planning-nb">12 athlètes</div></div>
-          <div class="planning-row"><div class="planning-heure">08h30</div><div class="planning-cat">Solo Femme RX</div><div class="planning-nb">8 athlètes</div></div>
-          <div class="planning-row"><div class="planning-heure">09h00</div><div class="planning-cat">Duo Homme RX</div><div class="planning-nb">6 équipes</div></div>
-          <div class="planning-row"><div class="planning-heure">09h30</div><div class="planning-cat">Solo Homme Scaled</div><div class="planning-nb">15 athlètes</div></div>
-          <div class="planning-row"><div class="planning-heure">10h00</div><div class="planning-cat">Duo Mixte Scaled</div><div class="planning-nb">10 équipes</div></div>
-          <div class="planning-row"><div class="planning-heure">10h30</div><div class="planning-cat">Solo Femme Scaled</div><div class="planning-nb">9 athlètes</div></div>
-          <div class="planning-row"><div class="planning-heure">11h00</div><div class="planning-cat">Duo Femme RX</div><div class="planning-nb">5 équipes</div></div>
-          <div class="planning-row"><div class="planning-heure">11h30</div><div class="planning-cat">Duo Homme Scaled</div><div class="planning-nb">7 équipes</div></div>
+          <div class="planning-row"><span class="planning-heure">08h00</span><span class="planning-cat">Solo Homme RX — 12 athlètes</span></div>
+          <div class="planning-row"><span class="planning-heure">08h30</span><span class="planning-cat">Solo Femme RX — 8 athlètes</span></div>
+          <div class="planning-row"><span class="planning-heure">09h00</span><span class="planning-cat">Duo Homme RX — 6 équipes</span></div>
+          <div class="planning-row"><span class="planning-heure">09h30</span><span class="planning-cat">Solo Homme Scaled — 15 athlètes</span></div>
+          <div class="planning-row"><span class="planning-heure">10h00</span><span class="planning-cat">Duo Mixte Scaled — 10 équipes</span></div>
+          <div class="planning-row"><span class="planning-heure">10h30</span><span class="planning-cat">Solo Femme Scaled — 9 athlètes</span></div>
+          <div class="planning-row"><span class="planning-heure">11h00</span><span class="planning-cat">Duo Femme RX — 5 équipes</span></div>
+          <div class="planning-row"><span class="planning-heure">11h30</span><span class="planning-cat">Duo Homme Scaled — 7 équipes</span></div>
+          <div class="planning-row"><span class="planning-heure">13h00</span><span class="planning-cat">Relais — 2 équipes</span></div>
         </div>
 
+        <!-- PHOTOS -->
         <div class="sub-section" id="photos-passe">
-          <div class="sub-title">Photos</div>
-          <div style="font-size:13px;color:#666;">Photos à ajouter prochainement.</div>
+          <div class="sub-title">Photos — 26 avril 2026</div>
+          <div class="gallery">
+            <img src="photo7.jpg" alt="Compétition"><img src="photo8.jpg" alt="Compétition">
+            <img src="photo9.jpg" alt="Compétition"><img src="photo10.jpg" alt="Compétition">
+            <img src="photo11.jpg" alt="Compétition"><img src="photo12.jpg" alt="Compétition">
+            <img src="photo13.jpg" alt="Compétition"><img src="photo14.jpg" alt="Compétition">
+            <img src="photo15.jpg" alt="Compétition">
+          </div>
         </div>
       </div>
     </div>
 
     <div class="cta-banner">
-      <div style="font-size:15px;font-weight:800;color:#CCFF00;margin-bottom:8px;">Tu veux participer à la prochaine édition ?</div>
+      <div style="font-size:15px;font-weight:800;color:#FFEE00;margin-bottom:8px;">Tu veux participer à la prochaine édition ?</div>
       <p>12 juillet 2026 — Crossfit La Buse<br>Inscriptions ouvertes !</p>
       <a href="inscription.html" class="hero-cta">S'inscrire maintenant</a>
     </div>
@@ -318,6 +339,16 @@
 </div>
 
 <script>
+// SLIDESHOW
+var slides = document.querySelectorAll('.hero-slide');
+var current = 0;
+setInterval(function() {
+  slides[current].classList.remove('active');
+  current = (current + 1) % slides.length;
+  slides[current].classList.add('active');
+}, 4000);
+
+// NAVIGATION
 function showTab(tab) {
   document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
   document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
@@ -330,8 +361,42 @@ function toggleSection(id, btn) {
   var el = document.getElementById(id);
   var isOpen = el.style.display === 'block';
   el.style.display = isOpen ? 'none' : 'block';
-  if (btn) btn.classList.toggle('active-section', !isOpen);
+  if (btn) { btn.style.borderColor = isOpen ? '' : '#FFEE00'; btn.style.color = isOpen ? '' : '#FFEE00'; }
 }
-</script>
-</body>
-</html>
+
+// LEADERBOARD DATA
+var DATA = [
+  {nom:"WARRIORS GIRL",membres:"BALMY Leslie / CADO Marion",cat:"duo scaled femmes",age:"25-34",temps:"00:57:36"},
+  {nom:"HYBRID DARLING",membres:"BLANCHARD Elisabeth / PANECHOU Clémence",cat:"duo scaled femmes",age:"35-44",temps:"00:52:19"},
+  {nom:"LES MUMS",membres:"BERSANI DA COSTA Cecile / GUERARD Typhaine",cat:"duo scaled femmes",age:"35-44",temps:"00:54:30"},
+  {nom:"MIEL",membres:"LAW-YAT Florence / ONORA Ketty",cat:"duo scaled femmes",age:"45-54",temps:"00:59:45"},
+  {nom:"DOMI ET MUMU",membres:"ETHEVE Dominique / TURPIN Murielle",cat:"duo scaled femmes",age:"35-44",temps:"01:07:29"},
+  {nom:"WORKING MUMS",membres:"BAILLOT Tamara / TARACONAT Daphnée",cat:"duo scaled femmes",age:"25-34",temps:"01:15:46"},
+  {nom:"LES CHEETAH",membres:"CADENET Charlotte / MUSSARD Dorynda",cat:"duo scaled femmes",age:"16-24",temps:"01:19:00"},
+  {nom:"LES INSEPARABLES",membres:"ESPEL Gaelle / SAMBAOUMAELO Elodie",cat:"duo scaled femmes",age:"35-44",temps:"01:28:20"},
+  {nom:"TEAM 9H30",membres:"LUCAS Henriette / PICARDO Isabelle",cat:"duo scaled femmes",age:"55+",temps:"01:30:50"},
+  {nom:"LAKANE Lynne",membres:"",cat:"scaled femmes",age:"25-34",temps:"01:07:15"},
+  {nom:"PERON Amandine",membres:"",cat:"scaled femmes",age:"25-34",temps:"01:14:08"},
+  {nom:"DELOT Anne-Elie",membres:"",cat:"scaled femmes",age:"25-34",temps:"01:19:35"},
+  {nom:"RIPERT Blondie",membres:"",cat:"scaled femmes",age:"25-34",temps:"01:25:39"},
+  {nom:"CORDELIER Chloë",membres:"",cat:"scaled femmes",age:"35-44",temps:"01:11:56"},
+  {nom:"ATCHAPA Emilie",membres:"",cat:"scaled femmes",age:"35-44",temps:"01:23:03"},
+  {nom:"HOARAU Sidonia",membres:"",cat:"scaled femmes",age:"35-44",temps:"01:38:30"},
+  {nom:"HAMBURGER Nathalie",membres:"",cat:"scaled femmes",age:"45-54",temps:"01:37:16"},
+  {nom:"GALAOR Marie",membres:"",cat:"rx femme",age:"25-34",temps:"01:19:35"},
+  {nom:"ABHERVE Julie",membres:"",cat:"rx femme",age:"25-34",temps:"01:20:46"},
+  {nom:"ADIBA Sarah",membres:"",cat:"rx femme",age:"25-34",temps:"01:22:58"},
+  {nom:"HUET Anaëlle",membres:"",cat:"rx femme",age:"16-24",temps:"01:53:45"},
+  {nom:"LES COPINES D'ABORD",membres:"FAUS LLOPIS Célia / MEEUS Marie",cat:"duo rx femme",age:"35-44",temps:"01:04:54"},
+  {nom:"No pain No champaign",membres:"HOAREAU Jennifer / WYZEN Ophelie",cat:"duo rx femme",age:"35-44",temps:"01:26:50"},
+  {nom:"ROB ET LUDO",membres:"DUBOIS Ludovic / GOUGON Robin",cat:"duo rx homme",age:"35-44",temps:"00:56:18"},
+  {nom:"CA PART!!",membres:"MORENO Titouan / SOUALRD Lilian",cat:"duo rx homme",age:"25-34",temps:"01:02:05"},
+  {nom:"LLB TEAM",membres:"BALOUNAÏK Samuel / LE LIVEC Thomas",cat:"duo rx homme",age:"25-34",temps:"01:02:09"},
+  {nom:"FITNESS PORK",membres:"SITALAPRESAD Julien / TRAVERS Emilien",cat:"duo rx homme",age:"25-34",temps:"01:03:59"},
+  {nom:"SURKOUTDETETE",membres:"MARDAYE Gael / PRIGENT Gaet",cat:"duo rx homme",age:"35-44",temps:"01:02:12"},
+  {nom:"LES POTES CORNES",membres:"DROUILLET Romain / LEPINAY Nicolas",cat:"duo rx homme",age:"35-44",temps:"01:07:11"},
+  {nom:"LES PUPUCES",membres:"D'HELFT Rémi / VITRY Nicolas",cat:"duo rx homme",age:"16-24",temps:"01:13:09"},
+  {nom:"DAMLUD",membres:"DAMOUR Ludovic / CAMPANELLA Damien",cat:"duo rx homme",age:"35-44",temps:"01:12:54"},
+  {nom:"LES 404",membres:"WAN-HOI Jean-Philippe / TACOUN Kévin",cat:"duo rx homme",age:"45-54",temps:"01:14:32"},
+  {nom:"HOLD BRO",membres:"DODIER Frederic / KAREL Sebastien",cat:"duo rx homme",age:"45-54",temps:"01:14:51"},
+  {nom:"KRYSTEAM",membres:"FOLIO Olivier
