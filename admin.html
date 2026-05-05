@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Hyrox Challenge La Buse</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #0a0a0a; color: #fff; }
+    .login { max-width: 400px; margin: 5rem auto; padding: 2rem; background: #111; border-radius: 14px; border: 1px solid #222; text-align: center; }
+    .login h1 { color: #FFEE00; font-size: 20px; margin-bottom: 1.5rem; }
+    .login input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #0a0a0a; color: #fff; font-size: 14px; margin-bottom: 12px; font-family: sans-serif; }
+    .login button { width: 100%; padding: 12px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: sans-serif; }
+    .header { background: #111; border-bottom: 3px solid #FFEE00; padding: 1rem 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { color: #FFEE00; font-size: 18px; }
+    .header button { background: transparent; border: 1px solid #333; color: #888; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-family: sans-serif; }
+    .content { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1rem; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.5rem; }
+    .stat { background: #111; border: 1px solid #222; border-radius: 12px; padding: 1rem; text-align: center; }
+    .stat-val { font-size: 24px; font-weight: 800; color: #FFEE00; }
+    .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+    .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid #333; background: #111; color: #888; font-size: 12px; font-weight: 700; cursor: pointer; font-family: sans-serif; }
+    .filter-btn.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #FFEE00; color: #0a0a0a; padding: 10px 12px; text-align: left; font-weight: 800; }
+    td { padding: 10px 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; }
+    tr:hover td { background: #111; }
+    .badge-paye { background: #0a1a0a; color: #4CAF50; border: 1px solid #4CAF50; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+    .badge-attente { background: #1a1400; color: #FFEE00; border: 1px solid #FFEE00; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
+    .section-title { font-size: 16px; font-weight: 800; color: #FFEE00; margin: 1.5rem 0 1rem; }
+    .tshirt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+    .tshirt-card { background: #111; border: 1px solid #222; border-radius: 10px; padding: 12px; text-align: center; }
+    .tshirt-val { font-size: 22px; font-weight: 800; color: #FFEE00; }
+    .tshirt-label { font-size: 12px; color: #888; margin-top: 4px; }
+    .export-btn { background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 800; cursor: pointer; font-family: sans-serif; margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-page">
+  <div class="login">
+    <h1>🔒 Admin — Hyrox Challenge La Buse</h1>
+    <input type="password" id="pwd" placeholder="Mot de passe" onkeypress="if(event.key==='Enter') login()">
+    <button onclick="login()">Accéder</button>
+    <div id="login-error" style="color:#C0392B;font-size:13px;margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard" style="display:none;">
+  <div class="header">
+    <h1>🏆 Hyrox Challenge La Buse — Admin</h1>
+    <button onclick="logout()">Déconnexion</button>
+  </div>
+
+  <div class="content">
+    <!-- STATS -->
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="total-inscrits">—</div><div class="stat-label">Total inscrits</div></div>
+      <div class="stat"><div class="stat-val" id="total-solo">—</div><div class="stat-label">Solo</div></div>
+      <div class="stat"><div class="stat-val" id="total-duo">—</div><div class="stat-label">Duo</div></div>
+      <div class="stat"><div class="stat-val" id="total-relais">—</div><div class="stat-label">Relais</div></div>
+    </div>
+
+    <!-- TABLEAU INSCRITS -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <div class="section-title" style="margin:0;">Inscrits</div>
+      <button class="export-btn" onclick="exportCSV()">⬇️ Exporter CSV</button>
+    </div>
+
+    <div class="filters" id="cat-filters">
+      <button type="button" class="filter-btn active" onclick="filterData('all',this)">Tous</button>
+      <button type="button" class="filter-btn" onclick="filterData('solo',this)">Solo</button>
+      <button type="button" class="filter-btn" onclick="filterData('duo',this)">Duo</button>
+      <button type="button" class="filter-btn" onclick="filterData('relais',this)">Relais</button>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table id="inscrits-table">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Email</th>
+            <th>Catégorie</th>
+            <th>Équipe</th>
+            <th>T-shirt</th>
+            <th>Temps estimé</th>
+            <th>Prix</th>
+            <th>Statut</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="inscrits-body"></tbody>
+      </table>
+    </div>
+
+    <!-- TSHIRTS -->
+    <div class="section-title">Récapitulatif T-shirts</div>
+    <div class="tshirt-grid" id="tshirt-grid"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const MOT_DE_PASSE = 'stephaniefitness974';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  var allData = [];
+  var currentFilter = 'all';
+
+  function login() {
+    var pwd = document.getElementById('pwd').value;
+    if (pwd === MOT_DE_PASSE) {
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadData();
+    } else {
+      document.getElementById('login-error').textContent = '❌ Mot de passe incorrect';
+    }
+  }
+
+  function logout() {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('login-page').style.display = 'block';
+    document.getElementById('pwd').value = '';
+  }
+
+  async function loadData() {
+    var { data, error } = await db.from('Inscriptions').select('*').order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
+    allData = data || [];
+    renderStats();
+    renderTable();
+    renderTshirts();
+  }
+
+  function renderStats() {
+    document.getElementById('total-inscrits').textContent = allData.length;
+    document.getElementById('total-solo').textContent = allData.filter(function(d){ return d.categorie && d.categorie.toLowerCase().includes('solo'); }).length;
+    document.getElementById('total-duo').textContent = allData.filter(function(d){ return d.categorie && d.categorie.toLowerCase().includes('duo'); }).length;
+    document.getElementById('total-relais').textContent = allData.filter(function(d){ return d.categorie && d.categorie.toLowerCase().includes('relais'); }).length;
+  }
+
+  function filterData(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('#cat-filters .filter-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    renderTable();
+  }
+
+  function renderTable() {
+    var filtered = allData.filter(function(d) {
+      if (currentFilter === 'all') return true;
+      return d.categorie && d.categorie.toLowerCase().includes(currentFilter);
+    });
+    var html = '';
+    filtered.forEach(function(d) {
+      var date = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
+      var statut = d.statut_paiement === 'paye' ? '<span class="badge-paye">✓ Payé</span>' : '<span class="badge-attente">En attente</span>';
+      html += '<tr>';
+      html += '<td><strong style="color:#fff;">' + (d.nom||'—') + '</strong></td>';
+      html += '<td>' + (d.prenom||'—') + '</td>';
+      html += '<td>' + (d.email||'—') + '</td>';
+      html += '<td>' + (d.categorie||'—') + '</td>';
+      html += '<td>' + (d.nom_equipe||'—') + '</td>';
+      html += '<td>' + (d.tshirt_taille||'—') + ' ' + (d.tshirt_coupe||'') + '</td>';
+      html += '<td>' + (d.temps_estime||'—') + '</td>';
+      html += '<td style="color:#FFEE00;font-weight:700;">' + (d.prix||'—') + ' €</td>';
+      html += '<td>' + statut + '</td>';
+      html += '<td>' + date + '</td>';
+      html += '</tr>';
+    });
+    document.getElementById('inscrits-body').innerHTML = html || '<tr><td colspan="10" style="text-align:center;color:#666;padding:2rem;">Aucun inscrit</td></tr>';
+  }
+
+  function renderTshirts() {
+    var counts = {};
+    allData.forEach(function(d) {
+      if (d.tshirt_taille && d.tshirt_coupe) {
+        var key = d.tshirt_taille + ' ' + d.tshirt_coupe;
+        counts[key] = (counts[key] || 0) + 1;
+      }
+    });
+    var html = '';
+    Object.keys(counts).sort().forEach(function(k) {
+      html += '<div class="tshirt-card"><div class="tshirt-val">' + counts[k] + '</div><div class="tshirt-label">' + k + '</div></div>';
+    });
+    document.getElementById('tshirt-grid').innerHTML = html || '<div style="color:#666;font-size:13px;">Aucune donnée</div>';
+  }
+
+  function exportCSV() {
+    var headers = ['Nom','Prénom','Email','Catégorie','Équipe','T-shirt','Temps estimé','Prix','Statut','Date'];
+    var rows = allData.map(function(d) {
+      return [
+        d.nom||'', d.prenom||'', d.email||'', d.categorie||'',
+        d.nom_equipe||'', (d.tshirt_taille||'') + ' ' + (d.tshirt_coupe||''),
+        d.temps_estime||'', d.prix||'', d.statut_paiement||'',
+        d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : ''
+      ].join(';');
+    });
+    var csv = [headers.join(';'), ...rows].join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'inscrits_hyrox.csv';
+    a.click();
+  }
+</script>
+</body>
+</html>
