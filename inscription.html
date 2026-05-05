@@ -237,6 +237,7 @@
   const STRIPE_SOLO = 'https://buy.stripe.com/test_28E8wP4zlct67jYglhb3q00';
   const STRIPE_DUO = 'https://buy.stripe.com/test_fZu4gz5DpeBe7jYb0Xb3q01';
   const STRIPE_RELAIS = 'https://buy.stripe.com/test_00wfZh8PB2Sw47Mb0Xb3q02';
+  const CODES_PROMO = { 'PREVENTE10': 0.10 };
 
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   var state = { genre:'', cat:'', catLabel:'', prix:0, coupe:'', taille:'' };
@@ -433,9 +434,25 @@
 
     document.getElementById('prix-label').textContent = state.catLabel;
     document.getElementById('prix-val').textContent = state.prix + ' €';
-    document.getElementById('prix-total').textContent = state.prix + ' €';
+    var prixFinal = Math.round(state.prix * (1 - remise) * 100) / 100;
+document.getElementById('prix-total').textContent = prixFinal + ' €';;
   }
 
+  var remise = 0;
+function appliquerCode() {
+  var code = document.getElementById('code-promo').value.toUpperCase().trim();
+  var msg = document.getElementById('code-msg');
+  if (CODES_PROMO[code]) {
+    remise = CODES_PROMO[code];
+    msg.style.color = '#4CAF50';
+    msg.textContent = '✓ Code appliqué ! -' + (remise*100) + '% sur le total';
+    buildRecap();
+  } else {
+    remise = 0;
+    msg.style.color = '#C0392B';
+    msg.textContent = '✗ Code invalide';
+  }
+}
   async function payer() {
     var btn = document.getElementById('btn-payer');
     btn.disabled = true;
