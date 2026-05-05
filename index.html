@@ -275,10 +275,40 @@
           <button type="button" class="action-btn" onclick="showTab('avenir')">➡️ Prochaine édition</button>
         </div>
 
-        <div class="sub-section" id="lb-passe">
-          <div class="sub-title">Leaderboard — 26 avril 2026</div>
-          <div style="font-size:14px;color:#666;">À intégrer prochainement.</div>
-        </div>
+     <div class="sub-section" id="lb-passe">
+  <div class="sub-title">Leaderboard — 26 avril 2026</div>
+  <div class="lb-filters">
+    <div>
+      <div class="filter-label">Catégorie</div>
+      <div class="filter-group" id="filter-cat">
+        <button type="button" class="filter-btn active" onclick="filterCat('all',this)">Toutes</button>
+        <button type="button" class="filter-btn" onclick="filterCat('rx hommes',this)">RX Hommes</button>
+        <button type="button" class="filter-btn" onclick="filterCat('scaled hommes',this)">Scaled Hommes</button>
+        <button type="button" class="filter-btn" onclick="filterCat('rx femme',this)">RX Femmes</button>
+        <button type="button" class="filter-btn" onclick="filterCat('scaled femmes',this)">Scaled Femmes</button>
+        <button type="button" class="filter-btn" onclick="filterCat('duo rx homme',this)">Duo RX H</button>
+        <button type="button" class="filter-btn" onclick="filterCat('duo rx femme',this)">Duo RX F</button>
+        <button type="button" class="filter-btn" onclick="filterCat('duo rx mixte',this)">Duo RX Mixte</button>
+        <button type="button" class="filter-btn" onclick="filterCat('duo scaled hommes',this)">Duo SC H</button>
+        <button type="button" class="filter-btn" onclick="filterCat('duo scaled femmes',this)">Duo SC F</button>
+        <button type="button" class="filter-btn" onclick="filterCat('duo scaled mixte',this)">Duo SC Mixte</button>
+        <button type="button" class="filter-btn" onclick="filterCat('relais',this)">Relais</button>
+      </div>
+    </div>
+    <div>
+      <div class="filter-label">Catégorie d'âge</div>
+      <div class="filter-group" id="filter-age">
+        <button type="button" class="filter-btn active" onclick="filterAge('all',this)">Tous</button>
+        <button type="button" class="filter-btn" onclick="filterAge('16-24',this)">16-24</button>
+        <button type="button" class="filter-btn" onclick="filterAge('25-34',this)">25-34</button>
+        <button type="button" class="filter-btn" onclick="filterAge('35-44',this)">35-44</button>
+        <button type="button" class="filter-btn" onclick="filterAge('45-54',this)">45-54</button>
+        <button type="button" class="filter-btn" onclick="filterAge('55+',this)">55+</button>
+      </div>
+    </div>
+  </div>
+  <div id="leaderboard-content"></div>
+</div>
 
         <div class="sub-section" id="planning-passe">
           <div class="sub-title">Planning — 26 avril 2026</div>
