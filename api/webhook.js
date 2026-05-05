@@ -1,17 +1,17 @@
-import Stripe from 'stripe';
-
-const stripe = new Stripe('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');
-const webhookSecret = 'whsec_okUKAt1LJxXn3eNVgFCJzBkKUnZGvNSe';
-const resendKey = 're_VMVgpP43_PL348CNsLaf9Mf7UmL4FfckD';
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const sig = req.headers['stripe-signature'];
-  let event;
+  const stripeSecret = process.env.STRIPE_SECRET_KEY;
+  const webhookSecret = process.env.WEBHOOK_SECRET;
+  const resendKey = process.env.RESEND_API_KEY;
 
+  const sig = req.headers['stripe-signature'];
+  const rawBody = await buffer(req);
+
+  let event;
   try {
-    event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
+    const stripe = await import('stripe').then(m => new m.default(stripeSecret));
+    event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
   } catch (err) {
     return res.status(400).send('Webhook error: ' + err.message);
   }
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Hyrox Challenge La Buse <htclabuse@gmail.com>',
+        from: 'Hyrox Challenge La Buse <onboarding@resend.dev>',
         to: email,
         subject: '✅ Inscription confirmée — Hyrox Challenge La Buse',
         html: `
@@ -43,3 +43,24 @@ export default async function handler(req, res) {
               📅 <strong>Dimanche 12 juillet 2026</strong><br>
               📍 <strong>Crossfit La Buse — Saint-Paul, La Réunion</strong><br><br>
               On t'attend sur la ligne de départ ! 💪
+            </p>
+            <div style="text-align:center;margin-top:2rem;">
+              <a href="https://hyrox-challenge-labuse.vercel.app" style="background:#FFEE00;color:#0a0a0a;padding:12px 30px;border-radius:8px;text-decoration:none;font-weight:800;">Voir le site</a>
+            </div>
+            <p style="color:#666;font-size:12px;text-align:center;margin-top:2rem;">Hyrox Training Club La Buse — Saint-Paul, La Réunion</p>
+          </div>
+        `
+      })
+    });
+  }
+
+  res.status(200).json({ received: true });
+}
+
+async function buffer(readable) {
+  const chunks = [];
+  for await (const chunk of readable) {
+    chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+  }
+  return Buffer.concat(chunks);
+}
