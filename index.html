@@ -400,6 +400,17 @@ function showTab(tab) {
 }
 
 function toggleSection(id, btn) {
+  var sections = ['lb-passe', 'planning-passe', 'photos-passe', 'planning-avenir', 'rulebook-avenir', 'lb-avenir', 'photos-avenir'];
+  sections.forEach(function(s) {
+    var el = document.getElementById(s);
+    if (el && s !== id) {
+      el.style.display = 'none';
+    }
+  });
+  document.querySelectorAll('.action-btn').forEach(function(b) {
+    b.style.borderColor = '';
+    b.style.color = '';
+  });
   var el = document.getElementById(id);
   var isOpen = el.style.display === 'block';
   el.style.display = isOpen ? 'none' : 'block';
