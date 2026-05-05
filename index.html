@@ -556,7 +556,7 @@ function filterCat(cat, btn) {
   currentCat = cat;
   document.querySelectorAll('#filter-cat .filter-btn').forEach(function(b){ b.classList.remove('active'); });
   btn.classList.add('active');
-  renderLB();
+  document.addEventListener('DOMContentLoaded', function() { renderLB(); });
 }
 
 function filterAge(age, btn) {
