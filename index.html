@@ -7,19 +7,32 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: sans-serif; background: #0a0a0a; color: #fff; font-size: 16px; }
-    .hero { background: #0a0a0a; border-bottom: 3px solid #FFEE00; padding: 2rem 1rem 1.5rem; text-align: center; }
+
+    /* HERO */
+    .hero { position: relative; min-height: 440px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 3rem 1rem 2rem; border-bottom: 3px solid #FFEE00; overflow: hidden; }
+    .hero-slides { position: absolute; inset: 0; z-index: 0; }
+    .hero-slide { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: 0; transition: opacity 1.5s ease; filter: grayscale(100%) brightness(0.2); }
+    .hero-slide.active { opacity: 1; }
+    .hero-content { position: relative; z-index: 1; }
     .hero-logo { width: 110px; height: 110px; border-radius: 16px; margin: 0 auto 1rem; overflow: hidden; border: 2px solid #FFEE00; }
     .hero-logo img { width: 100%; height: 100%; object-fit: cover; }
-    .hero-title { font-size: 30px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    .hero-title { font-size: 30px; font-weight: 800; color: #fff; letter-spacing: -0.5px; text-shadow: 0 2px 8px rgba(0,0,0,0.9); }
     .hero-title span { color: #FFEE00; }
-    .hero-sub { font-size: 15px; color: #888; margin-top: 4px; }
-    .hero-desc { font-size: 15px; color: #ccc; max-width: 480px; margin: 1rem auto 0; line-height: 1.7; }
+    .hero-sub { font-size: 15px; color: #ccc; margin-top: 4px; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
+    .hero-desc { font-size: 15px; color: #ddd; max-width: 480px; margin: 1rem auto 0; line-height: 1.7; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
     .hero-cta { display: inline-block; background: #FFEE00; color: #0a0a0a; font-weight: 800; font-size: 16px; padding: 13px 36px; border-radius: 10px; margin-top: 1.5rem; cursor: pointer; border: none; font-family: sans-serif; text-decoration: none; }
     .hero-cta:hover { background: #e6d800; }
+
+    /* BANDEAU PHOTO */
+    .photo-bandeau { width: 100%; height: 200px; background-size: cover; background-position: center; filter: grayscale(100%) brightness(0.35); }
+
+    /* NAV */
     .nav { display: flex; background: #111; border-bottom: 3px solid #FFEE00; overflow-x: auto; position: sticky; top: 0; z-index: 100; }
     .nav-btn { flex: 1; min-width: 80px; padding: 18px 8px; background: transparent; border: none; border-bottom: 4px solid transparent; color: #666; font-size: 14px; font-weight: 800; cursor: pointer; font-family: sans-serif; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.15s; }
     .nav-btn.active { color: #0a0a0a; background: #FFEE00; }
     .nav-btn:hover:not(.active) { color: #fff; background: #1a1a1a; }
+
+    /* CONTENT */
     .content { max-width: 600px; margin: 0 auto; padding: 1.5rem 1rem; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
@@ -67,18 +80,45 @@
     .planning-row { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid #1a1a1a; font-size: 14px; }
     .planning-heure { color: #FFEE00; font-family: monospace; font-weight: 700; min-width: 56px; flex-shrink: 0; }
     .planning-cat { color: #ccc; }
+
+    /* PHOTOGRAPHES */
+    .photo-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+    .photo-card-name { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+    .photo-links { display: flex; gap: 10px; flex-wrap: wrap; }
+    .photo-link { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; border: 1px solid #333; background: #0a0a0a; color: #ccc; transition: all 0.15s; }
+    .photo-link:hover { border-color: #FFEE00; color: #FFEE00; }
+    .photo-link.gallery { border-color: #FFEE00; color: #FFEE00; background: #0d1400; }
+    .photo-link.insta { border-color: #E1306C; color: #E1306C; background: #1a0a0f; }
+
+    /* GALERIE DECO */
+    .deco-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 1.5rem 0; }
+    .deco-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; filter: grayscale(100%) brightness(0.5); }
   </style>
 </head>
 <body>
 
+<!-- HERO avec slideshow -->
 <div class="hero">
-  <div class="hero-logo"><img src="logo.jpg" alt="HTC La Buse"></div>
-  <div class="hero-title">Hyrox Challenge <span>La Buse</span></div>
-  <div class="hero-sub">Hyrox Training Club La Buse — Saint-Paul, La Réunion</div>
-  <div class="hero-desc">Viens tester tes limites ! Deux formats accessibles à tous : Hyrox 1000 et Hyrox 500. Solo, Duo ou Relais — que tu sois débutant ou confirmé, viens vivre une expérience intense, fun et accessible 🔥</div>
-  <a href="inscription.html" class="hero-cta">S'inscrire au prochain événement</a>
+  <div class="hero-slides" id="slides">
+    <div class="hero-slide active" style="background-image:url('photo2.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('photo3.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('photo4.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('photo5.jpg')"></div>
+    <div class="hero-slide" style="background-image:url('photo6.jpg')"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-logo"><img src="logo.jpg" alt="HTC La Buse"></div>
+    <div class="hero-title">Hyrox Challenge <span>La Buse</span></div>
+    <div class="hero-sub">Hyrox Training Club La Buse — Saint-Paul, La Réunion</div>
+    <div class="hero-desc">Viens tester tes limites ! Deux formats accessibles à tous : Hyrox 1000 et Hyrox 500. Solo, Duo ou Relais — que tu sois débutant ou confirmé, viens vivre une expérience intense, fun et accessible 🔥</div>
+    <a href="inscription.html" class="hero-cta">S'inscrire au prochain événement</a>
+  </div>
 </div>
 
+<!-- BANDEAU PHOTO déco entre hero et nav -->
+<div class="photo-bandeau" style="background-image:url('photo7.jpg')"></div>
+
+<!-- NAV -->
 <div class="nav">
   <button type="button" class="nav-btn active" id="nav-accueil" onclick="showTab('accueil')">Accueil</button>
   <button type="button" class="nav-btn" id="nav-epreuves" onclick="showTab('epreuves')">Épreuves</button>
@@ -97,6 +137,13 @@
       <div class="cat-card"><div><div class="cat-name">Relais</div><div class="cat-sub">4 personnes · Hommes / Femmes / Mixte</div></div><div class="cat-prix">136 €</div></div>
       <a href="inscription.html" class="btn-inscrire">S'inscrire maintenant</a>
     </div>
+
+    <!-- Deco photos accueil -->
+    <div class="deco-grid">
+      <img src="photo8.jpg" alt="">
+      <img src="photo9.jpg" alt="">
+    </div>
+
     <div class="patch-section">
       <img src="photo1.jpg" alt="Patch finisher" class="patch-img">
       <div>
@@ -104,6 +151,7 @@
         <div class="patch-desc">Chaque athlète qui franchit la ligne d'arrivée repart avec son patch exclusif Hyrox Challenge La Buse !</div>
       </div>
     </div>
+
     <div class="cta-banner">
       <div style="font-size:17px;font-weight:800;color:#FFEE00;margin-bottom:8px;">Prochain événement — 12 juillet 2026</div>
       <p>Les inscriptions sont ouvertes !<br>Réserve ta place avant qu'il ne soit trop tard.</p>
@@ -226,25 +274,12 @@
           <button type="button" class="action-btn" onclick="toggleSection('photos-passe',this)">📸 Photos</button>
           <button type="button" class="action-btn" onclick="showTab('avenir')">➡️ Prochaine édition</button>
         </div>
-       <div class="sub-section" id="photos-passe">
-  <div class="sub-title">Photos — 26 avril 2026</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px;">
-    <img src="photo2.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo3.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo4.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo5.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo6.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo7.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo8.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo9.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo10.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo11.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo12.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo13.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo14.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-    <img src="photo15.jpg" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;filter:grayscale(100%);transition:filter 0.3s;" onmouseover="this.style.filter='grayscale(0%)'" onmouseout="this.style.filter='grayscale(100%)'">
-  </div>
-</div>
+
+        <div class="sub-section" id="lb-passe">
+          <div class="sub-title">Leaderboard — 26 avril 2026</div>
+          <div style="font-size:14px;color:#666;">À intégrer prochainement.</div>
+        </div>
+
         <div class="sub-section" id="planning-passe">
           <div class="sub-title">Planning — 26 avril 2026</div>
           <div class="planning-row"><span class="planning-heure">08h00</span><span class="planning-cat">Solo Homme RX — 12 athlètes</span></div>
@@ -257,12 +292,37 @@
           <div class="planning-row"><span class="planning-heure">11h30</span><span class="planning-cat">Duo Homme Scaled — 7 équipes</span></div>
           <div class="planning-row"><span class="planning-heure">13h00</span><span class="planning-cat">Relais — 2 équipes</span></div>
         </div>
+
         <div class="sub-section" id="photos-passe">
-          <div class="sub-title">Photos — 26 avril 2026</div>
-          <div style="font-size:14px;color:#666;">À ajouter prochainement.</div>
+          <div class="sub-title">📸 Photos — 26 avril 2026</div>
+          <p style="font-size:13px;color:#888;margin-bottom:14px;">Retrouve toutes les photos de l'événement chez nos photographes officiels :</p>
+          <div class="photo-card">
+            <div class="photo-card-name">📷 Samy Mounichy</div>
+            <div class="photo-links">
+              <a href="https://site.fotoowl.ai/samymounichy/gallery/277092?pass_key=5678" target="_blank" class="photo-link gallery">🖼 Galerie photos</a>
+              <a href="https://www.instagram.com/samy.mounichy" target="_blank" class="photo-link insta">📱 Instagram</a>
+            </div>
+          </div>
+          <div class="photo-card">
+            <div class="photo-card-name">📷 Elodie — EV Photographie</div>
+            <div class="photo-links">
+              <a href="https://www.evphotographie.fr/galerie-client/" target="_blank" class="photo-link gallery">🖼 Galerie photos</a>
+              <a href="https://www.instagram.com/elodie_evphotographie" target="_blank" class="photo-link insta">📱 Instagram</a>
+            </div>
+          </div>
         </div>
+
       </div>
     </div>
+
+    <!-- Deco photos passés -->
+    <div class="deco-grid">
+      <img src="photo10.jpg" alt="">
+      <img src="photo11.jpg" alt="">
+      <img src="photo12.jpg" alt="">
+      <img src="photo13.jpg" alt="">
+    </div>
+
     <div class="cta-banner">
       <div style="font-size:17px;font-weight:800;color:#FFEE00;margin-bottom:8px;">Tu veux participer à la prochaine édition ?</div>
       <p>12 juillet 2026 — Crossfit La Buse<br>Inscriptions ouvertes !</p>
@@ -273,6 +333,14 @@
 </div>
 
 <script>
+var slides = document.querySelectorAll('.hero-slide');
+var current = 0;
+setInterval(function() {
+  slides[current].classList.remove('active');
+  current = (current + 1) % slides.length;
+  slides[current].classList.add('active');
+}, 4000);
+
 function showTab(tab) {
   document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
   document.querySelectorAll('.nav-btn').forEach(function(b){ b.classList.remove('active'); });
@@ -280,6 +348,7 @@ function showTab(tab) {
   document.getElementById('nav-' + tab).classList.add('active');
   window.scrollTo(0, 0);
 }
+
 function toggleSection(id, btn) {
   var el = document.getElementById(id);
   var isOpen = el.style.display === 'block';
