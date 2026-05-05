@@ -20,39 +20,34 @@
     .stat { background: #111; border: 1px solid #222; border-radius: 12px; padding: 1rem; text-align: center; }
     .stat-val { font-size: 24px; font-weight: 800; color: #FFEE00; }
     .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
-    .tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 2px solid #222; }
-    .tab { padding: 12px 20px; background: transparent; border: none; color: #666; font-size: 14px; font-weight: 700; cursor: pointer; font-family: sans-serif; border-bottom: 3px solid transparent; margin-bottom: -2px; }
-    .tab.active { color: #FFEE00; border-bottom-color: #FFEE00; }
-    .tab:hover:not(.active) { color: #fff; }
+    .main-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 2px solid #222; overflow-x: auto; }
+    .main-tab { padding: 14px 20px; background: transparent; border: none; color: #666; font-size: 14px; font-weight: 700; cursor: pointer; font-family: sans-serif; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; }
+    .main-tab.active { color: #FFEE00; border-bottom-color: #FFEE00; }
+    .main-tab:hover:not(.active) { color: #fff; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
-    .filter-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid #333; background: #111; color: #888; font-size: 12px; font-weight: 700; cursor: pointer; font-family: sans-serif; }
-    .filter-btn.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
+    .sub-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
+    .sub-tab { padding: 6px 14px; border-radius: 20px; border: 1px solid #333; background: #111; color: #888; font-size: 12px; font-weight: 700; cursor: pointer; font-family: sans-serif; white-space: nowrap; }
+    .sub-tab.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th { background: #FFEE00; color: #0a0a0a; padding: 10px 12px; text-align: left; font-weight: 800; white-space: nowrap; }
     td { padding: 10px 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; }
     tr:hover td { background: #111; }
     .badge-paye { background: #0a1a0a; color: #4CAF50; border: 1px solid #4CAF50; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
     .badge-attente { background: #1a1400; color: #FFEE00; border: 1px solid #FFEE00; border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 700; }
-    .section-title { font-size: 16px; font-weight: 800; color: #FFEE00; margin: 1.5rem 0 1rem; }
-    .tshirt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
-    .tshirt-card { background: #111; border: 1px solid #222; border-radius: 10px; padding: 12px; text-align: center; }
-    .tshirt-val { font-size: 22px; font-weight: 800; color: #FFEE00; }
-    .tshirt-label { font-size: 12px; color: #888; margin-top: 4px; }
-    .export-btn { background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 800; cursor: pointer; font-family: sans-serif; }
+    .cat-block { margin-bottom: 1.5rem; }
+    .cat-header { background: #1a1400; border: 1px solid #FFEE00; border-radius: 10px 10px 0 0; padding: 10px 14px; font-size: 14px; font-weight: 800; color: #FFEE00; display: flex; justify-content: space-between; }
+    .cat-body { background: #111; border: 1px solid #222; border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; }
     .vague-block { background: #111; border: 1px solid #222; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
     .vague-header { background: #1a1400; border-bottom: 1px solid #FFEE00; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; }
     .vague-title { font-size: 14px; font-weight: 800; color: #FFEE00; }
     .vague-info { font-size: 12px; color: #888; }
-    .vague-row { display: flex; gap: 12px; padding: 8px 14px; border-bottom: 1px solid #1a1a1a; font-size: 13px; align-items: center; }
-    .vague-row:last-child { border-bottom: none; }
-    .vague-num { width: 24px; height: 24px; border-radius: 50%; background: #FFEE00; color: #0a0a0a; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; flex-shrink: 0; }
-    .vague-name { flex: 1; color: #fff; font-weight: 600; }
-    .vague-temps { color: #FFEE00; font-family: monospace; font-size: 12px; }
-    .cat-block { margin-bottom: 1.5rem; }
-    .cat-header { background: #1a1400; border: 1px solid #FFEE00; border-radius: 10px 10px 0 0; padding: 10px 14px; font-size: 14px; font-weight: 800; color: #FFEE00; }
-    .cat-body { background: #111; border: 1px solid #222; border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; }
+    .tshirt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+    .tshirt-card { background: #111; border: 1px solid #222; border-radius: 10px; padding: 12px; text-align: center; }
+    .tshirt-val { font-size: 22px; font-weight: 800; color: #FFEE00; }
+    .tshirt-label { font-size: 12px; color: #888; margin-top: 4px; }
+    .export-btn { background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 800; cursor: pointer; font-family: sans-serif; margin-bottom: 1rem; }
+    .passage-cat-title { background: #FFEE00; color: #0a0a0a; font-size: 15px; font-weight: 800; padding: 10px 14px; border-radius: 10px; margin: 1.5rem 0 0.5rem; }
   </style>
 </head>
 <body>
@@ -68,7 +63,7 @@
 
 <div id="dashboard" style="display:none;">
   <div class="header">
-    <h1>🏆 Hyrox Challenge La Buse — Admin</h1>
+    <h1>🏆 Admin — Hyrox Challenge La Buse</h1>
     <button type="button" onclick="logout()">Déconnexion</button>
   </div>
 
@@ -80,46 +75,52 @@
       <div class="stat"><div class="stat-val" id="total-relais">—</div><div class="stat-label">Relais</div></div>
     </div>
 
-    <div class="tabs">
-      <button type="button" class="tab active" onclick="showTab('chronologique')">🕐 Chronologique</button>
-      <button type="button" class="tab" onclick="showTab('categories')">📊 Par catégories</button>
-      <button type="button" class="tab" onclick="showTab('vagues')">⏱ Vagues</button>
-      <button type="button" class="tab" onclick="showTab('tshirts')">👕 T-shirts</button>
+    <div class="main-tabs">
+      <button type="button" class="main-tab active" onclick="showMainTab('inscription', this)">🕐 Ordre d'inscription</button>
+      <button type="button" class="main-tab" onclick="showMainTab('categories', this)">📊 Par catégorie</button>
+      <button type="button" class="main-tab" onclick="showMainTab('passage', this)">⏱ Ordre de passage</button>
+      <button type="button" class="main-tab" onclick="showMainTab('tshirts', this)">👕 T-shirts</button>
     </div>
 
-    <!-- ONGLET CHRONOLOGIQUE -->
-    <div class="tab-content active" id="tab-chronologique">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-        <div class="filters" id="cat-filters">
-          <button type="button" class="filter-btn active" onclick="filterData('all',this)">Tous</button>
-          <button type="button" class="filter-btn" onclick="filterData('solo',this)">Solo</button>
-          <button type="button" class="filter-btn" onclick="filterData('duo',this)">Duo</button>
-          <button type="button" class="filter-btn" onclick="filterData('relais',this)">Relais</button>
-        </div>
+    <!-- ONGLET ORDRE D'INSCRIPTION -->
+    <div class="tab-content active" id="tab-inscription">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:10px;">
+        <div style="font-size:13px;color:#888;">Inscrits dans l'ordre chronologique</div>
         <button type="button" class="export-btn" onclick="exportCSV()">⬇️ Exporter CSV</button>
       </div>
       <div style="overflow-x:auto;">
         <table>
           <thead>
-            <tr>
-              <th>#</th><th>Nom</th><th>Prénom</th><th>Email</th><th>Catégorie</th>
-              <th>Équipe</th><th>T-shirt</th><th>Temps estimé</th><th>Prix</th><th>Statut</th><th>Date</th>
-            </tr>
+            <tr><th>#</th><th>Nom</th><th>Prénom</th><th>Email</th><th>Catégorie</th><th>Équipe</th><th>T-shirt</th><th>Temps estimé</th><th>Prix</th><th>Statut</th><th>Date</th></tr>
           </thead>
-          <tbody id="inscrits-body"></tbody>
+          <tbody id="body-inscription"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- ONGLET PAR CATEGORIES -->
+    <!-- ONGLET PAR CATEGORIE -->
     <div class="tab-content" id="tab-categories">
+      <div class="sub-tabs" id="sub-tabs-cat">
+        <button type="button" class="sub-tab active" onclick="showSubCat('all', this)">Toutes</button>
+        <button type="button" class="sub-tab" onclick="showSubCat('duo scaled femmes', this)">Duo Scaled F</button>
+        <button type="button" class="sub-tab" onclick="showSubCat('solo scaled femmes', this)">Solo Scaled F</button>
+        <button type="button" class="sub-tab" onclick="showSubCat('solo rx femmes', this)">Solo RX F</button>
+        <button type="button" class="sub-tab" onclick="showSubCat('duo rx femme', this)">Duo RX F</button>
+        <button type="button" class="sub-tab" onclick="showSubCat('duo rx homme', this)">Duo RX H</button>
+        <button type="button" class="sub-tab" onclick="showSubCat('duo scaled hommes', this)">Duo Scaled H</button>
+        <button type="button" class="sub-tab" onclick="showSubCat('duo scaled mixte', this)">Duo Scaled Mixte</button>
+        <button type="button" class="sub-tab" onclick="showSubCat('duo rx mixte', this)">Duo RX Mixte</button>
+        <button type="button" class="sub-tab" onclick="showSubCat('solo scaled hommes', this)">Solo Scaled H</button>
+        <button type="button" class="sub-tab" onclick="showSubCat('solo rx hommes', this)">Solo RX H</button>
+        <button type="button" class="sub-tab" onclick="showSubCat('relais', this)">Relais</button>
+      </div>
       <div id="categories-content"></div>
     </div>
 
-    <!-- ONGLET VAGUES -->
-    <div class="tab-content" id="tab-vagues">
-      <div style="margin-bottom:1rem;font-size:13px;color:#888;">Vagues de 4 — classées par temps estimé du plus rapide au plus lent</div>
-      <div id="vagues-content"></div>
+    <!-- ONGLET ORDRE DE PASSAGE -->
+    <div class="tab-content" id="tab-passage">
+      <div style="font-size:13px;color:#888;margin-bottom:1rem;">Tous les inscrits dans l'ordre de passage — vagues de 4 — triés par temps estimé</div>
+      <div id="passage-content"></div>
     </div>
 
     <!-- ONGLET TSHIRTS -->
@@ -137,7 +138,7 @@
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   var allData = [];
-  var currentFilter = 'all';
+  var currentSubCat = 'all';
 
   var CAT_ORDER = [
     'duo scaled femmes', 'solo scaled femmes', 'solo rx femmes', 'duo rx femme',
@@ -146,27 +147,37 @@
   ];
 
   var TEMPS_ORDER = {
-    'moins-1h': 1, 'Entre 1h et 1h10': 2, '1h-1h10': 2,
-    'Entre 1h10 et 1h20': 3, '1h10-1h20': 3,
-    'Entre 1h20 et 1h30': 4, '1h20-1h30': 4,
-    'Entre 1h30 et 1h40': 5, '1h30-1h40': 5,
-    '1h40 et plus': 6, '1h40+': 6
+    'moins': 1, '1h et 1h10': 2, '1h-1h10': 2,
+    '1h10': 3, '1h20': 4, '1h30': 5, '1h40': 6
   };
+
+  function getTempsOrder(temps) {
+    if (!temps) return 99;
+    if (temps.includes('moins') || temps.includes('1h')) {
+      if (temps.includes('moins')) return 1;
+      if (temps.includes('1h10') || (temps.includes('1h') && temps.includes('1h10'))) return 3;
+      if (temps.includes('1h20')) return 4;
+      if (temps.includes('1h30')) return 5;
+      if (temps.includes('1h40') || temps.includes('plus')) return 6;
+      if (temps.includes('1h') && !temps.includes('1h1') && !temps.includes('1h2') && !temps.includes('1h3') && !temps.includes('1h4')) return 2;
+    }
+    return 99;
+  }
 
   function getCatKey(categorie) {
     if (!categorie) return '';
     var c = categorie.toLowerCase();
     if (c.includes('relais')) return 'relais';
-    if (c.includes('duo') && c.includes('scaled') && c.includes('femme')) return 'duo scaled femmes';
-    if (c.includes('duo') && c.includes('scaled') && c.includes('homme') && !c.includes('mixte')) return 'duo scaled hommes';
+    if (c.includes('duo') && c.includes('scaled') && (c.includes('femme') || c.includes('féminin'))) return 'duo scaled femmes';
+    if (c.includes('duo') && c.includes('scaled') && (c.includes('homme') || c.includes('masculin')) && !c.includes('mixte')) return 'duo scaled hommes';
     if (c.includes('duo') && c.includes('scaled') && c.includes('mixte')) return 'duo scaled mixte';
-    if (c.includes('duo') && c.includes('rx') && c.includes('femme') && !c.includes('mixte')) return 'duo rx femme';
-    if (c.includes('duo') && c.includes('rx') && c.includes('homme') && !c.includes('mixte')) return 'duo rx homme';
+    if (c.includes('duo') && c.includes('rx') && (c.includes('femme') || c.includes('féminin')) && !c.includes('mixte')) return 'duo rx femme';
+    if (c.includes('duo') && c.includes('rx') && (c.includes('homme') || c.includes('masculin')) && !c.includes('mixte')) return 'duo rx homme';
     if (c.includes('duo') && c.includes('rx') && c.includes('mixte')) return 'duo rx mixte';
-    if (c.includes('solo') && c.includes('scaled') && c.includes('femme')) return 'solo scaled femmes';
-    if (c.includes('solo') && c.includes('scaled') && c.includes('homme')) return 'solo scaled hommes';
-    if (c.includes('solo') && c.includes('rx') && c.includes('femme')) return 'solo rx femmes';
-    if (c.includes('solo') && c.includes('rx') && c.includes('homme')) return 'solo rx hommes';
+    if (c.includes('solo') && c.includes('scaled') && (c.includes('femme') || c.includes('féminin'))) return 'solo scaled femmes';
+    if (c.includes('solo') && c.includes('scaled') && (c.includes('homme') || c.includes('masculin'))) return 'solo scaled hommes';
+    if (c.includes('solo') && c.includes('rx') && (c.includes('femme') || c.includes('féminin'))) return 'solo rx femmes';
+    if (c.includes('solo') && c.includes('rx') && (c.includes('homme') || c.includes('masculin'))) return 'solo rx hommes';
     return c;
   }
 
@@ -182,14 +193,8 @@
     return labels[key] || key;
   }
 
-  function getTempsOrder(temps) {
-    if (!temps) return 99;
-    for (var key in TEMPS_ORDER) {
-      if (temps.toLowerCase().includes(key.toLowerCase()) || key.toLowerCase().includes(temps.toLowerCase())) {
-        return TEMPS_ORDER[key];
-      }
-    }
-    return 99;
+  function getStatut(s) {
+    return s === 'paye' ? '<span class="badge-paye">✓ Payé</span>' : '<span class="badge-attente">En attente</span>';
   }
 
   function login() {
@@ -214,9 +219,9 @@
     if (error) { console.error(error); return; }
     allData = data || [];
     renderStats();
-    renderTable();
+    renderInscription();
     renderCategories();
-    renderVagues();
+    renderPassage();
     renderTshirts();
   }
 
@@ -227,29 +232,17 @@
     document.getElementById('total-relais').textContent = allData.filter(function(d){ return d.categorie && d.categorie.toLowerCase().includes('relais'); }).length;
   }
 
-  function showTab(tab) {
+  function showMainTab(tab, btn) {
     document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
-    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     document.getElementById('tab-' + tab).classList.add('active');
-    event.target.classList.add('active');
-  }
-
-  function filterData(filter, btn) {
-    currentFilter = filter;
-    document.querySelectorAll('#cat-filters .filter-btn').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
-    renderTable();
   }
 
-  function renderTable() {
-    var filtered = allData.filter(function(d) {
-      if (currentFilter === 'all') return true;
-      return d.categorie && d.categorie.toLowerCase().includes(currentFilter);
-    });
+  function renderInscription() {
     var html = '';
-    filtered.forEach(function(d, i) {
+    allData.forEach(function(d, i) {
       var date = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
-      var statut = d.statut_paiement === 'paye' ? '<span class="badge-paye">✓ Payé</span>' : '<span class="badge-attente">En attente</span>';
       html += '<tr>';
       html += '<td style="color:#666;">' + (i+1) + '</td>';
       html += '<td><strong style="color:#fff;">' + (d.nom||'—') + '</strong></td>';
@@ -260,21 +253,20 @@
       html += '<td>' + (d.tshirt_taille||'—') + ' ' + (d.tshirt_coupe||'') + '</td>';
       html += '<td>' + (d.temps_estime||'—') + '</td>';
       html += '<td style="color:#FFEE00;font-weight:700;">' + (d.prix||'—') + ' €</td>';
-      html += '<td>' + statut + '</td>';
+      html += '<td>' + getStatut(d.statut_paiement) + '</td>';
       html += '<td style="font-size:12px;">' + date + '</td>';
       html += '</tr>';
     });
-    document.getElementById('inscrits-body').innerHTML = html || '<tr><td colspan="11" style="text-align:center;color:#666;padding:2rem;">Aucun inscrit</td></tr>';
+    document.getElementById('body-inscription').innerHTML = html || '<tr><td colspan="11" style="text-align:center;color:#666;padding:2rem;">Aucun inscrit</td></tr>';
   }
 
-  function renderCategories() {
+  function getGroups() {
     var groups = {};
     allData.forEach(function(d) {
       var key = getCatKey(d.categorie);
       if (!groups[key]) groups[key] = [];
       groups[key].push(d);
     });
-
     CAT_ORDER.forEach(function(key) {
       if (groups[key]) {
         groups[key].sort(function(a, b) {
@@ -282,15 +274,27 @@
         });
       }
     });
+    return groups;
+  }
 
+  function showSubCat(cat, btn) {
+    currentSubCat = cat;
+    document.querySelectorAll('#sub-tabs-cat .sub-tab').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    renderCategories();
+  }
+
+  function renderCategories() {
+    var groups = getGroups();
     var html = '';
-    CAT_ORDER.forEach(function(key) {
+    var catsToShow = currentSubCat === 'all' ? CAT_ORDER : [currentSubCat];
+
+    catsToShow.forEach(function(key) {
       if (!groups[key] || groups[key].length === 0) return;
       html += '<div class="cat-block">';
-      html += '<div class="cat-header">' + getCatLabel(key) + ' <span style="color:#888;font-size:12px;font-weight:400;">(' + groups[key].length + ' inscrits)</span></div>';
-      html += '<div class="cat-body"><table><thead><tr><th>#</th><th>Nom</th><th>Prénom</th><th>Équipe</th><th>Temps estimé</th><th>T-shirt</th><th>Statut</th></tr></thead><tbody>';
+      html += '<div class="cat-header"><span>' + getCatLabel(key) + '</span><span style="font-size:12px;font-weight:400;color:#888;">' + groups[key].length + ' inscrits — triés par temps estimé</span></div>';
+      html += '<div class="cat-body"><div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Nom</th><th>Prénom</th><th>Équipe</th><th>Temps estimé</th><th>T-shirt</th><th>Statut</th></tr></thead><tbody>';
       groups[key].forEach(function(d, i) {
-        var statut = d.statut_paiement === 'paye' ? '<span class="badge-paye">✓ Payé</span>' : '<span class="badge-attente">En attente</span>';
         html += '<tr>';
         html += '<td style="color:#FFEE00;font-weight:700;">' + (i+1) + '</td>';
         html += '<td><strong style="color:#fff;">' + (d.nom||'—') + '</strong></td>';
@@ -298,49 +302,33 @@
         html += '<td>' + (d.nom_equipe||'—') + '</td>';
         html += '<td>' + (d.temps_estime||'—') + '</td>';
         html += '<td>' + (d.tshirt_taille||'—') + ' ' + (d.tshirt_coupe||'') + '</td>';
-        html += '<td>' + statut + '</td>';
+        html += '<td>' + getStatut(d.statut_paiement) + '</td>';
         html += '</tr>';
       });
-      html += '</tbody></table></div></div>';
+      html += '</tbody></table></div></div></div>';
     });
 
-    document.getElementById('categories-content').innerHTML = html || '<div style="color:#666;padding:2rem;text-align:center;">Aucun inscrit</div>';
+    document.getElementById('categories-content').innerHTML = html || '<div style="color:#666;padding:2rem;text-align:center;">Aucun inscrit dans cette catégorie</div>';
   }
 
-  function renderVagues() {
-    var groups = {};
-    allData.forEach(function(d) {
-      var key = getCatKey(d.categorie);
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(d);
-    });
-
-    CAT_ORDER.forEach(function(key) {
-      if (groups[key]) {
-        groups[key].sort(function(a, b) {
-          return getTempsOrder(a.temps_estime) - getTempsOrder(b.temps_estime);
-        });
-      }
-    });
-
+  function renderPassage() {
+    var groups = getGroups();
     var html = '';
     var vagueNum = 1;
 
     CAT_ORDER.forEach(function(key) {
       if (!groups[key] || groups[key].length === 0) return;
+      html += '<div class="passage-cat-title">📍 ' + getCatLabel(key) + ' — ' + groups[key].length + ' inscrit(s)</div>';
       var inscrits = groups[key];
       for (var i = 0; i < inscrits.length; i += 4) {
         var groupe = inscrits.slice(i, i + 4);
-        html += '<div class="vague-block">';
-        html += '<div class="vague-header">';
-        html += '<div class="vague-title">Vague ' + vagueNum + ' — ' + getCatLabel(key) + '</div>';
-        html += '<div class="vague-info">' + groupe.length + ' athlète(s)</div>';
-        html += '</div>';
+        html += '<div class="vague-block" style="margin-bottom:8px;">';
+        html += '<div class="vague-header"><div class="vague-title">Vague ' + vagueNum + '</div><div class="vague-info">' + groupe.length + ' athlète(s)</div></div>';
         groupe.forEach(function(d, j) {
-          html += '<div class="vague-row">';
-          html += '<div class="vague-num">' + (j+1) + '</div>';
-          html += '<div class="vague-name">' + (d.nom||'—') + ' ' + (d.prenom||'') + (d.nom_equipe ? ' — ' + d.nom_equipe : '') + '</div>';
-          html += '<div class="vague-temps">' + (d.temps_estime||'—') + '</div>';
+          html += '<div style="display:flex;gap:12px;padding:9px 14px;border-bottom:1px solid #1a1a1a;font-size:13px;align-items:center;">';
+          html += '<div style="width:24px;height:24px;border-radius:50%;background:#FFEE00;color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;">' + (j+1) + '</div>';
+          html += '<div style="flex:1;color:#fff;font-weight:600;">' + (d.nom||'—') + ' ' + (d.prenom||'') + (d.nom_equipe ? ' <span style="color:#888;font-weight:400;">— ' + d.nom_equipe + '</span>' : '') + '</div>';
+          html += '<div style="color:#FFEE00;font-family:monospace;font-size:12px;">' + (d.temps_estime||'—') + '</div>';
           html += '</div>';
         });
         html += '</div>';
@@ -348,7 +336,7 @@
       }
     });
 
-    document.getElementById('vagues-content').innerHTML = html || '<div style="color:#666;padding:2rem;text-align:center;">Aucun inscrit</div>';
+    document.getElementById('passage-content').innerHTML = html || '<div style="color:#666;padding:2rem;text-align:center;">Aucun inscrit</div>';
   }
 
   function renderTshirts() {
@@ -384,8 +372,6 @@
     a.download = 'inscrits_hyrox.csv';
     a.click();
   }
-
-  document.addEventListener('DOMContentLoaded', function() {});
 </script>
 </body>
 </html>
