@@ -310,11 +310,11 @@
 
     document.getElementById('categories-content').innerHTML = html || '<div style="color:#666;padding:2rem;text-align:center;">Aucun inscrit dans cette catégorie</div>';
   }
-
-  function renderPassage() {
+function renderPassage() {
     var groups = getGroups();
     var html = '';
     var vagueNum = 1;
+    var athleteNum = 1;
 
     CAT_ORDER.forEach(function(key) {
       if (!groups[key] || groups[key].length === 0) return;
@@ -324,12 +324,13 @@
         var groupe = inscrits.slice(i, i + 4);
         html += '<div class="vague-block" style="margin-bottom:8px;">';
         html += '<div class="vague-header"><div class="vague-title">Vague ' + vagueNum + '</div><div class="vague-info">' + groupe.length + ' athlète(s)</div></div>';
-        groupe.forEach(function(d, j) {
+        groupe.forEach(function(d) {
           html += '<div style="display:flex;gap:12px;padding:9px 14px;border-bottom:1px solid #1a1a1a;font-size:13px;align-items:center;">';
-          html += '<div style="width:24px;height:24px;border-radius:50%;background:#FFEE00;color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;">' + (j+1) + '</div>';
+          html += '<div style="width:24px;height:24px;border-radius:50%;background:#FFEE00;color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;">' + athleteNum + '</div>';
           html += '<div style="flex:1;color:#fff;font-weight:600;">' + (d.nom||'—') + ' ' + (d.prenom||'') + (d.nom_equipe ? ' <span style="color:#888;font-weight:400;">— ' + d.nom_equipe + '</span>' : '') + '</div>';
           html += '<div style="color:#FFEE00;font-family:monospace;font-size:12px;">' + (d.temps_estime||'—') + '</div>';
           html += '</div>';
+          athleteNum++;
         });
         html += '</div>';
         vagueNum++;
@@ -338,7 +339,6 @@
 
     document.getElementById('passage-content').innerHTML = html || '<div style="color:#666;padding:2rem;text-align:center;">Aucun inscrit</div>';
   }
-
   function renderTshirts() {
     var counts = {};
     allData.forEach(function(d) {
