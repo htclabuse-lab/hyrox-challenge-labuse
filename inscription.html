@@ -212,6 +212,14 @@
         <div class="stripe-badge">🔒 Stripe</div>
       </div>
     </div>
+    <div class="field" style="margin-bottom:16px;">
+  <label class="label">Code promo (optionnel)</label>
+  <div style="display:flex;gap:8px;margin-top:4px;">
+    <input type="text" id="code-promo" placeholder="Ex : HTCLABUSE10" style="text-transform:uppercase;">
+    <button type="button" onclick="appliquerCode()" style="background:#FFEE00;color:#0a0a0a;border:none;border-radius:8px;padding:10px 16px;font-weight:800;cursor:pointer;font-family:sans-serif;white-space:nowrap;">Appliquer</button>
+  </div>
+  <div id="code-msg" style="font-size:12px;margin-top:6px;"></div>
+</div>
     <button type="button" class="btn-next" id="btn-payer" onclick="payer()">Payer et confirmer l'inscription</button>
     <button type="button" class="btn-back" onclick="goStep(4)">← Retour</button>
   </div>
@@ -237,7 +245,7 @@
   const STRIPE_SOLO = 'https://buy.stripe.com/test_28E8wP4zlct67jYglhb3q00';
   const STRIPE_DUO = 'https://buy.stripe.com/test_fZu4gz5DpeBe7jYb0Xb3q01';
   const STRIPE_RELAIS = 'https://buy.stripe.com/test_00wfZh8PB2Sw47Mb0Xb3q02';
-  const CODES_PROMO = { 'PREVENTE10': 0.10 };
+  const CODES_PROMO = { 'HTCLABUSE10': 0.10 };
 
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   var state = { genre:'', cat:'', catLabel:'', prix:0, coupe:'', taille:'' };
@@ -435,7 +443,8 @@
     document.getElementById('prix-label').textContent = state.catLabel;
     document.getElementById('prix-val').textContent = state.prix + ' €';
     var prixFinal = Math.round(state.prix * (1 - remise) * 100) / 100;
-document.getElementById('prix-total').textContent = prixFinal + ' €';;
+var prixFinal = remise > 0 ? Math.round(state.prix * (1 - remise) * 100) / 100 : state.prix;
+document.getElementById('prix-total').textContent = remise > 0 ? state.prix + ' € → ' + prixFinal + ' €' : state.prix + ' €';
   }
 
   var remise = 0;
@@ -451,6 +460,22 @@ function appliquerCode() {
     remise = 0;
     msg.style.color = '#C0392B';
     msg.textContent = '✗ Code invalide';
+  }
+}
+  var remise = 0;
+function appliquerCode() {
+  var code = document.getElementById('code-promo').value.toUpperCase().trim();
+  var msg = document.getElementById('code-msg');
+  if (CODES_PROMO[code]) {
+    remise = CODES_PROMO[code];
+    msg.style.color = '#4CAF50';
+    msg.textContent = '✓ Code appliqué ! -' + (remise * 100) + '%';
+    buildRecap();
+  } else {
+    remise = 0;
+    msg.style.color = '#C0392B';
+    msg.textContent = '✗ Code invalide';
+    buildRecap();
   }
 }
   async function payer() {
