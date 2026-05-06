@@ -355,13 +355,16 @@ function renderPassage() {
 
     document.getElementById('passage-content').innerHTML = html || '<div style="color:#666;padding:2rem;text-align:center;">Aucun inscrit</div>';
   }
-  function renderTshirts() {
+function renderTshirts() {
     var counts = {};
     allData.forEach(function(d) {
       if (d.tshirt_taille && d.tshirt_coupe) {
         var key = d.tshirt_taille + ' ' + d.tshirt_coupe;
         counts[key] = (counts[key] || 0) + 1;
       }
+      if (d.co1_tshirt) counts[d.co1_tshirt] = (counts[d.co1_tshirt] || 0) + 1;
+      if (d.co2_tshirt) counts[d.co2_tshirt] = (counts[d.co2_tshirt] || 0) + 1;
+      if (d.co3_tshirt) counts[d.co3_tshirt] = (counts[d.co3_tshirt] || 0) + 1;
     });
     var html = '';
     Object.keys(counts).sort().forEach(function(k) {
