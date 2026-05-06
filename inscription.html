@@ -213,13 +213,13 @@
       </div>
     </div>
     <div class="field" style="margin-bottom:16px;">
-  <label class="label">Code promo (optionnel)</label>
-  <div style="display:flex;gap:8px;margin-top:4px;">
-    <input type="text" id="code-promo" placeholder="Ex : HTCLABUSE10" style="text-transform:uppercase;">
-    <button type="button" onclick="appliquerCode()" style="background:#FFEE00;color:#0a0a0a;border:none;border-radius:8px;padding:10px 16px;font-weight:800;cursor:pointer;font-family:sans-serif;white-space:nowrap;">Appliquer</button>
-  </div>
-  <div id="code-msg" style="font-size:12px;margin-top:6px;"></div>
-</div>
+      <label class="label">Code promo (optionnel)</label>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <input type="text" id="code-promo" placeholder="Ex : HTCLABUSE10" style="text-transform:uppercase;">
+        <button type="button" onclick="appliquerCode()" style="background:#C0392B;color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:800;cursor:pointer;font-family:sans-serif;white-space:nowrap;">Appliquer</button>
+      </div>
+      <div id="code-msg" style="font-size:12px;margin-top:6px;"></div>
+    </div>
     <button type="button" class="btn-next" id="btn-payer" onclick="payer()">Payer et confirmer l'inscription</button>
     <button type="button" class="btn-back" onclick="goStep(4)">← Retour</button>
   </div>
@@ -250,7 +250,7 @@
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   var state = { genre:'', cat:'', catLabel:'', prix:0, coupe:'', taille:'' };
   var currentStep = 0;
-  var totalSteps = 5;
+  var remise = 0;
 
   function getAgeCat(dob) {
     if (!dob) return null;
@@ -327,7 +327,6 @@
   }
 
   function updateStepBar(n) {
-    var labels = ['Profil','Catégorie','T-shirt','Équipe','Temps','Paiement'];
     for (var i = 0; i <= 5; i++) {
       var dot = document.getElementById('dot'+i);
       var lbl = document.getElementById('lbl'+i);
@@ -341,7 +340,6 @@
   function goStep(n) {
     var isSolo = !state.cat.startsWith('duo') && !state.cat.startsWith('relais');
 
-    // Validation étape 0 : Profil
     if (currentStep === 0) {
       if (!document.getElementById('nom').value.trim()) { alert('Merci de renseigner ton nom.'); return; }
       if (!document.getElementById('prenom').value.trim()) { alert('Merci de renseigner ton prénom.'); return; }
@@ -350,19 +348,13 @@
       if (!document.getElementById('tel').value.trim()) { alert('Merci de renseigner ton téléphone.'); return; }
       if (!state.genre) { alert('Merci de sélectionner ton genre.'); return; }
     }
-
-    // Validation étape 1 : Catégorie
     if (currentStep === 1) {
       if (!state.cat) { alert('Merci de choisir une catégorie.'); return; }
     }
-
-    // Validation étape 2 : T-shirt
     if (currentStep === 2) {
       if (!state.coupe) { alert('Merci de choisir une coupe de t-shirt.'); return; }
       if (!state.taille) { alert('Merci de choisir une taille de t-shirt.'); return; }
     }
-
-    // Validation étape 3 : Coéquipiers
     if (currentStep === 3 && !isSolo) {
       var count = state.cat.startsWith('relais') ? 3 : 1;
       for (var i = 0; i < count; i++) {
@@ -372,13 +364,10 @@
         if (!document.getElementById('m'+i+'dob') || !document.getElementById('m'+i+'dob').value) { alert('Merci de renseigner la date de naissance du coéquipier ' + n2 + '.'); return; }
       }
     }
-
-    // Validation étape 4 : Temps estimé
     if (currentStep === 4) {
       if (!document.getElementById('temps-estime').value) { alert('Merci de sélectionner un temps estimé.'); return; }
     }
 
-    // Navigation solo saute l'étape équipe
     if (isSolo && n === 3 && currentStep === 2) n = 4;
     if (isSolo && n === 3 && currentStep === 4) n = 2;
 
@@ -389,7 +378,7 @@
     currentStep = n;
     window.scrollTo(0,0);
   }
- var remise = 0;
+
   function buildRecap() {
     var isRelais = state.cat.startsWith('relais');
     var isDuo = state.cat.startsWith('duo');
@@ -422,7 +411,6 @@
       return '<div class="recap-row"><span class="recap-label">'+r[0]+'</span><span class="recap-val">'+r[1]+'</span></div>';
     }).join('');
 
-    // Catégorie d'âge affichée au récap
     var badge = document.getElementById('age-badge');
     if (isDuo || isRelais) {
       var dobs = [document.getElementById('dob').value];
@@ -442,40 +430,32 @@
 
     document.getElementById('prix-label').textContent = state.catLabel;
     document.getElementById('prix-val').textContent = state.prix + ' €';
-var prixFinal = remise > 0 ? Math.round(state.prix * (1 - remise) * 100) / 100 : state.prix;
-document.getElementById('prix-total').textContent = remise > 0 ? state.prix + ' € → ' + prixFinal + ' €' : state.prix + ' €';
+    var prixFinal = remise > 0 ? Math.round(state.prix * (1 - remise) * 100) / 100 : state.prix;
+    document.getElementById('prix-total').textContent = remise > 0 ? state.prix + ' € → ' + prixFinal + ' €' : state.prix + ' €';
   }
-function appliquerCode() {
-  var code = document.getElementById('code-promo').value.toUpperCase().trim();
-  var msg = document.getElementById('code-msg');
-  if (CODES_PROMO[code]) {
-    remise = CODES_PROMO[code];
-    msg.style.color = '#4CAF50';
-    msg.textContent = '✓ Code appliqué ! -' + (remise*100) + '% sur le total';
-    buildRecap();
-  } else {
-    remise = 0;
-    msg.style.color = '#C0392B';
-    msg.textContent = '✗ Code invalide';
+
+  function appliquerCode() {
+    var code = document.getElementById('code-promo').value.toUpperCase().trim();
+    var msg = document.getElementById('code-msg');
+    if (CODES_PROMO[code]) {
+      remise = CODES_PROMO[code];
+      msg.style.color = '#4CAF50';
+      msg.textContent = '✓ Code appliqué ! -' + (remise * 100) + '%';
+      buildRecap();
+    } else {
+      remise = 0;
+      msg.style.color = '#C0392B';
+      msg.textContent = '✗ Code invalide';
+      buildRecap();
+    }
   }
-}
-  var remise = 0;
-function appliquerCode() {
-  var code = document.getElementById('code-promo').value.toUpperCase().trim();
-  var msg = document.getElementById('code-msg');
-  if (CODES_PROMO[code]) {
-    remise = CODES_PROMO[code];
-    msg.style.color = '#4CAF50';
-    msg.textContent = '✓ Code appliqué ! -' + (remise * 100) + '%';
-    buildRecap();
-  } else {
-    remise = 0;
-    msg.style.color = '#C0392B';
-    msg.textContent = '✗ Code invalide';
-    buildRecap();
-  }
-}
-var data = {
+
+  async function payer() {
+    var btn = document.getElementById('btn-payer');
+    btn.disabled = true;
+    btn.textContent = 'Enregistrement...';
+    var tempsEstime = document.getElementById('temps-estime');
+    var data = {
       nom: document.getElementById('nom').value,
       prenom: document.getElementById('prenom').value,
       email: document.getElementById('email').value,
