@@ -91,7 +91,7 @@
       <div style="overflow-x:auto;">
         <table>
           <thead>
-            <tr><th>#</th><th>Nom</th><th>Prénom</th><th>Email</th><th>Catégorie</th><th>Équipe</th><th>T-shirt</th><th>Temps estimé</th><th>Prix</th><th>Statut</th><th>Date</th></tr>
+            <tr><th>#</th><th>Nom</th><th>Prénom</th><th>Email</th><th>Catégorie</th><th>Équipe</th><th>T-shirt</th><th>Âge / Moy. équipe</th><th>Temps estimé</th><th>Prix</th><th>Statut</th><th>Date</th></tr>
           </thead>
           <tbody id="body-inscription"></tbody>
         </table>
@@ -255,6 +255,18 @@ if (d.co1_tshirt) tshirts += ' / ' + d.co1_tshirt;
 if (d.co2_tshirt) tshirts += ' / ' + d.co2_tshirt;
 if (d.co3_tshirt) tshirts += ' / ' + d.co3_tshirt;
 html += '<td>' + tshirts + '</td>';
+      var dobs = [d.date_naissance, d.co1_date_naissance, d.co2_date_naissance, d.co3_date_naissance].filter(Boolean);
+var ageMoy = '';
+if (dobs.length > 0) {
+  var ages = dobs.map(function(dob){ return new Date().getFullYear() - parseInt(dob.split('-')[0]); });
+  var moy = Math.round(ages.reduce(function(a,b){ return a+b; }, 0) / ages.length);
+  if (moy <= 24) ageMoy = '16-24 ans';
+  else if (moy <= 34) ageMoy = '25-34 ans';
+  else if (moy <= 44) ageMoy = '35-44 ans';
+  else if (moy <= 54) ageMoy = '45-54 ans';
+  else ageMoy = '55+ ans';
+}
+html += '<td style="font-size:12px;color:#FFEE00;">' + ageMoy + '</td>';
       html += '<td>' + (d.temps_estime||'—') + '</td>';
       html += '<td style="color:#FFEE00;font-weight:700;">' + (d.prix||'—') + ' €</td>';
       html += '<td>' + getStatut(d.statut_paiement) + '</td>';
