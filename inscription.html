@@ -471,15 +471,15 @@
       statut_paiement: 'en_attente',
       co1_nom: document.getElementById('m0nom') ? document.getElementById('m0nom').value : '',
       co1_prenom: document.getElementById('m0prenom') ? document.getElementById('m0prenom').value : '',
-      co1_date_naissance: document.getElementById('m0dob') ? document.getElementById('m0dob').value : '',
+      co1_date_naissance: document.getElementById('m0dob') && document.getElementById('m0dob').value ? document.getElementById('m0dob').value : null,
       co1_tshirt: document.getElementById('m0ts') ? document.getElementById('m0ts').value : '',
       co2_nom: document.getElementById('m1nom') ? document.getElementById('m1nom').value : '',
       co2_prenom: document.getElementById('m1prenom') ? document.getElementById('m1prenom').value : '',
-      co2_date_naissance: document.getElementById('m1dob') ? document.getElementById('m1dob').value : '',
+      co2_date_naissance: document.getElementById('m1dob') && document.getElementById('m1dob').value ? document.getElementById('m1dob').value : null,
       co2_tshirt: document.getElementById('m1ts') ? document.getElementById('m1ts').value : '',
       co3_nom: document.getElementById('m2nom') ? document.getElementById('m2nom').value : '',
       co3_prenom: document.getElementById('m2prenom') ? document.getElementById('m2prenom').value : '',
-      co3_date_naissance: document.getElementById('m2dob') ? document.getElementById('m2dob').value : '',
+      co3_date_naissance: document.getElementById('m2dob') && document.getElementById('m2dob').value ? document.getElementById('m2dob').value : null,
       co3_tshirt: document.getElementById('m2ts') ? document.getElementById('m2ts').value : '',
     };
     var { error } = await db.from('Inscriptions').insert([data]);
