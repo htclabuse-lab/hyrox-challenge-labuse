@@ -250,7 +250,11 @@
       html += '<td style="font-size:12px;">' + (d.email||'—') + '</td>';
       html += '<td>' + (d.categorie||'—') + '</td>';
       html += '<td>' + (d.nom_equipe||'—') + '</td>';
-      html += '<td>' + (d.tshirt_taille||'—') + ' ' + (d.tshirt_coupe||'') + '</td>';
+      var tshirts = (d.tshirt_taille||'—') + ' ' + (d.tshirt_coupe||'');
+if (d.co1_tshirt) tshirts += ' / ' + d.co1_tshirt;
+if (d.co2_tshirt) tshirts += ' / ' + d.co2_tshirt;
+if (d.co3_tshirt) tshirts += ' / ' + d.co3_tshirt;
+html += '<td>' + tshirts + '</td>';
       html += '<td>' + (d.temps_estime||'—') + '</td>';
       html += '<td style="color:#FFEE00;font-weight:700;">' + (d.prix||'—') + ' €</td>';
       html += '<td>' + getStatut(d.statut_paiement) + '</td>';
