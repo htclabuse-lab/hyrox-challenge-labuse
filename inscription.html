@@ -478,12 +478,7 @@ function appliquerCode() {
     buildRecap();
   }
 }
-  async function payer() {
-    var btn = document.getElementById('btn-payer');
-    btn.disabled = true;
-    btn.textContent = 'Enregistrement...';
-    var tempsEstime = document.getElementById('temps-estime');
-    var data = {
+var data = {
       nom: document.getElementById('nom').value,
       prenom: document.getElementById('prenom').value,
       email: document.getElementById('email').value,
@@ -496,7 +491,19 @@ function appliquerCode() {
       tshirt_coupe: state.coupe,
       tshirt_taille: state.taille,
       temps_estime: tempsEstime && tempsEstime.value ? tempsEstime.options[tempsEstime.selectedIndex].text : '',
-      statut_paiement: 'en_attente'
+      statut_paiement: 'en_attente',
+      co1_nom: document.getElementById('m0nom') ? document.getElementById('m0nom').value : '',
+      co1_prenom: document.getElementById('m0prenom') ? document.getElementById('m0prenom').value : '',
+      co1_date_naissance: document.getElementById('m0dob') ? document.getElementById('m0dob').value : '',
+      co1_tshirt: document.getElementById('m0ts') ? document.getElementById('m0ts').value : '',
+      co2_nom: document.getElementById('m1nom') ? document.getElementById('m1nom').value : '',
+      co2_prenom: document.getElementById('m1prenom') ? document.getElementById('m1prenom').value : '',
+      co2_date_naissance: document.getElementById('m1dob') ? document.getElementById('m1dob').value : '',
+      co2_tshirt: document.getElementById('m1ts') ? document.getElementById('m1ts').value : '',
+      co3_nom: document.getElementById('m2nom') ? document.getElementById('m2nom').value : '',
+      co3_prenom: document.getElementById('m2prenom') ? document.getElementById('m2prenom').value : '',
+      co3_date_naissance: document.getElementById('m2dob') ? document.getElementById('m2dob').value : '',
+      co3_tshirt: document.getElementById('m2ts') ? document.getElementById('m2ts').value : '',
     };
     var { error } = await db.from('Inscriptions').insert([data]);
     if (error) {
