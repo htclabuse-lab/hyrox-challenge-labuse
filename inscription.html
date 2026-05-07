@@ -242,15 +242,26 @@
 <script>
   const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
-  const STRIPE_SOLO = 'https://buy.stripe.com/test_28E8wP4zlct67jYglhb3q00';
-  const STRIPE_DUO = 'https://buy.stripe.com/test_fZu4gz5DpeBe7jYb0Xb3q01';
-  const STRIPE_RELAIS = 'https://buy.stripe.com/test_00wfZh8PB2Sw47Mb0Xb3q02';
+
+  // ============================================
+  //  LIENS STRIPE LIVE — Compte SARL fitness training (workspace AsrxBoard)
+  // ============================================
+  // Plein tarif
+  const STRIPE_SOLO         = 'https://buy.stripe.com/8x28wOb5X2xB7rre4s8Vi05';
+  const STRIPE_DUO          = 'https://buy.stripe.com/00w8wO8XPb47h216C08Vi04';
+  const STRIPE_RELAIS       = 'https://buy.stripe.com/5kQbJ0ca15JN8vv4tS8Vi03';
+  // Prévente (-10%) — utilisé quand le code promo HTCLABUSE10 est appliqué
+  const STRIPE_SOLO_PREV    = 'https://buy.stripe.com/9B614mca15JN133d0o8Vi02';
+  const STRIPE_DUO_PREV     = 'https://buy.stripe.com/00w4gya1Tegj7rrgcA8Vi01';
+  const STRIPE_RELAIS_PREV  = 'https://buy.stripe.com/aFa4gy4Hz5JN5jj1hG8Vi00';
+
   const CODES_PROMO = { 'HTCLABUSE10': 0.10 };
 
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   var state = { genre:'', cat:'', catLabel:'', prix:0, coupe:'', taille:'' };
   var currentStep = 0;
   var remise = 0;
+  var codeApplique = ''; // Mémorise quel code a été appliqué (ex: 'HTCLABUSE10')
 
   function getAgeCat(dob) {
     if (!dob) return null;
@@ -439,15 +450,35 @@
     var msg = document.getElementById('code-msg');
     if (CODES_PROMO[code]) {
       remise = CODES_PROMO[code];
+      codeApplique = code;
       msg.style.color = '#4CAF50';
       msg.textContent = '✓ Code appliqué ! -' + (remise * 100) + '%';
       buildRecap();
     } else {
       remise = 0;
+      codeApplique = '';
       msg.style.color = '#C0392B';
       msg.textContent = '✗ Code invalide';
       buildRecap();
     }
+  }
+
+  // ============================================
+  //  Sélection du bon lien Stripe selon catégorie + code promo
+  // ============================================
+  function getStripeLink() {
+    var isRelais = state.cat.startsWith('relais');
+    var isDuo = state.cat.startsWith('duo');
+    // Si un code promo valide est appliqué → on utilise les liens prévente (-10%)
+    if (codeApplique === 'HTCLABUSE10') {
+      if (isRelais) return STRIPE_RELAIS_PREV;
+      if (isDuo) return STRIPE_DUO_PREV;
+      return STRIPE_SOLO_PREV;
+    }
+    // Sinon → liens plein tarif
+    if (isRelais) return STRIPE_RELAIS;
+    if (isDuo) return STRIPE_DUO;
+    return STRIPE_SOLO;
   }
 
   async function payer() {
@@ -455,6 +486,8 @@
     btn.disabled = true;
     btn.textContent = 'Enregistrement...';
     var tempsEstime = document.getElementById('temps-estime');
+    // Calcul du prix final (avec remise éventuelle)
+    var prixFinal = remise > 0 ? Math.round(state.prix * (1 - remise) * 100) / 100 : state.prix;
     var data = {
       nom: document.getElementById('nom').value,
       prenom: document.getElementById('prenom').value,
@@ -463,7 +496,7 @@
       date_naissance: document.getElementById('dob').value,
       genre: state.genre,
       categorie: state.catLabel,
-      prix: state.prix,
+      prix: prixFinal,
       nom_equipe: document.getElementById('nom-equipe').value,
       tshirt_coupe: state.coupe,
       tshirt_taille: state.taille,
@@ -489,7 +522,7 @@
       btn.textContent = 'Payer et confirmer l\'inscription';
       return;
     }
-    var lien = state.cat.startsWith('relais') ? STRIPE_RELAIS : state.cat.startsWith('duo') ? STRIPE_DUO : STRIPE_SOLO;
+    var lien = getStripeLink();
     window.location.href = lien;
   }
 </script>
