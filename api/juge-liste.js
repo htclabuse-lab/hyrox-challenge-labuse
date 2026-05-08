@@ -12,13 +12,8 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Non autorisé' });
     }
 
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Configuration Supabase manquante');
-      return res.status(500).json({ error: 'Configuration serveur incomplète' });
-    }
+    const supabaseUrl = 'https://mzyfnmjzlosranptwucr.supabase.co';
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
