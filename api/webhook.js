@@ -30,24 +30,38 @@ export default async function handler(req, res) {
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
-    const email = session.customer_details?.email;
+   const email = session.customer_details?.email;
     const nomStripe = session.customer_details?.name;
     const montantPaye = (session.amount_total || 0) / 100;
+    const clientReferenceId = session.client_reference_id;
 
-    console.log('Paiement reçu pour:', email, '- Montant:', montantPaye);
+    console.log('Paiement reçu pour:', email, '- Montant:', montantPaye, '- Ref:', clientReferenceId);
 
     let inscription = null;
 
     try {
       const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-      const { data: inscriptions, error: selectError } = await supabase
-        .from('Inscriptions')
-        .select('*')
-        .eq('email', email)
-        .eq('statut_paiement', 'en_attente')
-        .order('created_at', { ascending: false })
-        .limit(1);
+      let inscriptionsQuery;
+      if (clientReferenceId) {
+        // Nouveau systeme : matching par id Supabase (fiable, independant de l'email Stripe)
+        inscriptionsQuery = supabase
+          .from('Inscriptions')
+          .select('*')
+          .eq('id', clientReferenceId)
+          .limit(1);
+      } else {
+        // Fallback ancien systeme : matching par email (au cas ou un vieux lien sans client_reference_id serait utilise)
+        inscriptionsQuery = supabase
+          .from('Inscriptions')
+          .select('*')
+          .eq('email', email)
+          .eq('statut_paiement', 'en_attente')
+          .order('created_at', { ascending: false })
+          .limit(1);
+      }
+
+      const { data: inscriptions, error: selectError } = await inscriptionsQuery;
 
       if (selectError) {
         console.error('Erreur Supabase select:', selectError);
@@ -61,13 +75,13 @@ export default async function handler(req, res) {
         if (updateError) {
           console.error('Erreur Supabase update:', updateError);
         } else {
-          console.log('Inscription', inscription.id, 'marquée comme payée');
+          console.log('Inscription', inscription.id, 'marquee comme payee');
         }
       } else {
-        console.warn('Aucune inscription en_attente trouvée pour:', email);
+        console.warn('Aucune inscription trouvee. Ref:', clientReferenceId, 'Email:', email);
       }
     } catch (err) {
-      console.error('Erreur lors de la mise à jour Supabase:', err);
+      console.error('Erreur lors de la mise a jour Supabase:', err);
     }
 
     try {
