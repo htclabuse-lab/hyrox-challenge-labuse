@@ -515,14 +515,14 @@
       co3_date_naissance: document.getElementById('m2dob') && document.getElementById('m2dob').value ? document.getElementById('m2dob').value : null,
       co3_tshirt: document.getElementById('m2ts') ? document.getElementById('m2ts').value : '',
     };
-    var { error } = await db.from('Inscriptions').insert([data]);
-    if (error) {
+    var { data: inserted, error } = await db.from('Inscriptions').insert([data]).select().single();
+    if (error || !inserted) {
       alert('Erreur lors de l\'enregistrement. Merci de réessayer.');
       btn.disabled = false;
       btn.textContent = 'Payer et confirmer l\'inscription';
       return;
     }
-    var lien = getStripeLink();
+    var lien = getStripeLink() + '?client_reference_id=' + inserted.id;
     window.location.href = lien;
   }
 </script>
