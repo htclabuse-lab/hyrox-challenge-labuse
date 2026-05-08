@@ -115,6 +115,28 @@ export default async function handler(req, res) {
   res.status(200).json({ received: true });
 }
 
+function getAgeCat(dob) {
+  if (!dob) return null;
+  const age = new Date().getFullYear() - parseInt(dob.split('-')[0]);
+  if (age < 16) return null;
+  if (age <= 24) return '16-24 ans';
+  if (age <= 34) return '25-34 ans';
+  if (age <= 44) return '35-44 ans';
+  if (age <= 54) return '45-54 ans';
+  return '55 ans et +';
+}
+
+function getMoyenneAge(dobs) {
+  const ages = dobs.filter(Boolean).map(d => new Date().getFullYear() - parseInt(d.split('-')[0]));
+  if (ages.length === 0) return null;
+  const moy = Math.round(ages.reduce((a, b) => a + b, 0) / ages.length);
+  if (moy < 16) return null;
+  if (moy <= 24) return '16-24 ans';
+  if (moy <= 34) return '25-34 ans';
+  if (moy <= 44) return '35-44 ans';
+  if (moy <= 54) return '45-54 ans';
+  return '55 ans et +';
+}
 function buildEmailHtml(inscription, nomStripe, montantPaye) {
   if (!inscription) {
     return `
@@ -144,6 +166,22 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
   const tshirt = `${inscription.tshirt_taille || ''} ${inscription.tshirt_coupe || ''}`.trim();
   const prenom = inscription.prenom || nomStripe || '';
   const nom = inscription.nom || '';
+  
+  let categorieAge = null;
+  if (isDuo || isRelais) {
+    const dobs = [
+      inscription.date_naissance,
+      inscription.co1_date_naissance,
+      inscription.co2_date_naissance,
+      inscription.co3_date_naissance
+    ];
+    categorieAge = getMoyenneAge(dobs);
+  } else {
+    categorieAge = getAgeCat(inscription.date_naissance);
+  }
+
+  const labelAge = (isDuo || isRelais) ? "Catégorie d'âge équipe" : "Catégorie d'âge";
+  const valAge = categorieAge ? (isDuo || isRelais ? categorieAge + ' (moyenne)' : categorieAge) : '—';
 
   let equipeLine = '';
   if (inscription.nom_equipe) {
@@ -210,6 +248,10 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
             <td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${tshirt || '—'}</td>
           </tr>
           <tr>
+            <td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">${labelAge}</td>
+            <td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${valAge}</td>
+          </tr>
+          <tr>
             <td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Temps estimé</td>
             <td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${inscription.temps_estime || '—'}</td>
           </tr>
@@ -219,6 +261,10 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
           </tr>
         </table>
         ${coequipiersHtml}
+      </div>
+      <div style="background:#1a1a00;border:1px solid #FFEE00;border-radius:12px;padding:1rem 1.25rem;margin-top:1rem;">
+        <div style="color:#FFEE00;font-weight:700;font-size:14px;line-height:1.6;">⚠️ N'oublie pas : un podium est prévu pour chaque catégorie d'âge !</div>
+        <div style="color:#ccc;font-size:13px;line-height:1.6;margin-top:6px;">Reste avec nous jusqu'à la cérémonie de remise des prix, tu pourrais y être 🏆</div>
       </div>
       <div style="background:#0d1400;border:1px solid #FFEE00;border-radius:12px;padding:1.25rem;margin-top:1.5rem;text-align:center;">
         <div style="color:#FFEE00;font-weight:800;font-size:14px;margin-bottom:8px;">📅 Dimanche 12 juillet 2026</div>
