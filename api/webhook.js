@@ -95,7 +95,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           from: 'Hyrox Challenge La Buse <noreply@htclabuse.fr>',
-          to: email,
+          to: inscription?.email || email,
           subject: '✅ Inscription confirmée — Hyrox Challenge La Buse',
           html: html
         })
