@@ -41,6 +41,24 @@
     @media (max-width: 380px) {
       .result-grid { grid-template-columns: 1fr; }
     }
+
+    .details-toggle { background: transparent; border: 1px solid #333; color: #aaa; padding: 8px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; margin-top: 12px; font-family: inherit; font-weight: 700; width: 100%; }
+    .details-toggle:hover { background: #1a1a1a; color: #fff; }
+    .details { margin-top: 12px; padding-top: 12px; border-top: 1px solid #1a1a1a; }
+    .splits-table { width: 100%; font-size: 12px; border-collapse: collapse; }
+    .splits-table tr { border-bottom: 1px solid #1a1a1a; }
+    .splits-table tr:last-child { border-bottom: none; }
+    .splits-table td { padding: 8px 6px; vertical-align: middle; }
+    .splits-table .st-num { width: 22px; height: 22px; border-radius: 50%; background: #1a1a1a; color: #FFEE00; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; }
+    .splits-table .st-label { color: #ddd; }
+    .splits-table .st-split { color: #FFEE00; font-variant-numeric: tabular-nums; text-align: right; font-weight: 700; white-space: nowrap; }
+    .splits-table .st-penal { color: #ffaa00; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; font-size: 12px; }
+    .summary .srow { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 8px; padding: 10px 12px; }
+    .summary .srow .lbl { color: #666; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .summary .srow .val { color: #fff; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .summary .srow.total { grid-column: 1 / -1; background: #1a1a00; border-color: #FFEE00; }
+    .summary .srow.total .val { color: #FFEE00; font-size: 20px; }
   </style>
 </head>
 <body>
@@ -83,10 +101,20 @@ async function loadAll() {
     const res = await fetch('/data/event-1.json');
     if (!res.ok) throw new Error('Fetch failed');
     const ev = await res.json();
-    const enriched = enrichWithRank(ev);
-    allEvents.push(enriched);
+    allEvents.push(enrichWithRank(ev));
   } catch (err) {
     console.error('Erreur chargement event-1.json', err);
+  }
+  try {
+    const res = await fetch('/api/event2-resultats');
+    if (res.ok) {
+      const ev = await res.json();
+      if (ev && Array.isArray(ev.resultats) && ev.resultats.length > 0) {
+        allEvents.push(enrichWithRank(ev));
+      }
+    }
+  } catch (err) {
+    console.error('Erreur chargement event-2', err);
   }
 }
 
@@ -161,9 +189,41 @@ function render(query) {
   countInfo.textContent = list.length + ' résultat' + (list.length > 1 ? 's' : '') + ' trouvé' + (list.length > 1 ? 's' : '');
   hint.textContent = '';
 
-  results.innerHTML = list.map(({ ev, r }) => {
+  results.innerHTML = list.map(({ ev, r }, idx) => {
     const catLabel = CAT_LABELS[r.cat] || r.cat;
     const rankLabel = r._rank + ordinalSuffix(r._rank);
+    const hasDetail = Array.isArray(r.splits) && r.splits.length > 0;
+    let detailHtml = '';
+    if (hasDetail) {
+      const splitsRows = r.splits.map(s => {
+        const penaltyParts = [];
+        if (s.penalite_5min > 0) penaltyParts.push(`${s.penalite_5min}×5min`);
+        if (s.penalite_30s > 0) penaltyParts.push(`${s.penalite_30s}×30s`);
+        const penalty = penaltyParts.length ? `<td class="st-penal">⚠️ +${penaltyParts.join(' ')}</td>` : '<td></td>';
+        return `<tr>
+          <td><span class="st-num">${s.station}</span></td>
+          <td class="st-label">${escapeHtml(s.label)}</td>
+          ${penalty}
+          <td class="st-split">${escapeHtml(s.split)}</td>
+        </tr>`;
+      }).join('');
+      const penalitesTotal = (r.penalite_30s || 0) * 30 + (r.penalite_5min || 0) * 300;
+      const penaltyParts = [];
+      if (r.penalite_5min > 0) penaltyParts.push(`${r.penalite_5min}×5min`);
+      if (r.penalite_30s > 0) penaltyParts.push(`${r.penalite_30s}×30s`);
+      const penalitesLabel = penaltyParts.length ? penaltyParts.join(' + ') : 'aucune';
+      detailHtml = `
+        <button class="details-toggle" data-target="detail-${idx}">▾ Voir le détail des passages</button>
+        <div class="details" id="detail-${idx}" hidden>
+          <table class="splits-table"><tbody>${splitsRows}</tbody></table>
+          <div class="summary">
+            <div class="srow"><div class="lbl">Temps brut</div><div class="val">${escapeHtml(formatBrut(r.brut_sec))}</div></div>
+            <div class="srow"><div class="lbl">Pénalités</div><div class="val">${penalitesLabel}${penalitesTotal > 0 ? ' <span style="color:#ffaa00;">(+' + formatBrut(penalitesTotal) + ')</span>' : ''}</div></div>
+            <div class="srow total"><div class="lbl">Temps final</div><div class="val">${escapeHtml(r.temps)}</div></div>
+          </div>
+        </div>
+      `;
+    }
     return `
       <div class="result-card">
         <div class="event-bar">${escapeHtml(ev.event.nom)} <span class="event-date">— ${formatDate(ev.event.date)}</span></div>
@@ -183,9 +243,29 @@ function render(query) {
             <div class="value">${escapeHtml(catLabel)}${r.age ? ' · ' + escapeHtml(r.age) + ' ans' : ''}</div>
           </div>
         </div>
+        ${detailHtml}
       </div>
     `;
   }).join('');
+
+  results.querySelectorAll('.details-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (!target) return;
+      const isHidden = target.hidden;
+      target.hidden = !isHidden;
+      btn.textContent = (isHidden ? '▴ Masquer le détail' : '▾ Voir le détail des passages');
+    });
+  });
+}
+
+function formatBrut(totalSec) {
+  const s = Math.max(0, Math.floor(totalSec));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`;
+  return `${m}m ${String(sec).padStart(2,'0')}s`;
 }
 
 const input = document.getElementById('search');
