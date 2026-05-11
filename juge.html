@@ -170,6 +170,7 @@
         <button class="inc" data-target="pen5">+</button>
       </div>
     </div>
+    <button id="sheet-save" class="save-btn">ENREGISTRER LA PÉNALITÉ</button>
     <button id="sheet-point" class="point-btn">POINTER MAINTENANT ✅</button>
     <button id="sheet-cancel" class="cancel-btn">Fermer sans rien faire</button>
   </div>
@@ -186,6 +187,7 @@ const state = {
   role: JSON.parse(sessionStorage.getItem('juges_role') || 'null'),
   inscriptions: [],
   allPointages: [],
+  pendingPenalties: JSON.parse(sessionStorage.getItem('juges_pending_pen') || '{}'),
   sheet: { inscription_id: null, pen30: 0, pen5: 0 },
   sheetTimer: null,
   clockTimer: null,
@@ -226,6 +228,10 @@ function showToast(elemId, msg, kind = 'error', durMs = 4000) {
   el.hidden = false;
   if (el._timeout) clearTimeout(el._timeout);
   el._timeout = setTimeout(() => { el.hidden = true; }, durMs);
+}
+
+function savePendingPenalties() {
+  sessionStorage.setItem('juges_pending_pen', JSON.stringify(state.pendingPenalties));
 }
 
 function escapeHtml(s) {
@@ -415,8 +421,20 @@ function renderDossardGrid() {
   }
   $('station-empty').hidden = true;
   grid.innerHTML = eligible.map(i => {
+    const pending = state.pendingPenalties[i.id];
+    const hasPenalty = pending && (pending.pen30 > 0 || pending.pen5 > 0);
     const label = i.nom_equipe || i.prenom || '';
-    return `<button class="dossard-btn" data-id="${i.id}">
+    const classes = ['dossard-btn'];
+    if (hasPenalty) classes.push('has-penalty');
+    let badge = '';
+    if (hasPenalty) {
+      const parts = [];
+      if (pending.pen30 > 0) parts.push(`+${pending.pen30}×30s`);
+      if (pending.pen5 > 0) parts.push(`+${pending.pen5}×5m`);
+      badge = `<span class="penalty-badge">${parts.join(' ')}</span>`;
+    }
+    return `<button class="${classes.join(' ')}" data-id="${i.id}">
+      ${badge}
       <span class="num">${i.dossard}</span>
       <span class="name">${escapeHtml(label)}</span>
     </button>`;
@@ -449,8 +467,9 @@ function openSheet(inscription_id) {
   const ath = state.inscriptions.find(i => i.id === inscription_id);
   if (!ath) return;
   state.sheet.inscription_id = inscription_id;
-  state.sheet.pen30 = 0;
-  state.sheet.pen5 = 0;
+  const pending = state.pendingPenalties[inscription_id] || { pen30: 0, pen5: 0 };
+  state.sheet.pen30 = pending.pen30 || 0;
+  state.sheet.pen5 = pending.pen5 || 0;
   const label = ath.nom_equipe || ath.prenom || '';
   $('sheet-title').textContent = `Dossard ${ath.dossard} — ${label}`;
   updateSheetCounters();
@@ -487,6 +506,19 @@ $('sheet-backdrop').addEventListener('click', e => {
   if (e.target.id === 'sheet-backdrop') closeSheet();
 });
 
+$('sheet-save').addEventListener('click', () => {
+  const id = state.sheet.inscription_id;
+  if (!id) return;
+  if (state.sheet.pen30 === 0 && state.sheet.pen5 === 0) {
+    delete state.pendingPenalties[id];
+  } else {
+    state.pendingPenalties[id] = { pen30: state.sheet.pen30, pen5: state.sheet.pen5 };
+  }
+  savePendingPenalties();
+  closeSheet();
+  renderDossardGrid();
+});
+
 $('sheet-point').addEventListener('click', async () => {
   const id = state.sheet.inscription_id;
   if (!id) return;
@@ -510,6 +542,8 @@ $('sheet-point').addEventListener('click', async () => {
     await refreshStationData();
     return;
   }
+  delete state.pendingPenalties[id];
+  savePendingPenalties();
   state.allPointages.push(data.pointage);
   state.lastPointage = { pointage_id: data.pointage.id, inscription_id: id };
   const ath = state.inscriptions.find(i => i.id === id);
