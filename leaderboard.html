@@ -293,7 +293,8 @@ function render() {
     for (const age of ages) {
       const rows = ageGroups[age];
       if (!rows || rows.length === 0) continue;
-      html += `<div class="age-sub-title"><span>${age === '—' ? 'Sans tranche d\\'âge' : escapeHtml(age) + ' ans'}</span><span class="age-count">${rows.length}</span></div>`;
+      const ageLabel = age === '—' ? 'Sans tranche d\'âge' : escapeHtml(age) + ' ans';
+      html += `<div class="age-sub-title"><span>${ageLabel}</span><span class="age-count">${rows.length}</span></div>`;
       rows.forEach((r, i) => {
         const pos = i + 1;
         const posClass = pos === 1 ? 'pos-1' : pos === 2 ? 'pos-2' : pos === 3 ? 'pos-3' : 'pos-n';
