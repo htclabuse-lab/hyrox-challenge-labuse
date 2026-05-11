@@ -5,293 +5,371 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Leaderboard — Hyrox Challenge La Buse</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: sans-serif; background: #0a0a0a; color: #fff; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; }
+
     .header { background: #0a0a0a; border-bottom: 3px solid #FFEE00; padding: 1.5rem 1rem; text-align: center; }
     .header a { color: #FFEE00; font-size: 13px; text-decoration: none; display: inline-block; margin-bottom: 8px; }
     .title { font-size: 22px; font-weight: 800; color: #fff; }
     .title span { color: #FFEE00; }
     .subtitle { font-size: 13px; color: #888; margin-top: 4px; }
+
+    .event-tabs { max-width: 600px; margin: 1rem auto 0; padding: 0 1rem; display: flex; gap: 8px; }
+    .event-tab { flex: 1; padding: 12px 14px; background: #111; border: 2px solid #222; border-radius: 10px; color: #888; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; text-align: center; }
+    .event-tab.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
+    .event-tab .ev-meta { font-size: 11px; opacity: 0.7; font-weight: 400; display: block; margin-top: 2px; }
+
+    .search-wrap { max-width: 600px; margin: 1rem auto 0; padding: 0 1rem; }
+    .search-input { width: 100%; padding: 14px 16px; border-radius: 10px; border: 2px solid #333; background: #111; color: #fff; font-size: 15px; font-family: inherit; }
+    .search-input:focus { outline: none; border-color: #FFEE00; }
+
     .filters { max-width: 600px; margin: 1rem auto; padding: 0 1rem; display: flex; flex-direction: column; gap: 10px; }
     .filter-label { font-size: 11px; color: #888; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-    .filter-group { display: flex; flex-wrap: wrap; gap: 8px; }
-    .filter-btn { padding: 7px 14px; border-radius: 20px; border: 1px solid #333; background: #111; color: #888; font-size: 12px; font-weight: 700; cursor: pointer; font-family: sans-serif; white-space: nowrap; }
+    .filter-group { display: flex; flex-wrap: wrap; gap: 6px; }
+    .filter-btn { padding: 6px 12px; border-radius: 20px; border: 1px solid #333; background: #111; color: #888; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
     .filter-btn.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
-    .content { max-width: 600px; margin: 0 auto; padding: 0 1rem 2rem; }
+
+    .content { max-width: 600px; margin: 0 auto; padding: 0 1rem 3rem; }
+
     .cat-section { margin-bottom: 1.5rem; }
-    .cat-title { font-size: 14px; font-weight: 800; color: #FFEE00; background: #111; padding: 10px 14px; border-radius: 10px 10px 0 0; border: 1px solid #222; border-bottom: none; text-transform: uppercase; letter-spacing: 0.5px; }
+    .cat-title { font-size: 14px; font-weight: 800; color: #FFEE00; background: #1a1400; padding: 12px 14px; border-radius: 10px 10px 0 0; border: 1px solid #FFEE00; border-bottom: none; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+    .cat-title .cat-count { color: #aaa; font-size: 11px; font-weight: 400; }
     .cat-body { background: #111; border: 1px solid #222; border-radius: 0 0 10px 10px; overflow: hidden; }
-    .row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #1a1a1a; }
+
+    .age-sub-title { font-size: 11px; font-weight: 700; color: #aaa; background: #1a1a1a; padding: 8px 14px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+    .age-sub-title .age-count { color: #666; font-weight: 400; }
+
+    .row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #1a1a1a; cursor: default; }
     .row:last-child { border-bottom: none; }
-    .pos { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; flex-shrink: 0; }
+    .row.clickable { cursor: pointer; }
+    .row.clickable:hover { background: #1a1a1a; }
+    .row.clickable:active { background: #222; }
+    .pos { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
     .pos-1 { background: #FFEE00; color: #0a0a0a; }
-    .pos-2 { background: #888; color: #fff; }
+    .pos-2 { background: #aaa; color: #0a0a0a; }
     .pos-3 { background: #c87941; color: #fff; }
     .pos-n { background: #1a1a1a; color: #666; font-size: 11px; }
-    .name { flex: 1; font-size: 13px; color: #fff; font-weight: 600; }
-    .team { font-size: 11px; color: #888; }
-    .age-cat { font-size: 11px; color: #666; }
-    .time { font-family: monospace; font-size: 14px; color: #FFEE00; font-weight: 700; flex-shrink: 0; }
-    .no-results { text-align: center; color: #666; font-size: 13px; padding: 2rem; }
+    .name-block { flex: 1; min-width: 0; font-size: 13px; color: #fff; font-weight: 600; line-height: 1.3; }
+    .team { font-size: 11px; color: #888; font-weight: 400; margin-top: 2px; }
+    .time { font-family: -apple-system, BlinkMacSystemFont, monospace; font-size: 14px; color: #FFEE00; font-weight: 700; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+    .chev { color: #555; font-size: 10px; margin-left: 4px; flex-shrink: 0; }
+
+    .details { padding: 14px 16px; background: #050505; border-top: 1px dashed #333; border-bottom: 1px solid #1a1a1a; }
+    .splits-table { width: 100%; font-size: 12px; border-collapse: collapse; }
+    .splits-table tr { border-bottom: 1px solid #1a1a1a; }
+    .splits-table tr:last-child { border-bottom: none; }
+    .splits-table td { padding: 7px 4px; vertical-align: middle; }
+    .splits-table .st-num { width: 22px; height: 22px; border-radius: 50%; background: #1a1a1a; color: #FFEE00; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; }
+    .splits-table .st-label { color: #ddd; }
+    .splits-table .st-split { color: #FFEE00; font-variant-numeric: tabular-nums; text-align: right; font-weight: 700; white-space: nowrap; }
+    .splits-table .st-penal { color: #ffaa00; font-size: 10px; font-weight: 700; white-space: nowrap; text-align: right; }
+    .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; font-size: 12px; }
+    .summary .srow { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 8px; padding: 10px 12px; }
+    .summary .srow .lbl { color: #666; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+    .summary .srow .val { color: #fff; font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .summary .srow.total { grid-column: 1 / -1; background: #1a1a00; border-color: #FFEE00; }
+    .summary .srow.total .val { color: #FFEE00; font-size: 18px; }
+
+    .empty-state, .no-results { padding: 3rem 1rem; text-align: center; color: #666; font-size: 13px; line-height: 1.6; }
   </style>
 </head>
 <body>
 
 <div class="header">
   <a href="index.html">← Retour au site</a>
-  <div class="title">Leaderboard <span>26 avril 2026</span></div>
-  <div class="subtitle">Hyrox Challenge La Buse #1 — Saint-Paul, La Réunion</div>
+  <div class="title">Leader<span>board</span></div>
+  <div id="event-subtitle" class="subtitle">Choisis un événement</div>
+</div>
+
+<div class="event-tabs" id="event-tabs"></div>
+
+<div class="search-wrap">
+  <input id="search" class="search-input" type="search" placeholder="🔎 Cherche un athlète ou une équipe..." autocomplete="off">
 </div>
 
 <div class="filters">
   <div>
     <div class="filter-label">Catégorie</div>
-    <div class="filter-group" id="filter-cat">
-      <button type="button" class="filter-btn active" onclick="filterCat('all', this)">Toutes</button>
-      <button type="button" class="filter-btn" onclick="filterCat('rx hommes', this)">RX Hommes</button>
-      <button type="button" class="filter-btn" onclick="filterCat('scaled hommes', this)">Scaled Hommes</button>
-      <button type="button" class="filter-btn" onclick="filterCat('rx femme', this)">RX Femmes</button>
-      <button type="button" class="filter-btn" onclick="filterCat('scaled femmes', this)">Scaled Femmes</button>
-      <button type="button" class="filter-btn" onclick="filterCat('duo rx homme', this)">Duo RX Hommes</button>
-      <button type="button" class="filter-btn" onclick="filterCat('duo rx femme', this)">Duo RX Femmes</button>
-      <button type="button" class="filter-btn" onclick="filterCat('duo rx mixte', this)">Duo RX Mixte</button>
-      <button type="button" class="filter-btn" onclick="filterCat('duo scaled hommes', this)">Duo Scaled Hommes</button>
-      <button type="button" class="filter-btn" onclick="filterCat('duo scaled femmes', this)">Duo Scaled Femmes</button>
-      <button type="button" class="filter-btn" onclick="filterCat('duo scaled mixte', this)">Duo Scaled Mixte</button>
-      <button type="button" class="filter-btn" onclick="filterCat('relais', this)">Relais</button>
-    </div>
+    <div class="filter-group" id="filter-cat"></div>
   </div>
   <div>
     <div class="filter-label">Catégorie d'âge</div>
-    <div class="filter-group" id="filter-age">
-      <button type="button" class="filter-btn active" onclick="filterAge('all', this)">Tous</button>
-      <button type="button" class="filter-btn" onclick="filterAge('16-24', this)">16-24 ans</button>
-      <button type="button" class="filter-btn" onclick="filterAge('25-34', this)">25-34 ans</button>
-      <button type="button" class="filter-btn" onclick="filterAge('35-44', this)">35-44 ans</button>
-      <button type="button" class="filter-btn" onclick="filterAge('45-54', this)">45-54 ans</button>
-      <button type="button" class="filter-btn" onclick="filterAge('55+', this)">55+ ans</button>
-    </div>
+    <div class="filter-group" id="filter-age"></div>
   </div>
 </div>
 
-<div class="content" id="leaderboard"></div>
+<div class="content" id="leaderboard">
+  <div class="empty-state">Chargement…</div>
+</div>
 
 <script>
-var DATA = [
-  // DUO SCALED FEMMES
-  { nom: "WARRIORS GIRL", membres: "BALMY Leslie / CADO Marion", cat: "duo scaled femmes", age: "25-34", temps: "00:57:36", solo: false },
-  { nom: "LES MUMS", membres: "BERSANI DA COSTA Cecile / GUERARD Typhaine", cat: "duo scaled femmes", age: "35-44", temps: "00:54:30", solo: false },
-  { nom: "HYBRID DARLING", membres: "BLANCHARD Elisabeth / PANECHOU Clémence", cat: "duo scaled femmes", age: "35-44", temps: "00:52:19", solo: false },
-  { nom: "MIEL", membres: "LAW-YAT Florence / ONORA Ketty", cat: "duo scaled femmes", age: "45-54", temps: "00:59:45", solo: false },
-  { nom: "DOMI ET MUMU", membres: "ETHEVE Dominique / TURPIN Murielle", cat: "duo scaled femmes", age: "35-44", temps: "01:07:29", solo: false },
-  { nom: "WORKING MUMS", membres: "BAILLOT Tamara / TARACONAT Daphnée", cat: "duo scaled femmes", age: "25-34", temps: "01:15:46", solo: false },
-  { nom: "LES CHEETAH", membres: "CADENET Charlotte / MUSSARD Dorynda", cat: "duo scaled femmes", age: "16-24", temps: "01:19:00", solo: false },
-  { nom: "LES INSEPARABLES", membres: "ESPEL Gaelle / SAMBAOUMAELO Elodie", cat: "duo scaled femmes", age: "35-44", temps: "01:28:20", solo: false },
-  { nom: "TEAM 9H30", membres: "LUCAS Henriette / PICARDO Isabelle", cat: "duo scaled femmes", age: "55+", temps: "01:30:50", solo: false },
-
-  // SCALED FEMMES SOLO
-  { nom: "LAKANE Lynne", membres: "", cat: "scaled femmes", age: "25-34", temps: "01:07:15", solo: true },
-  { nom: "PERON Amandine", membres: "", cat: "scaled femmes", age: "25-34", temps: "01:14:08", solo: true },
-  { nom: "DELOT Anne-Elie", membres: "", cat: "scaled femmes", age: "25-34", temps: "01:19:35", solo: true },
-  { nom: "RIPERT Blondie", membres: "", cat: "scaled femmes", age: "25-34", temps: "01:25:39", solo: true },
-  { nom: "CORDELIER Chloë", membres: "", cat: "scaled femmes", age: "35-44", temps: "01:11:56", solo: true },
-  { nom: "ATCHAPA Emilie", membres: "", cat: "scaled femmes", age: "35-44", temps: "01:23:03", solo: true },
-  { nom: "HOARAU Sidonia", membres: "", cat: "scaled femmes", age: "35-44", temps: "01:38:30", solo: true },
-  { nom: "HAMBURGER Nathalie", membres: "", cat: "scaled femmes", age: "45-54", temps: "01:37:16", solo: true },
-
-  // RX FEMMES SOLO
-  { nom: "GALAOR Marie", membres: "", cat: "rx femme", age: "25-34", temps: "01:19:35", solo: true },
-  { nom: "ABHERVE Julie", membres: "", cat: "rx femme", age: "25-34", temps: "01:20:46", solo: true },
-  { nom: "ADIBA Sarah", membres: "", cat: "rx femme", age: "25-34", temps: "01:22:58", solo: true },
-  { nom: "HUET Anaëlle", membres: "", cat: "rx femme", age: "16-24", temps: "01:53:45", solo: true },
-
-  // DUO RX FEMMES
-  { nom: "LES COPINES D'ABORD", membres: "FAUS LLOPIS Célia / MEEUS Marie", cat: "duo rx femme", age: "35-44", temps: "01:04:54", solo: false },
-  { nom: "No pain No champaign", membres: "HOAREAU Jennifer / WYZEN Ophelie", cat: "duo rx femme", age: "35-44", temps: "01:26:50", solo: false },
-
-  // DUO RX HOMMES
-  { nom: "ROB ET LUDO", membres: "DUBOIS Ludovic / GOUGON Robin", cat: "duo rx homme", age: "35-44", temps: "00:56:18", solo: false },
-  { nom: "CA PART!!", membres: "MORENO Titouan / SOUALRD Lilian", cat: "duo rx homme", age: "25-34", temps: "01:02:05", solo: false },
-  { nom: "LLB TEAM", membres: "BALOUNAÏK Samuel / LE LIVEC Thomas", cat: "duo rx homme", age: "25-34", temps: "01:02:09", solo: false },
-  { nom: "FITNESS PORK", membres: "SITALAPRESAD Julien / TRAVERS Emilien", cat: "duo rx homme", age: "25-34", temps: "01:03:59", solo: false },
-  { nom: "LES POTES CORNES", membres: "DROUILLET Romain / LEPINAY Nicolas", cat: "duo rx homme", age: "35-44", temps: "01:07:11", solo: false },
-  { nom: "SURKOUTDETETE", membres: "MARDAYE Gael / PRIGENT Gaet", cat: "duo rx homme", age: "35-44", temps: "01:02:12", solo: false },
-  { nom: "LES PUPUCES", membres: "D'HELFT Rémi / VITRY Nicolas", cat: "duo rx homme", age: "16-24", temps: "01:13:09", solo: false },
-  { nom: "LACRAMPE", membres: "GOUAILLARDET Ivan / ROUSSEAU Tony", cat: "duo rx homme", age: "35-44", temps: "01:13:32", solo: false },
-  { nom: "KRYSTEAM", membres: "FOLIO Olivier / TECHER Thierry", cat: "duo rx homme", age: "45-54", temps: "01:14:52", solo: false },
-  { nom: "LES 404", membres: "WAN-HOI Jean-Philippe / TACOUN Kévin", cat: "duo rx homme", age: "45-54", temps: "01:14:32", solo: false },
-  { nom: "HOLD BRO", membres: "DODIER Frederic / KAREL Sebastien", cat: "duo rx homme", age: "45-54", temps: "01:14:51", solo: false },
-  { nom: "LES CROSSFATTEURS", membres: "BOUVREAU Romain / HAMBURGER Bobby", cat: "duo rx homme", age: "45-54", temps: "01:17:48", solo: false },
-  { nom: "LES KILLEURS DE BIERE", membres: "LAURET Guillaume / MAILLOT Laurent", cat: "duo rx homme", age: "45-54", temps: "01:21:43", solo: false },
-  { nom: "DAMLUD", membres: "DAMOUR Ludovic / CAMPANELLA Damien", cat: "duo rx homme", age: "35-44", temps: "01:12:54", solo: false },
-  { nom: "CHILLI CHEESE", membres: "CHAPUIS Tsiky / ECOLE François-Xavier", cat: "duo rx homme", age: "25-34", temps: "01:34:04", solo: false },
-
-  // DUO SCALED HOMMES
-  { nom: "KOK LA KOUR", membres: "HOAREAU Didier / TATEL Erickson", cat: "duo scaled hommes", age: "25-34", temps: "00:45:58", solo: false },
-  { nom: "BLACK AND WHITE", membres: "HOARAU Axel / VALEAMA Daya", cat: "duo scaled hommes", age: "25-34", temps: "00:43:29", solo: false },
-  { nom: "JUJU ET SEB", membres: "BOURDIN Julien / FABIANO Sebastien", cat: "duo scaled hommes", age: "35-44", temps: "00:46:58", solo: false },
-  { nom: "POWER RANGERS", membres: "LARTIN Cedric / SURATI Anass", cat: "duo scaled hommes", age: "25-34", temps: "00:52:50", solo: false },
-  { nom: "CRS", membres: "DESFEUX Dylan / PAULE Willy", cat: "duo scaled hommes", age: "25-34", temps: "00:52:20", solo: false },
-  { nom: "INVICT'IL", membres: "BEGHIN Olivier / MALEJAC Alexis", cat: "duo scaled hommes", age: "45-54", temps: "00:54:26", solo: false },
-  { nom: "LES RANDOMS", membres: "GRONDIN Benjamin / GRONDIN Mathieu", cat: "duo scaled hommes", age: "16-24", temps: "01:05:28", solo: false },
-  { nom: "KHURYX", membres: "KUHRY Tom / KUHRY Frederic", cat: "duo scaled hommes", age: "25-34", temps: "01:06:05", solo: false },
-  { nom: "HIBRED CREW", membres: "CELESTIN Pascal / MINSSIEUX Alexis", cat: "duo scaled hommes", age: "35-44", temps: "01:06:40", solo: false },
-  { nom: "MEME PAS MAL", membres: "BECASSE Julien / EVENOU Benjamin", cat: "duo scaled hommes", age: "35-44", temps: "01:06:54", solo: false },
-  { nom: "THANOS", membres: "BOISI Thano joel / MALBROUQUI Giovanny", cat: "duo scaled hommes", age: "35-44", temps: "01:01:36", solo: false },
-
-  // DUO SCALED MIXTE
-  { nom: "LES PAPANGS", membres: "MAURER Marine / RIVIERE Teddy", cat: "duo scaled mixte", age: "25-34", temps: "01:00:42", solo: false },
-  { nom: "LES MINOUS", membres: "PENA Cyril / PENA Manon", cat: "duo scaled mixte", age: "35-44", temps: "00:59:00", solo: false },
-  { nom: "DS TEAM", membres: "COTBAY Sebastien / COUTAYEN Davina", cat: "duo scaled mixte", age: "35-44", temps: "01:01:12", solo: false },
-  { nom: "TIC ET TAC", membres: "COVIN Guillaume / DUBARD Cynthia", cat: "duo scaled mixte", age: "25-34", temps: "01:04:37", solo: false },
-  { nom: "LENTS MAIS LEGENDAIRES", membres: "DURAND Lison / THOUVENIN Pierre", cat: "duo scaled mixte", age: "25-34", temps: "01:05:45", solo: false },
-  { nom: "SANTÉ MASTER", membres: "ANILHA Vanessa / LEPERLIER Ludovic", cat: "duo scaled mixte", age: "35-44", temps: "01:02:05", solo: false },
-  { nom: "KESKONFOULA", membres: "BERHIL Jaouad / VALY Erwan", cat: "duo scaled mixte", age: "45-54", temps: "00:59:18", solo: false },
-  { nom: "ADLAU", membres: "POINAPIN Adrien / POIRIER Laurine", cat: "duo scaled mixte", age: "25-34", temps: "01:19:52", solo: false },
-  { nom: "THE THUNDERBOLTS", membres: "PILJEAN Ludovic / SHUM-KIVAN Emilie", cat: "duo scaled mixte", age: "35-44", temps: "01:09:05", solo: false },
-  { nom: "DESHAYES", membres: "DESHAYES Luc / RIVIERE Karine", cat: "duo scaled mixte", age: "", temps: "01:14:04", solo: false },
-
-  // DUO RX MIXTE
-  { nom: "90 POURCENTS", membres: "BERTHELIER Magalie / MENARD Samuel", cat: "duo rx mixte", age: "25-34", temps: "00:57:23", solo: false },
-  { nom: "LES GROSSES MYRTILLES", membres: "BRENDLE Alicia / PAULE Tom", cat: "duo rx mixte", age: "25-34", temps: "01:10:32", solo: false },
-  { nom: "FAST AND FERROUS", membres: "HOAREAU Elisa / LEDEE Nathan", cat: "duo rx mixte", age: "25-34", temps: "01:12:24", solo: false },
-  { nom: "BAC TO THE BONE", membres: "HENRIETTE Thomas / MADI Sarah", cat: "duo rx mixte", age: "35-44", temps: "01:15:02", solo: false },
-  { nom: "VOLACANIK", membres: "LUCAS Joris / ORUS Natacha", cat: "duo rx mixte", age: "35-44", temps: "01:17:48", solo: false },
-  { nom: "KFÉ O LAIT", membres: "BUATOIS Blandine / TIMBOU Jonathan", cat: "duo rx mixte", age: "35-44", temps: "01:12:18", solo: false },
-  { nom: "RUN AND BEER", membres: "CHARITER Sabrina / RENOUARD Nicolas", cat: "duo rx mixte", age: "35-44", temps: "01:23:42", solo: false },
-  { nom: "BADASS PEI", membres: "JANAC Dany / SMITH Marion", cat: "duo rx mixte", age: "25-34", temps: "01:32:10", solo: false },
-
-  // SCALED HOMMES SOLO
-  { nom: "ELISABETH Patrick", membres: "", cat: "scaled hommes", age: "35-44", temps: "00:55:58", solo: true },
-  { nom: "FLORIAN Florian", membres: "", cat: "scaled hommes", age: "16-24", temps: "01:00:48", solo: true },
-  { nom: "ROBIGEAU Kenny", membres: "", cat: "scaled hommes", age: "25-34", temps: "01:01:47", solo: true },
-  { nom: "GUILLEMIN Justin", membres: "", cat: "scaled hommes", age: "35-44", temps: "01:02:18", solo: true },
-  { nom: "MEZINO Kevin", membres: "", cat: "scaled hommes", age: "35-44", temps: "01:02:25", solo: true },
-  { nom: "BEGUE Florent", membres: "", cat: "scaled hommes", age: "35-44", temps: "01:09:35", solo: true },
-  { nom: "PETIT Bruno", membres: "", cat: "scaled hommes", age: "35-44", temps: "01:12:30", solo: true },
-  { nom: "CARRON Mathias", membres: "", cat: "scaled hommes", age: "25-34", temps: "01:42:19", solo: true },
-
-  // RX HOMMES SOLO
-  { nom: "JANNAULT Clément", membres: "", cat: "rx hommes", age: "35-44", temps: "01:00:36", solo: true },
-  { nom: "EMMA Julien", membres: "", cat: "rx hommes", age: "35-44", temps: "01:06:47", solo: true },
-  { nom: "MOREL Jt", membres: "", cat: "rx hommes", age: "35-44", temps: "01:08:49", solo: true },
-  { nom: "PATELLI Melvin", membres: "", cat: "rx hommes", age: "25-34", temps: "01:03:15", solo: true },
-  { nom: "BEGUE Bastien", membres: "", cat: "rx hommes", age: "16-24", temps: "01:12:43", solo: true },
-  { nom: "GARA Yanse", membres: "", cat: "rx hommes", age: "35-44", temps: "01:12:58", solo: true },
-  { nom: "ECLAPIER Thomas", membres: "", cat: "rx hommes", age: "25-34", temps: "01:14:25", solo: true },
-  { nom: "BALLANT Michael", membres: "", cat: "rx hommes", age: "45-54", temps: "01:16:20", solo: true },
-  { nom: "LEPELLETIER Guillaume", membres: "", cat: "rx hommes", age: "45-54", temps: "01:17:27", solo: true },
-  { nom: "CERVEAUX Damien", membres: "", cat: "rx hommes", age: "25-34", temps: "01:15:58", solo: true },
-  { nom: "BARATIER Guillaume", membres: "", cat: "rx hommes", age: "35-44", temps: "01:18:56", solo: true },
-  { nom: "ABHERVE Julie", membres: "", cat: "rx hommes", age: "25-34", temps: "01:20:46", solo: true },
-  { nom: "CARMAGNOLE Loris", membres: "", cat: "rx hommes", age: "16-24", temps: "01:21:47", solo: true },
-  { nom: "BOURSOIT François", membres: "", cat: "rx hommes", age: "35-44", temps: "01:22:08", solo: true },
-  { nom: "LAURET David", membres: "", cat: "rx hommes", age: "45-54", temps: "01:23:18", solo: true },
-  { nom: "BARET Stéphane", membres: "", cat: "rx hommes", age: "25-34", temps: "01:54:35", solo: true },
-  { nom: "JOSEPH Killian", membres: "", cat: "rx hommes", age: "25-34", temps: "01:36:06", solo: true },
-  { nom: "DESPRET Maxime", membres: "", cat: "rx hommes", age: "25-34", temps: "01:32:46", solo: true },
-  { nom: "DIDAT Samuel", membres: "", cat: "rx hommes", age: "25-34", temps: "01:31:47", solo: true },
-  { nom: "MAS Frederic", membres: "", cat: "rx hommes", age: "45-54", temps: "01:30:35", solo: true },
-  { nom: "VALLY-ADAM Khalil", membres: "", cat: "rx hommes", age: "45-54", temps: "01:43:06", solo: true },
-  { nom: "RIVIERE Dany", membres: "", cat: "rx hommes", age: "55+", temps: "01:49:07", solo: true },
-  { nom: "AJORQUE David", membres: "", cat: "rx hommes", age: "45-54", temps: "02:17:39", solo: true },
-  { nom: "ADVICE DESRUISSEAUX Julien", membres: "", cat: "rx hommes", age: "35-44", temps: "02:07:10", solo: true },
-  { nom: "DUFOULON Jeremy", membres: "", cat: "rx hommes", age: "35-44", temps: "01:40:07", solo: true },
-  { nom: "LESCROC Jérôme", membres: "", cat: "rx hommes", age: "35-44", temps: "01:33:03", solo: true },
-
-  // RELAIS
-  { nom: "HYPER READY", membres: "ROUZENG Noemie / FONTAINE Didier / HUET Armand / ROMILY Jemila", cat: "relais", age: "45-54", temps: "01:11:03", solo: false },
-  { nom: "ONLY GOD CAN JUDGE US", membres: "DENA Vincent / BUSTOS Etienne Benoit / VELOUPOULE Santhi / NGUYEN Christophe", cat: "relais", age: "", temps: "01:19:59", solo: false },
+const CAT_ORDER = [
+  'solo rx hommes', 'solo scaled hommes', 'solo rx femmes', 'solo scaled femmes',
+  'duo rx homme', 'duo rx femme', 'duo rx mixte',
+  'duo scaled hommes', 'duo scaled femmes', 'duo scaled mixte',
+  'relais'
 ];
+const CAT_LABELS = {
+  'solo rx hommes': 'Solo RX Hommes',
+  'solo scaled hommes': 'Solo Scaled Hommes',
+  'solo rx femmes': 'Solo RX Femmes',
+  'solo scaled femmes': 'Solo Scaled Femmes',
+  'duo rx homme': 'Duo RX Hommes',
+  'duo rx femme': 'Duo RX Femmes',
+  'duo rx mixte': 'Duo RX Mixte',
+  'duo scaled hommes': 'Duo Scaled Hommes',
+  'duo scaled femmes': 'Duo Scaled Femmes',
+  'duo scaled mixte': 'Duo Scaled Mixte',
+  'relais': 'Relais',
+};
+const AGE_ORDER = ['16-24', '25-34', '35-44', '45-54', '55+'];
 
-var currentCat = 'all';
-var currentAge = 'all';
+let allEvents = [];
+let selectedEventIdx = 0;
+let currentCat = 'all';
+let currentAge = 'all';
+let searchQ = '';
+let expandedKey = null;
+
+function $(id) { return document.getElementById(id); }
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
+}
 
 function timeToSeconds(t) {
-  var p = t.split(':');
+  if (!t) return Number.MAX_SAFE_INTEGER;
+  const p = String(t).split(':');
+  if (p.length !== 3) return Number.MAX_SAFE_INTEGER;
   return parseInt(p[0]) * 3600 + parseInt(p[1]) * 60 + parseInt(p[2]);
 }
 
-function getCatLabel(cat) {
-  var labels = {
-    'rx hommes': 'RX Hommes', 'scaled hommes': 'Scaled Hommes',
-    'rx femme': 'RX Femmes', 'scaled femmes': 'Scaled Femmes',
-    'duo rx homme': 'Duo RX Hommes', 'duo rx femme': 'Duo RX Femmes',
-    'duo rx mixte': 'Duo RX Mixte', 'duo scaled hommes': 'Duo Scaled Hommes',
-    'duo scaled femmes': 'Duo Scaled Femmes', 'duo scaled mixte': 'Duo Scaled Mixte',
-    'relais': 'Relais'
-  };
-  return labels[cat] || cat;
+function formatBrut(totalSec) {
+  const s = Math.max(0, Math.floor(totalSec));
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`;
+  return `${m}m ${String(sec).padStart(2,'0')}s`;
 }
 
-function getPosClass(pos) {
-  if (pos === 1) return 'pos-1';
-  if (pos === 2) return 'pos-2';
-  if (pos === 3) return 'pos-3';
-  return 'pos-n';
+function formatDateFr(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+async function loadAll() {
+  try {
+    const r = await fetch('/api/event2-resultats');
+    if (r.ok) {
+      const ev = await r.json();
+      allEvents.push(ev);
+    }
+  } catch (err) { console.error('event-2', err); }
+  try {
+    const r = await fetch('/data/event-1.json');
+    if (r.ok) {
+      const ev = await r.json();
+      allEvents.push(ev);
+    }
+  } catch (err) { console.error('event-1', err); }
+  if (allEvents.length === 0) {
+    $('leaderboard').innerHTML = '<div class="no-results">Impossible de charger les résultats.</div>';
+    return;
+  }
+  // Default: event #2 si il a des résultats finis, sinon event #1
+  selectedEventIdx = (allEvents[0].resultats && allEvents[0].resultats.length > 0) ? 0 : Math.min(1, allEvents.length - 1);
+  renderTabs();
+  renderFilters();
+  render();
+}
+
+function renderTabs() {
+  const tabs = $('event-tabs');
+  tabs.innerHTML = allEvents.map((ev, idx) => {
+    const subtitle = ev.event.in_progress ? 'en cours' : formatDateFr(ev.event.date);
+    return `<button class="event-tab ${idx === selectedEventIdx ? 'active' : ''}" data-idx="${idx}">
+      ${escapeHtml(ev.event.nom)}
+      <span class="ev-meta">${escapeHtml(subtitle)}</span>
+    </button>`;
+  }).join('');
+  tabs.querySelectorAll('.event-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedEventIdx = parseInt(btn.dataset.idx, 10);
+      currentCat = 'all';
+      currentAge = 'all';
+      searchQ = '';
+      $('search').value = '';
+      expandedKey = null;
+      renderTabs();
+      renderFilters();
+      render();
+    });
+  });
+  const ev = allEvents[selectedEventIdx];
+  if (ev) $('event-subtitle').textContent = ev.event.in_progress ? 'Résultats en direct' : ev.event.nom + ' — ' + formatDateFr(ev.event.date);
+}
+
+function renderFilters() {
+  const ev = allEvents[selectedEventIdx];
+  if (!ev) return;
+  // Catégories présentes dans cet event
+  const catsInEvent = new Set(ev.resultats.map(r => r.cat));
+  const catsArr = CAT_ORDER.filter(c => catsInEvent.has(c));
+  $('filter-cat').innerHTML = '<button class="filter-btn active" data-cat="all">Toutes</button>' +
+    catsArr.map(c => `<button class="filter-btn" data-cat="${escapeHtml(c)}">${escapeHtml(CAT_LABELS[c] || c)}</button>`).join('');
+  $('filter-cat').querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentCat = btn.dataset.cat;
+      $('filter-cat').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+  });
+
+  const agesInEvent = new Set(ev.resultats.map(r => r.age).filter(Boolean));
+  const agesArr = AGE_ORDER.filter(a => agesInEvent.has(a));
+  $('filter-age').innerHTML = '<button class="filter-btn active" data-age="all">Toutes</button>' +
+    agesArr.map(a => `<button class="filter-btn" data-age="${escapeHtml(a)}">${escapeHtml(a)} ans</button>`).join('');
+  $('filter-age').querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentAge = btn.dataset.age;
+      $('filter-age').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+  });
+}
+
+function matchSearch(r, q) {
+  if (!q) return true;
+  const ql = q.toLowerCase();
+  return (r.nom || '').toLowerCase().includes(ql) || (r.membres || '').toLowerCase().includes(ql);
 }
 
 function render() {
-  var filtered = DATA.filter(function(d) {
-    var catMatch = currentCat === 'all' || d.cat.toLowerCase().includes(currentCat.toLowerCase()) || currentCat.toLowerCase().includes(d.cat.toLowerCase()) || d.cat === currentCat;
-    var ageMatch = currentAge === 'all' || d.age === currentAge;
-    return catMatch && ageMatch;
+  const ev = allEvents[selectedEventIdx];
+  if (!ev) return;
+
+  const filtered = ev.resultats.filter(r => {
+    if (currentCat !== 'all' && r.cat !== currentCat) return false;
+    if (currentAge !== 'all' && r.age !== currentAge) return false;
+    if (searchQ && !matchSearch(r, searchQ)) return false;
+    return true;
   });
 
-  // Grouper par catégorie
-  var groups = {};
-  filtered.forEach(function(d) {
-    if (!groups[d.cat]) groups[d.cat] = [];
-    groups[d.cat].push(d);
-  });
+  // Group by cat, then by age. Each (cat, age) is sorted by temps.
+  const byCat = {};
+  for (const r of filtered) {
+    if (!byCat[r.cat]) byCat[r.cat] = {};
+    const ageKey = r.age || '—';
+    if (!byCat[r.cat][ageKey]) byCat[r.cat][ageKey] = [];
+    byCat[r.cat][ageKey].push(r);
+  }
+  for (const cat in byCat) {
+    for (const age in byCat[cat]) {
+      byCat[cat][age].sort((a, b) => timeToSeconds(a.temps) - timeToSeconds(b.temps));
+    }
+  }
 
-  // Trier chaque groupe par temps
-  Object.keys(groups).forEach(function(cat) {
-    groups[cat].sort(function(a, b) { return timeToSeconds(a.temps) - timeToSeconds(b.temps); });
-  });
+  let html = '';
+  let total = 0;
+  for (const cat of CAT_ORDER) {
+    const ageGroups = byCat[cat];
+    if (!ageGroups) continue;
+    const catCount = Object.values(ageGroups).reduce((s, a) => s + a.length, 0);
+    total += catCount;
+    html += `<div class="cat-section">
+      <div class="cat-title"><span>${escapeHtml(CAT_LABELS[cat] || cat)}</span><span class="cat-count">${catCount} participant${catCount > 1 ? 's' : ''}</span></div>
+      <div class="cat-body">`;
 
-  var html = '';
-  var catOrder = ['rx hommes','scaled hommes','rx femme','scaled femmes','duo rx homme','duo rx femme','duo rx mixte','duo scaled hommes','duo scaled femmes','duo scaled mixte','relais'];
-
-  catOrder.forEach(function(cat) {
-    if (!groups[cat]) return;
-    html += '<div class="cat-section">';
-    html += '<div class="cat-title">' + getCatLabel(cat) + ' <span style="color:#666;font-size:11px;font-weight:400;">(' + groups[cat].length + ' participants)</span></div>';
-    html += '<div class="cat-body">';
-    groups[cat].forEach(function(d, i) {
-      var posClass = getPosClass(i + 1);
-      var medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
-      html += '<div class="row">';
-      html += '<div class="pos ' + posClass + '">' + medal + '</div>';
-      html += '<div class="name">' + d.nom;
-      if (d.membres) html += '<div class="team">' + d.membres + '</div>';
-      if (d.age) html += '<div class="age-cat">' + d.age + ' ans</div>';
-      html += '</div>';
-      html += '<div class="time">' + d.temps + '</div>';
-      html += '</div>';
-    });
+    const ages = AGE_ORDER.filter(a => ageGroups[a]);
+    // Add "no age" group at the end if present
+    if (ageGroups['—']) ages.push('—');
+    if (ages.length === 0) {
+      // shouldn't happen but defensive
+      ages.push(...Object.keys(ageGroups));
+    }
+    for (const age of ages) {
+      const rows = ageGroups[age];
+      if (!rows || rows.length === 0) continue;
+      html += `<div class="age-sub-title"><span>${age === '—' ? 'Sans tranche d\\'âge' : escapeHtml(age) + ' ans'}</span><span class="age-count">${rows.length}</span></div>`;
+      rows.forEach((r, i) => {
+        const pos = i + 1;
+        const posClass = pos === 1 ? 'pos-1' : pos === 2 ? 'pos-2' : pos === 3 ? 'pos-3' : 'pos-n';
+        const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : String(pos);
+        const hasDetail = Array.isArray(r.splits) && r.splits.length > 0;
+        const rowKey = `${selectedEventIdx}-${cat}-${age}-${i}`;
+        const isExpanded = expandedKey === rowKey;
+        const chev = hasDetail ? `<span class="chev">${isExpanded ? '▴' : '▾'}</span>` : '';
+        html += `<div class="row${hasDetail ? ' clickable' : ''}" data-key="${rowKey}"${hasDetail ? ' data-clickable="1"' : ''}>
+          <div class="pos ${posClass}">${medal}</div>
+          <div class="name-block">${escapeHtml(r.nom)}${r.membres ? '<div class="team">' + escapeHtml(r.membres) + '</div>' : ''}</div>
+          <div class="time">${escapeHtml(r.temps || '—')}</div>
+          ${chev}
+        </div>`;
+        if (hasDetail && isExpanded) {
+          html += renderDetails(r);
+        }
+      });
+    }
     html += '</div></div>';
+  }
+
+  if (total === 0) {
+    html = '<div class="no-results">Aucun résultat ne correspond.<br>Modifie ta recherche ou tes filtres.</div>';
+  }
+  $('leaderboard').innerHTML = html;
+
+  $('leaderboard').querySelectorAll('.row[data-clickable="1"]').forEach(row => {
+    row.addEventListener('click', () => {
+      const key = row.dataset.key;
+      expandedKey = (expandedKey === key) ? null : key;
+      render();
+    });
   });
-
-  if (!html) html = '<div class="no-results">Aucun résultat pour cette sélection.</div>';
-  document.getElementById('leaderboard').innerHTML = html;
 }
 
-function filterCat(cat, btn) {
-  currentCat = cat;
-  document.querySelectorAll('#filter-cat .filter-btn').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
-  render();
+function renderDetails(r) {
+  const splitsRows = r.splits.map(s => {
+    const penaltyParts = [];
+    if (s.penalite_5min > 0) penaltyParts.push(`${s.penalite_5min}×5min`);
+    if (s.penalite_30s > 0) penaltyParts.push(`${s.penalite_30s}×30s`);
+    const penalty = penaltyParts.length ? `<td class="st-penal">⚠️ +${penaltyParts.join(' ')}</td>` : '<td></td>';
+    return `<tr>
+      <td><span class="st-num">${s.station}</span></td>
+      <td class="st-label">${escapeHtml(s.label)}</td>
+      ${penalty}
+      <td class="st-split">${escapeHtml(s.split)}</td>
+    </tr>`;
+  }).join('');
+  const penaltyParts = [];
+  if (r.penalite_5min > 0) penaltyParts.push(`${r.penalite_5min}×5min`);
+  if (r.penalite_30s > 0) penaltyParts.push(`${r.penalite_30s}×30s`);
+  const penalitesLabel = penaltyParts.length ? penaltyParts.join(' + ') : 'aucune';
+  const penSec = (r.penalite_30s || 0) * 30 + (r.penalite_5min || 0) * 300;
+  return `<div class="details">
+    <table class="splits-table"><tbody>${splitsRows}</tbody></table>
+    <div class="summary">
+      <div class="srow"><div class="lbl">Temps brut</div><div class="val">${escapeHtml(formatBrut(r.brut_sec))}</div></div>
+      <div class="srow"><div class="lbl">Pénalités</div><div class="val">${penalitesLabel}${penSec > 0 ? ' <span style="color:#ffaa00;">(+' + formatBrut(penSec) + ')</span>' : ''}</div></div>
+      <div class="srow total"><div class="lbl">Temps final</div><div class="val">${escapeHtml(r.temps)}</div></div>
+    </div>
+  </div>`;
 }
 
-function filterAge(age, btn) {
-  currentAge = age;
-  document.querySelectorAll('#filter-age .filter-btn').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
-  render();
-}
+const searchInput = $('search');
+let debounceTimer = null;
+searchInput.addEventListener('input', () => {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => {
+    searchQ = searchInput.value;
+    expandedKey = null;
+    render();
+  }, 120);
+});
 
-render();
+loadAll();
 </script>
 </body>
 </html>
