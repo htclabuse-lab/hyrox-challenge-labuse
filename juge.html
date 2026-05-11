@@ -21,9 +21,13 @@
 
     .role-screen h1 { color: #FFEE00; font-size: 17px; margin-bottom: 1.2rem; text-align: center; letter-spacing: 1px; }
     .role-grid { display: grid; grid-template-columns: 1fr; gap: 12px; max-width: 480px; margin: 0 auto; }
-    .role-btn { padding: 22px 18px; background: #111; border: 2px solid #222; border-radius: 12px; color: #fff; font-size: 17px; font-weight: 700; cursor: pointer; text-align: left; }
+    .role-btn { padding: 18px 18px; background: #111; border: 2px solid #222; border-radius: 12px; color: #fff; font-size: 17px; font-weight: 700; cursor: pointer; text-align: left; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     .role-btn.starter { background: #1a1a00; border-color: #FFEE00; color: #FFEE00; }
     .role-btn:active { background: #1a1a1a; }
+    .role-count { background: #FFEE00; color: #0a0a0a; font-size: 14px; font-weight: 900; padding: 6px 12px; border-radius: 14px; min-width: 36px; text-align: center; font-variant-numeric: tabular-nums; }
+    .role-count.empty { background: #1a1a1a; color: #555; }
+    .role-count.loading { background: #222; color: #555; }
+    .role-btn.starter .role-count { background: #FFEE00; color: #0a0a0a; }
 
     .station-header { position: sticky; top: 0; background: #0a0a0a; border-bottom: 2px solid #FFEE00; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 10; margin: -1.5rem -1rem 1rem; }
     .station-header .station-label { color: #FFEE00; font-size: 14px; font-weight: 800; }
@@ -95,15 +99,15 @@
 <section id="screen-role" class="screen role-screen">
   <h1>Choisis ton rôle</h1>
   <div class="role-grid">
-    <button class="role-btn starter" data-role="start">🏁 Départ (Starter)</button>
-    <button class="role-btn" data-station="1">1 — SkiErg</button>
-    <button class="role-btn" data-station="2">2 — Sled Push</button>
-    <button class="role-btn" data-station="3">3 — Sled Pull</button>
-    <button class="role-btn" data-station="4">4 — Burpee Broad Jump</button>
-    <button class="role-btn" data-station="5">5 — Rowing</button>
-    <button class="role-btn" data-station="6">6 — Farmers Carry</button>
-    <button class="role-btn" data-station="7">7 — Sandbag Lunges</button>
-    <button class="role-btn" data-station="8">8 — Wall Balls (arrivée)</button>
+    <button class="role-btn starter" data-role="start"><span>🏁 Départ (Starter)</span><span class="role-count loading" data-target="starter">…</span></button>
+    <button class="role-btn" data-station="1"><span>1 — SkiErg</span><span class="role-count loading" data-target="st1">…</span></button>
+    <button class="role-btn" data-station="2"><span>2 — Sled Push</span><span class="role-count loading" data-target="st2">…</span></button>
+    <button class="role-btn" data-station="3"><span>3 — Sled Pull</span><span class="role-count loading" data-target="st3">…</span></button>
+    <button class="role-btn" data-station="4"><span>4 — Burpee Broad Jump</span><span class="role-count loading" data-target="st4">…</span></button>
+    <button class="role-btn" data-station="5"><span>5 — Rowing</span><span class="role-count loading" data-target="st5">…</span></button>
+    <button class="role-btn" data-station="6"><span>6 — Farmers Carry</span><span class="role-count loading" data-target="st6">…</span></button>
+    <button class="role-btn" data-station="7"><span>7 — Sandbag Lunges</span><span class="role-count loading" data-target="st7">…</span></button>
+    <button class="role-btn" data-station="8"><span>8 — Wall Balls (arrivée)</span><span class="role-count loading" data-target="st8">…</span></button>
   </div>
 </section>
 
@@ -166,7 +170,6 @@
         <button class="inc" data-target="pen5">+</button>
       </div>
     </div>
-    <button id="sheet-save" class="save-btn">ENREGISTRER LA PÉNALITÉ</button>
     <button id="sheet-point" class="point-btn">POINTER MAINTENANT ✅</button>
     <button id="sheet-cancel" class="cancel-btn">Fermer sans rien faire</button>
   </div>
@@ -183,7 +186,6 @@ const state = {
   role: JSON.parse(sessionStorage.getItem('juges_role') || 'null'),
   inscriptions: [],
   allPointages: [],
-  pendingPenalties: JSON.parse(sessionStorage.getItem('juges_pending_pen') || '{}'),
   sheet: { inscription_id: null, pen30: 0, pen5: 0 },
   sheetTimer: null,
   clockTimer: null,
@@ -226,10 +228,6 @@ function showToast(elemId, msg, kind = 'error', durMs = 4000) {
   el._timeout = setTimeout(() => { el.hidden = true; }, durMs);
 }
 
-function savePendingPenalties() {
-  sessionStorage.setItem('juges_pending_pen', JSON.stringify(state.pendingPenalties));
-}
-
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
 }
@@ -254,10 +252,61 @@ function formatClockTime(date) {
 
 function routeFromState() {
   if (!state.password) return showScreen('screen-login');
-  if (!state.role) return showScreen('screen-role');
+  if (!state.role) return enterRoleScreen();
   if (state.role.type === 'start') return enterStarterScreen();
   if (state.role.type === 'station') return enterStationScreen();
+  enterRoleScreen();
+}
+
+function enterRoleScreen() {
   showScreen('screen-role');
+  document.querySelectorAll('.role-count').forEach(el => {
+    el.className = 'role-count loading';
+    el.textContent = '…';
+  });
+  refreshRoleCounts();
+}
+
+async function refreshRoleCounts() {
+  const [listRes, ptRes, vaguesRes] = await Promise.all([
+    api('/api/juge-liste', {}),
+    api('/api/juge-tous-pointages', {}),
+    api('/api/juge-vagues', {}),
+  ]);
+  if (!listRes.ok || !ptRes.ok || !vaguesRes.ok) {
+    document.querySelectorAll('.role-count').forEach(el => { el.textContent = ''; el.className = 'role-count empty'; });
+    return;
+  }
+  const ins = listRes.data.inscriptions || [];
+  const pts = ptRes.data.pointages || [];
+  const vagues = vaguesRes.data.vagues || [];
+
+  const ptMap = {};
+  for (const p of pts) {
+    if (!ptMap[p.station]) ptMap[p.station] = new Set();
+    ptMap[p.station].add(p.inscription_id);
+  }
+
+  const counts = {};
+  for (let s = 1; s <= 8; s++) {
+    let n = 0;
+    for (const i of ins) {
+      if (ptMap[s] && ptMap[s].has(i.id)) continue;
+      if (s === 1) { if (i.heure_depart) n++; }
+      else { if (ptMap[s - 1] && ptMap[s - 1].has(i.id)) n++; }
+    }
+    counts[s] = n;
+  }
+  const vaguesAttente = vagues.filter(v => !v.heure_depart).length;
+
+  function setCount(target, value) {
+    const el = document.querySelector(`.role-count[data-target="${target}"]`);
+    if (!el) return;
+    el.textContent = value;
+    el.className = 'role-count' + (Number(value) === 0 ? ' empty' : '');
+  }
+  setCount('starter', vaguesAttente);
+  for (let s = 1; s <= 8; s++) setCount('st' + s, counts[s]);
 }
 
 // ---- LOGIN ----
@@ -277,7 +326,7 @@ $('login-btn').addEventListener('click', async () => {
     sessionStorage.setItem('juges_password', pw);
     $('login-password').value = '';
     $('login-error').textContent = '';
-    showScreen('screen-role');
+    enterRoleScreen();
   } catch (err) {
     $('login-error').textContent = 'Réseau indisponible — réessaie';
   } finally {
@@ -366,20 +415,8 @@ function renderDossardGrid() {
   }
   $('station-empty').hidden = true;
   grid.innerHTML = eligible.map(i => {
-    const pending = state.pendingPenalties[i.id];
-    const hasPenalty = pending && (pending.pen30 > 0 || pending.pen5 > 0);
     const label = i.nom_equipe || i.prenom || '';
-    const classes = ['dossard-btn'];
-    if (hasPenalty) classes.push('has-penalty');
-    let badge = '';
-    if (hasPenalty) {
-      const parts = [];
-      if (pending.pen30 > 0) parts.push(`+${pending.pen30}×30s`);
-      if (pending.pen5 > 0) parts.push(`+${pending.pen5}×5m`);
-      badge = `<span class="penalty-badge">${parts.join(' ')}</span>`;
-    }
-    return `<button class="${classes.join(' ')}" data-id="${i.id}">
-      ${badge}
+    return `<button class="dossard-btn" data-id="${i.id}">
       <span class="num">${i.dossard}</span>
       <span class="name">${escapeHtml(label)}</span>
     </button>`;
@@ -394,7 +431,7 @@ $('station-quit').addEventListener('click', () => {
   if (!confirm('Changer de rôle ?')) return;
   sessionStorage.removeItem('juges_role');
   state.role = null;
-  showScreen('screen-role');
+  enterRoleScreen();
 });
 
 // ---- SHEET ----
@@ -412,9 +449,8 @@ function openSheet(inscription_id) {
   const ath = state.inscriptions.find(i => i.id === inscription_id);
   if (!ath) return;
   state.sheet.inscription_id = inscription_id;
-  const pending = state.pendingPenalties[inscription_id] || { pen30: 0, pen5: 0 };
-  state.sheet.pen30 = pending.pen30 || 0;
-  state.sheet.pen5 = pending.pen5 || 0;
+  state.sheet.pen30 = 0;
+  state.sheet.pen5 = 0;
   const label = ath.nom_equipe || ath.prenom || '';
   $('sheet-title').textContent = `Dossard ${ath.dossard} — ${label}`;
   updateSheetCounters();
@@ -451,19 +487,6 @@ $('sheet-backdrop').addEventListener('click', e => {
   if (e.target.id === 'sheet-backdrop') closeSheet();
 });
 
-$('sheet-save').addEventListener('click', () => {
-  const id = state.sheet.inscription_id;
-  if (!id) return;
-  if (state.sheet.pen30 === 0 && state.sheet.pen5 === 0) {
-    delete state.pendingPenalties[id];
-  } else {
-    state.pendingPenalties[id] = { pen30: state.sheet.pen30, pen5: state.sheet.pen5 };
-  }
-  savePendingPenalties();
-  closeSheet();
-  renderDossardGrid();
-});
-
 $('sheet-point').addEventListener('click', async () => {
   const id = state.sheet.inscription_id;
   if (!id) return;
@@ -487,8 +510,6 @@ $('sheet-point').addEventListener('click', async () => {
     await refreshStationData();
     return;
   }
-  delete state.pendingPenalties[id];
-  savePendingPenalties();
   state.allPointages.push(data.pointage);
   state.lastPointage = { pointage_id: data.pointage.id, inscription_id: id };
   const ath = state.inscriptions.find(i => i.id === id);
@@ -665,7 +686,7 @@ $('starter-quit').addEventListener('click', () => {
   sessionStorage.removeItem('juges_role');
   state.role = null;
   if (state.clockTimer) { clearInterval(state.clockTimer); state.clockTimer = null; }
-  showScreen('screen-role');
+  enterRoleScreen();
 });
 
 routeFromState();
