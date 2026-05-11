@@ -150,9 +150,11 @@
   var currentSubCat = 'all';
 
   var CAT_ORDER = [
-    'duo scaled femmes', 'solo scaled femmes', 'solo rx femmes', 'duo rx femme',
-    'duo rx homme', 'duo scaled hommes', 'duo scaled mixte', 'duo rx mixte',
-    'solo scaled hommes', 'solo rx hommes', 'relais'
+    'duo scaled hommes', 'duo rx homme', 'solo scaled hommes', 'solo rx hommes',
+    'duo scaled mixte', 'duo rx mixte',
+    'duo scaled femmes', 'duo rx femme',
+    'solo scaled femmes', 'solo rx femmes',
+    'relais'
   ];
 
   var TEMPS_ORDER = {
@@ -337,30 +339,39 @@ html += '<td style="font-size:12px;color:#FFEE00;">' + ageMoy + '</td>';
   }
 function renderPassage() {
     var groups = getGroups();
+    var flat = [];
+    CAT_ORDER.forEach(function(key) {
+      if (groups[key] && groups[key].length > 0) {
+        flat = flat.concat(groups[key]);
+      }
+    });
+
     var html = '';
     var vagueNum = 1;
     var athleteNum = 1;
-
-    CAT_ORDER.forEach(function(key) {
-      if (!groups[key] || groups[key].length === 0) return;
-      html += '<div class="passage-cat-title">📍 ' + getCatLabel(key) + ' — ' + groups[key].length + ' inscrit(s)</div>';
-      var inscrits = groups[key];
-      for (var i = 0; i < inscrits.length; i += 4) {
-        var groupe = inscrits.slice(i, i + 4);
-        html += '<div class="vague-block" style="margin-bottom:8px;">';
-        html += '<div class="vague-header"><div class="vague-title">Vague ' + vagueNum + '</div><div class="vague-info">' + groupe.length + ' athlète(s)</div></div>';
-        groupe.forEach(function(d) {
-          html += '<div style="display:flex;gap:12px;padding:9px 14px;border-bottom:1px solid #1a1a1a;font-size:13px;align-items:center;">';
-          html += '<div style="width:24px;height:24px;border-radius:50%;background:#FFEE00;color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;">' + athleteNum + '</div>';
-          html += '<div style="flex:1;color:#fff;font-weight:600;">' + (d.nom||'—') + ' ' + (d.prenom||'') + (d.nom_equipe ? ' <span style="color:#888;font-weight:400;">— ' + d.nom_equipe + '</span>' : '') + '</div>';
-          html += '<div style="color:#FFEE00;font-family:monospace;font-size:12px;">' + (d.temps_estime||'—') + '</div>';
-          html += '</div>';
-          athleteNum++;
-        });
+    for (var i = 0; i < flat.length; i += 4) {
+      var groupe = flat.slice(i, i + 4);
+      var catsInVague = [];
+      groupe.forEach(function(d) {
+        var key = getCatKey(d.categorie);
+        if (catsInVague.indexOf(key) === -1) catsInVague.push(key);
+      });
+      var catsLabel = catsInVague.map(getCatLabel).join(' + ');
+      html += '<div class="vague-block" style="margin-bottom:8px;">';
+      html += '<div class="vague-header"><div class="vague-title">Vague ' + vagueNum + '</div><div class="vague-info">' + groupe.length + ' athlète(s) — ' + catsLabel + '</div></div>';
+      groupe.forEach(function(d) {
+        var key = getCatKey(d.categorie);
+        html += '<div style="display:flex;gap:12px;padding:9px 14px;border-bottom:1px solid #1a1a1a;font-size:13px;align-items:center;">';
+        html += '<div style="width:24px;height:24px;border-radius:50%;background:#FFEE00;color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;">' + athleteNum + '</div>';
+        html += '<div style="flex:1;color:#fff;font-weight:600;">' + (d.nom||'—') + ' ' + (d.prenom||'') + (d.nom_equipe ? ' <span style="color:#888;font-weight:400;">— ' + d.nom_equipe + '</span>' : '') + '</div>';
+        html += '<div style="color:#888;font-size:11px;min-width:140px;text-align:right;flex-shrink:0;">' + getCatLabel(key) + '</div>';
+        html += '<div style="color:#FFEE00;font-family:monospace;font-size:12px;min-width:60px;text-align:right;flex-shrink:0;">' + (d.temps_estime||'—') + '</div>';
         html += '</div>';
-        vagueNum++;
-      }
-    });
+        athleteNum++;
+      });
+      html += '</div>';
+      vagueNum++;
+    }
 
     document.getElementById('passage-content').innerHTML = html || '<div style="color:#666;padding:2rem;text-align:center;">Aucun inscrit</div>';
   }

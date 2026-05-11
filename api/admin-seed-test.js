@@ -1,9 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
 const CAT_ORDER = [
-  'duo scaled femmes', 'solo scaled femmes', 'solo rx femmes', 'duo rx femme',
-  'duo rx homme', 'duo scaled hommes', 'duo scaled mixte', 'duo rx mixte',
-  'solo scaled hommes', 'solo rx hommes', 'relais'
+  'duo scaled hommes', 'duo rx homme', 'solo scaled hommes', 'solo rx hommes',
+  'duo scaled mixte', 'duo rx mixte',
+  'duo scaled femmes', 'duo rx femme',
+  'solo scaled femmes', 'solo rx femmes',
+  'relais'
 ];
 
 function getCatKey(categorie) {
@@ -104,19 +106,23 @@ export default async function handler(req, res) {
       }
     }
 
+    const flat = [];
+    for (const key of CAT_ORDER) {
+      if (groups[key] && groups[key].length > 0) {
+        flat.push(...groups[key]);
+      }
+    }
+
     let dossard = 1;
     let vague = 1;
     const assignments = [];
-    for (const key of CAT_ORDER) {
-      if (!groups[key] || groups[key].length === 0) continue;
-      for (let i = 0; i < groups[key].length; i += 4) {
-        const groupe = groups[key].slice(i, i + 4);
-        for (const d of groupe) {
-          assignments.push({ id: d.id, dossard, vague });
-          dossard++;
-        }
-        vague++;
+    for (let i = 0; i < flat.length; i += 4) {
+      const groupe = flat.slice(i, i + 4);
+      for (const d of groupe) {
+        assignments.push({ id: d.id, dossard, vague });
+        dossard++;
       }
+      vague++;
     }
 
     const BATCH_SIZE = 20;
