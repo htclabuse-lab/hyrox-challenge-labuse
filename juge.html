@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Juge — Hyrox Challenge La Buse</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; }
+    button { font-family: inherit; }
+
+    .screen { display: none; min-height: 100vh; padding: 1.5rem 1rem; }
+    .screen.active { display: block; }
+
+    .login { max-width: 400px; margin: 4rem auto 0; padding: 2rem; background: #111; border-radius: 14px; border: 1px solid #222; text-align: center; }
+    .login h1 { color: #FFEE00; font-size: 22px; margin-bottom: 0.5rem; letter-spacing: 2px; }
+    .login p { color: #888; font-size: 13px; margin-bottom: 1.5rem; }
+    .login input { width: 100%; padding: 16px; border-radius: 10px; border: 1px solid #333; background: #0a0a0a; color: #fff; font-size: 16px; margin-bottom: 14px; }
+    .login button { width: 100%; padding: 18px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 17px; font-weight: 800; cursor: pointer; }
+    .error-msg { color: #ff7676; font-size: 13px; margin-top: 12px; min-height: 18px; }
+
+    .role-screen h1 { color: #FFEE00; font-size: 17px; margin-bottom: 1.2rem; text-align: center; letter-spacing: 1px; }
+    .role-grid { display: grid; grid-template-columns: 1fr; gap: 12px; max-width: 480px; margin: 0 auto; }
+    .role-btn { padding: 22px 18px; background: #111; border: 2px solid #222; border-radius: 12px; color: #fff; font-size: 17px; font-weight: 700; cursor: pointer; text-align: left; }
+    .role-btn.starter { background: #1a1a00; border-color: #FFEE00; color: #FFEE00; }
+    .role-btn:active { background: #1a1a1a; }
+
+    .station-header { position: sticky; top: 0; background: #0a0a0a; border-bottom: 2px solid #FFEE00; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 10; margin: -1.5rem -1rem 1rem; }
+    .station-header .station-label { color: #FFEE00; font-size: 14px; font-weight: 800; }
+    .station-header .quit-btn { background: transparent; border: 1px solid #333; color: #aaa; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+
+    .toast { padding: 12px 14px; border-radius: 10px; margin: 12px 0; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .toast.success { background: #1a3a1a; border: 1px solid #2a5a2a; color: #b6f0b6; }
+    .toast.error { background: #3a1a1a; border: 1px solid #5a2a2a; color: #ffb6b6; }
+    .toast .undo-btn { background: transparent; border: 1px solid currentColor; color: inherit; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 700; white-space: nowrap; }
+
+    .refresh-btn { background: #111; border: 1px solid #333; color: #aaa; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; margin: 8px 0 12px; }
+
+    .dossard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; padding: 0 0 40px; }
+    .dossard-btn { position: relative; padding: 14px 8px; background: #111; border: 2px solid #222; border-radius: 12px; color: #fff; cursor: pointer; text-align: center; min-height: 84px; display: flex; flex-direction: column; justify-content: center; }
+    .dossard-btn .num { font-size: 22px; font-weight: 900; color: #FFEE00; }
+    .dossard-btn .name { font-size: 11px; color: #aaa; margin-top: 4px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; padding: 0 4px; }
+    .dossard-btn.pointed { background: #1a3a1a; border-color: #2a5a2a; opacity: 0.55; }
+    .dossard-btn.pointed .num { color: #b6f0b6; }
+    .dossard-btn.has-penalty { border-color: #ffaa00; }
+    .dossard-btn .penalty-badge { position: absolute; top: -6px; right: -6px; background: #ffaa00; color: #0a0a0a; font-size: 10px; font-weight: 900; padding: 3px 7px; border-radius: 10px; }
+    .empty-state { padding: 3rem 1rem; text-align: center; color: #666; font-size: 14px; }
+
+    .vague-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .vague-card .label { font-size: 18px; font-weight: 800; color: #FFEE00; margin-bottom: 4px; }
+    .vague-card .count { color: #888; font-size: 13px; margin-bottom: 12px; }
+    .vague-card button { width: 100%; padding: 16px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; }
+
+    .sheet-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: flex-end; z-index: 50; }
+    .sheet-backdrop.open { display: flex; }
+    .sheet { width: 100%; background: #1a1a1a; border-top: 2px solid #FFEE00; border-radius: 16px 16px 0 0; padding: 20px 16px 32px; max-width: 600px; margin: 0 auto; }
+    .sheet h2 { color: #FFEE00; font-size: 19px; margin-bottom: 16px; text-align: center; }
+    .counter { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: #0a0a0a; border-radius: 10px; margin-bottom: 12px; border: 1px solid #222; }
+    .counter .label { font-size: 14px; color: #ddd; }
+    .counter .controls { display: flex; align-items: center; gap: 12px; }
+    .counter .controls button { width: 44px; height: 44px; border-radius: 50%; border: 2px solid #333; background: #111; color: #fff; font-size: 22px; font-weight: 800; cursor: pointer; }
+    .counter .val { font-size: 22px; font-weight: 800; min-width: 30px; text-align: center; color: #FFEE00; }
+    .sheet .save-btn { width: 100%; padding: 16px; background: transparent; border: 2px solid #ffaa00; color: #ffaa00; border-radius: 10px; font-size: 15px; font-weight: 800; cursor: pointer; margin-bottom: 10px; }
+    .sheet .point-btn { width: 100%; padding: 18px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 17px; font-weight: 900; cursor: pointer; margin-bottom: 10px; }
+    .sheet .cancel-btn { width: 100%; padding: 12px; background: transparent; border: 1px solid #333; color: #888; border-radius: 10px; font-size: 14px; cursor: pointer; }
+    .sheet button:disabled { opacity: 0.5; }
+
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+
+<section id="screen-login" class="screen active">
+  <div class="login">
+    <h1>JUGE</h1>
+    <p>Hyrox Challenge La Buse</p>
+    <input id="login-password" type="password" placeholder="Mot de passe" autocomplete="off">
+    <button id="login-btn">Se connecter</button>
+    <div id="login-error" class="error-msg"></div>
+  </div>
+</section>
+
+<section id="screen-role" class="screen role-screen">
+  <h1>Choisis ton rôle</h1>
+  <div class="role-grid">
+    <button class="role-btn starter" data-role="start">🏁 Départ (Starter)</button>
+    <button class="role-btn" data-station="1">1 — SkiErg</button>
+    <button class="role-btn" data-station="2">2 — Sled Push</button>
+    <button class="role-btn" data-station="3">3 — Sled Pull</button>
+    <button class="role-btn" data-station="4">4 — Burpee Broad Jump</button>
+    <button class="role-btn" data-station="5">5 — Rowing</button>
+    <button class="role-btn" data-station="6">6 — Farmers Carry</button>
+    <button class="role-btn" data-station="7">7 — Sandbag Lunges</button>
+    <button class="role-btn" data-station="8">8 — Wall Balls</button>
+  </div>
+</section>
+
+<section id="screen-station" class="screen">
+  <div class="station-header">
+    <span id="station-label" class="station-label">Station X</span>
+    <button id="station-quit" class="quit-btn">Changer de rôle</button>
+  </div>
+  <div id="undo-banner" class="toast success" hidden>
+    <span id="undo-text"></span>
+    <button id="undo-btn" class="undo-btn">Annuler (5s)</button>
+  </div>
+  <div id="station-toast" class="toast error" hidden></div>
+  <button id="station-refresh" class="refresh-btn">↻ Rafraîchir la liste</button>
+  <div id="dossard-grid" class="dossard-grid"></div>
+  <div id="station-empty" class="empty-state" hidden>
+    Aucun athlète n'a encore démarré.<br>
+    Touche « Rafraîchir » dans quelques minutes.
+  </div>
+</section>
+
+<section id="screen-starter" class="screen">
+  <div class="station-header">
+    <span class="station-label">🏁 DÉPART — Starter</span>
+    <button id="starter-quit" class="quit-btn">Changer de rôle</button>
+  </div>
+  <div id="starter-toast" class="toast error" hidden></div>
+  <button id="starter-refresh" class="refresh-btn">↻ Rafraîchir les vagues</button>
+  <div id="vagues-list"></div>
+  <div id="starter-empty" class="empty-state" hidden>
+    Aucune vague à démarrer pour le moment.
+  </div>
+</section>
+
+<div id="sheet-backdrop" class="sheet-backdrop">
+  <div class="sheet">
+    <h2 id="sheet-title">Dossard XX</h2>
+    <div class="counter">
+      <span class="label">Pénalité 30s</span>
+      <div class="controls">
+        <button class="dec" data-target="pen30">−</button>
+        <span id="pen30-val" class="val">0</span>
+        <button class="inc" data-target="pen30">+</button>
+      </div>
+    </div>
+    <div id="pen5-row" class="counter" hidden>
+      <span class="label">Pénalité 5min</span>
+      <div class="controls">
+        <button class="dec" data-target="pen5">−</button>
+        <span id="pen5-val" class="val">0</span>
+        <button class="inc" data-target="pen5">+</button>
+      </div>
+    </div>
+    <button id="sheet-save" class="save-btn">ENREGISTRER LA PÉNALITÉ</button>
+    <button id="sheet-point" class="point-btn">POINTER MAINTENANT ✅</button>
+    <button id="sheet-cancel" class="cancel-btn">Fermer sans rien faire</button>
+  </div>
+</div>
+
+<script>
+const STATIONS = {
+  1: 'SkiErg', 2: 'Sled Push', 3: 'Sled Pull', 4: 'Burpee Broad Jump',
+  5: 'Rowing', 6: 'Farmers Carry', 7: 'Sandbag Lunges', 8: 'Wall Balls'
+};
+
+const state = {
+  password: sessionStorage.getItem('juges_password') || null,
+  role: JSON.parse(sessionStorage.getItem('juges_role') || 'null'),
+  inscriptions: [],
+  pointagesSet: new Set(),
+  pendingPenalties: JSON.parse(sessionStorage.getItem('juges_pending_pen') || '{}'),
+  sheet: { inscription_id: null, pen30: 0, pen5: 0 },
+  lastPointage: null,
+  undoTimer: null,
+};
+
+function $(id) { return document.getElementById(id); }
+
+async function api(path, body) {
+  try {
+    const res = await fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: state.password, ...body }),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data };
+  } catch (err) {
+    return { ok: false, status: 0, data: { error: 'Réseau indisponible — réessaie' } };
+  }
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function showToast(elemId, msg, kind = 'error', durMs = 4000) {
+  const el = $(elemId);
+  el.textContent = msg;
+  el.classList.remove('success', 'error');
+  el.classList.add(kind);
+  el.hidden = false;
+  if (el._timeout) clearTimeout(el._timeout);
+  el._timeout = setTimeout(() => { el.hidden = true; }, durMs);
+}
+
+function savePendingPenalties() {
+  sessionStorage.setItem('juges_pending_pen', JSON.stringify(state.pendingPenalties));
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
+}
+
+function routeFromState() {
+  if (!state.password) return showScreen('screen-login');
+  if (!state.role) return showScreen('screen-role');
+  if (state.role.type === 'start') return enterStarterScreen();
+  if (state.role.type === 'station') return enterStationScreen();
+  showScreen('screen-role');
+}
+
+// ---- LOGIN ----
+$('login-btn').addEventListener('click', async () => {
+  const pw = $('login-password').value;
+  if (!pw) { $('login-error').textContent = 'Mot de passe requis'; return; }
+  $('login-btn').disabled = true;
+  try {
+    const res = await fetch('/api/juge-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pw }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { $('login-error').textContent = data.error || 'Erreur'; return; }
+    state.password = pw;
+    sessionStorage.setItem('juges_password', pw);
+    $('login-password').value = '';
+    $('login-error').textContent = '';
+    showScreen('screen-role');
+  } catch (err) {
+    $('login-error').textContent = 'Réseau indisponible — réessaie';
+  } finally {
+    $('login-btn').disabled = false;
+  }
+});
+$('login-password').addEventListener('keypress', e => {
+  if (e.key === 'Enter') $('login-btn').click();
+});
+
+// ---- ROLE CHOICE ----
+document.querySelectorAll('.role-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (btn.dataset.role === 'start') {
+      state.role = { type: 'start' };
+    } else {
+      const station = parseInt(btn.dataset.station, 10);
+      state.role = { type: 'station', station, label: STATIONS[station] };
+    }
+    sessionStorage.setItem('juges_role', JSON.stringify(state.role));
+    routeFromState();
+  });
+});
+
+// ---- STATION SCREEN ----
+async function enterStationScreen() {
+  $('station-label').textContent = `Station ${state.role.station} — ${STATIONS[state.role.station]}`;
+  showScreen('screen-station');
+  $('station-toast').hidden = true;
+  $('station-empty').hidden = true;
+  $('dossard-grid').innerHTML = '<div class="empty-state">Chargement…</div>';
+  await refreshStationData();
+}
+
+async function refreshStationData() {
+  const [listRes, pointagesRes] = await Promise.all([
+    api('/api/juge-liste', {}),
+    api('/api/juge-pointages-station', { station: state.role.station }),
+  ]);
+  if (!listRes.ok) {
+    showToast('station-toast', listRes.data.error || 'Erreur lecture athlètes');
+    $('dossard-grid').innerHTML = '';
+    return;
+  }
+  if (!pointagesRes.ok) {
+    showToast('station-toast', pointagesRes.data.error || 'Erreur lecture pointages');
+    $('dossard-grid').innerHTML = '';
+    return;
+  }
+  state.inscriptions = listRes.data.inscriptions || [];
+  state.pointagesSet = new Set((pointagesRes.data.pointages || []).map(p => p.inscription_id));
+  renderDossardGrid();
+}
+
+function renderDossardGrid() {
+  const grid = $('dossard-grid');
+  const started = state.inscriptions.filter(i => i.heure_depart);
+  if (started.length === 0) {
+    grid.innerHTML = '';
+    $('station-empty').hidden = false;
+    return;
+  }
+  $('station-empty').hidden = true;
+  grid.innerHTML = started.map(i => {
+    const pointed = state.pointagesSet.has(i.id);
+    const pending = state.pendingPenalties[i.id];
+    const hasPenalty = pending && (pending.pen30 > 0 || pending.pen5 > 0);
+    const label = i.nom_equipe || i.prenom || '';
+    const classes = ['dossard-btn'];
+    if (pointed) classes.push('pointed');
+    if (hasPenalty && !pointed) classes.push('has-penalty');
+    let badge = '';
+    if (hasPenalty && !pointed) {
+      const parts = [];
+      if (pending.pen30 > 0) parts.push(`+${pending.pen30}×30s`);
+      if (pending.pen5 > 0) parts.push(`+${pending.pen5}×5m`);
+      badge = `<span class="penalty-badge">${parts.join(' ')}</span>`;
+    }
+    return `<button class="${classes.join(' ')}" data-id="${i.id}" ${pointed ? 'disabled' : ''}>
+      ${badge}
+      <span class="num">${i.dossard}</span>
+      <span class="name">${escapeHtml(label)}</span>
+    </button>`;
+  }).join('');
+  grid.querySelectorAll('.dossard-btn:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => openSheet(parseInt(btn.dataset.id, 10)));
+  });
+}
+
+$('station-refresh').addEventListener('click', refreshStationData);
+$('station-quit').addEventListener('click', () => {
+  if (!confirm('Changer de rôle ?')) return;
+  sessionStorage.removeItem('juges_role');
+  state.role = null;
+  showScreen('screen-role');
+});
+
+// ---- SHEET ----
+function openSheet(inscription_id) {
+  const ath = state.inscriptions.find(i => i.id === inscription_id);
+  if (!ath) return;
+  state.sheet.inscription_id = inscription_id;
+  const pending = state.pendingPenalties[inscription_id] || { pen30: 0, pen5: 0 };
+  state.sheet.pen30 = pending.pen30 || 0;
+  state.sheet.pen5 = pending.pen5 || 0;
+  const label = ath.nom_equipe || ath.prenom || '';
+  $('sheet-title').textContent = `Dossard ${ath.dossard} — ${label}`;
+  updateSheetCounters();
+  const isPen5Allowed = state.role.station === 1 || state.role.station === 2;
+  $('pen5-row').hidden = !isPen5Allowed;
+  $('sheet-backdrop').classList.add('open');
+}
+
+function closeSheet() {
+  $('sheet-backdrop').classList.remove('open');
+  state.sheet = { inscription_id: null, pen30: 0, pen5: 0 };
+}
+
+function updateSheetCounters() {
+  $('pen30-val').textContent = state.sheet.pen30;
+  $('pen5-val').textContent = state.sheet.pen5;
+}
+
+document.querySelectorAll('.counter .inc, .counter .dec').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.target;
+    const delta = btn.classList.contains('inc') ? 1 : -1;
+    state.sheet[target] = Math.max(0, state.sheet[target] + delta);
+    updateSheetCounters();
+  });
+});
+
+$('sheet-cancel').addEventListener('click', closeSheet);
+$('sheet-backdrop').addEventListener('click', e => {
+  if (e.target.id === 'sheet-backdrop') closeSheet();
+});
+
+$('sheet-save').addEventListener('click', () => {
+  const id = state.sheet.inscription_id;
+  if (!id) return;
+  if (state.sheet.pen30 === 0 && state.sheet.pen5 === 0) {
+    delete state.pendingPenalties[id];
+  } else {
+    state.pendingPenalties[id] = { pen30: state.sheet.pen30, pen5: state.sheet.pen5 };
+  }
+  savePendingPenalties();
+  closeSheet();
+  renderDossardGrid();
+});
+
+$('sheet-point').addEventListener('click', async () => {
+  const id = state.sheet.inscription_id;
+  if (!id) return;
+  const pen30 = state.sheet.pen30;
+  const pen5 = state.sheet.pen5;
+  $('sheet-point').disabled = true;
+  const { ok, status, data } = await api('/api/juge-pointage', {
+    inscription_id: id,
+    station: state.role.station,
+    penalite_30s: pen30,
+    penalite_5min: pen5,
+  });
+  $('sheet-point').disabled = false;
+  if (!ok) {
+    if (status === 409) {
+      showToast('station-toast', 'Déjà pointé sur cette station (peut-être par un autre juge).');
+      state.pointagesSet.add(id);
+    } else {
+      showToast('station-toast', data.error || 'Erreur, réessaie');
+    }
+    closeSheet();
+    renderDossardGrid();
+    return;
+  }
+  delete state.pendingPenalties[id];
+  savePendingPenalties();
+  state.pointagesSet.add(id);
+  state.lastPointage = { pointage_id: data.pointage.id, inscription_id: id };
+  const ath = state.inscriptions.find(i => i.id === id);
+  const label = ath ? (ath.nom_equipe || ath.prenom || '') : '';
+  showUndoBanner(`✓ Dossard ${ath ? ath.dossard : '?'} — ${label} pointé`);
+  closeSheet();
+  renderDossardGrid();
+});
+
+function showUndoBanner(msg) {
+  $('undo-text').textContent = msg;
+  $('undo-banner').hidden = false;
+  $('undo-btn').disabled = false;
+  let remaining = 5;
+  $('undo-btn').textContent = `Annuler (${remaining}s)`;
+  if (state.undoTimer) clearInterval(state.undoTimer);
+  state.undoTimer = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) hideUndoBanner();
+    else $('undo-btn').textContent = `Annuler (${remaining}s)`;
+  }, 1000);
+}
+
+function hideUndoBanner() {
+  $('undo-banner').hidden = true;
+  if (state.undoTimer) { clearInterval(state.undoTimer); state.undoTimer = null; }
+  state.lastPointage = null;
+}
+
+$('undo-btn').addEventListener('click', async () => {
+  if (!state.lastPointage) return;
+  const { pointage_id, inscription_id } = state.lastPointage;
+  $('undo-btn').disabled = true;
+  const { ok, data } = await api('/api/juge-annuler-pointage', { pointage_id });
+  if (!ok) {
+    $('undo-btn').disabled = false;
+    showToast('station-toast', data.error || 'Annulation échouée');
+    return;
+  }
+  state.pointagesSet.delete(inscription_id);
+  hideUndoBanner();
+  renderDossardGrid();
+  showToast('station-toast', 'Pointage annulé', 'success', 3000);
+});
+
+// ---- STARTER SCREEN ----
+async function enterStarterScreen() {
+  showScreen('screen-starter');
+  $('starter-toast').hidden = true;
+  $('starter-empty').hidden = true;
+  $('vagues-list').innerHTML = '<div class="empty-state">Chargement…</div>';
+  await refreshStarterData();
+}
+
+async function refreshStarterData() {
+  const { ok, data } = await api('/api/juge-vagues', {});
+  if (!ok) {
+    showToast('starter-toast', data.error || 'Erreur lecture vagues');
+    $('vagues-list').innerHTML = '';
+    return;
+  }
+  const vagues = data.vagues || [];
+  const list = $('vagues-list');
+  if (vagues.length === 0) {
+    list.innerHTML = '';
+    $('starter-empty').hidden = false;
+    return;
+  }
+  $('starter-empty').hidden = true;
+  list.innerHTML = vagues.map(v => `
+    <div class="vague-card">
+      <div class="label">Vague ${v.numero}</div>
+      <div class="count">${v.athletes_count} athlète${v.athletes_count > 1 ? 's' : ''} en attente</div>
+      <button data-vague="${v.numero}">🏁 Démarrer maintenant</button>
+    </div>
+  `).join('');
+  list.querySelectorAll('.vague-card button').forEach(btn => {
+    btn.addEventListener('click', () => startVague(parseInt(btn.dataset.vague, 10)));
+  });
+}
+
+async function startVague(vague) {
+  if (!confirm(`Démarrer la vague ${vague} MAINTENANT ?\n\nLe chrono partira immédiatement pour tous les athlètes de cette vague.`)) return;
+  const { ok, data } = await api('/api/juge-demarrer-vague', { vague });
+  if (!ok) {
+    showToast('starter-toast', data.error || 'Erreur démarrage vague');
+    return;
+  }
+  showToast('starter-toast', `✓ Vague ${vague} démarrée (${data.athletes_updated} athlète${data.athletes_updated > 1 ? 's' : ''})`, 'success', 6000);
+  await refreshStarterData();
+}
+
+$('starter-refresh').addEventListener('click', refreshStarterData);
+$('starter-quit').addEventListener('click', () => {
+  if (!confirm('Changer de rôle ?')) return;
+  sessionStorage.removeItem('juges_role');
+  state.role = null;
+  showScreen('screen-role');
+});
+
+routeFromState();
+</script>
+
+</body>
+</html>
