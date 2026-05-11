@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Résultats personnels — Hyrox Challenge La Buse</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0a0a0a; color: #fff; min-height: 100vh; }
+
+    .header { background: #0a0a0a; border-bottom: 3px solid #FFEE00; padding: 1.5rem 1rem; text-align: center; }
+    .header a { color: #FFEE00; font-size: 13px; text-decoration: none; display: inline-block; margin-bottom: 8px; }
+    .title { font-size: 22px; font-weight: 800; color: #fff; }
+    .title span { color: #FFEE00; }
+    .subtitle { font-size: 13px; color: #888; margin-top: 4px; }
+
+    .search-wrap { max-width: 600px; margin: 1.5rem auto; padding: 0 1rem; }
+    .search-input { width: 100%; padding: 16px; border-radius: 12px; border: 2px solid #333; background: #111; color: #fff; font-size: 16px; font-family: inherit; }
+    .search-input:focus { outline: none; border-color: #FFEE00; }
+    .search-hint { font-size: 12px; color: #666; margin-top: 8px; padding-left: 4px; }
+
+    .content { max-width: 600px; margin: 0 auto; padding: 0 1rem 3rem; }
+
+    .empty-state { padding: 4rem 1rem; text-align: center; color: #666; font-size: 14px; line-height: 1.6; }
+
+    .result-card { background: #111; border: 1px solid #222; border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+    .event-bar { font-size: 11px; color: #FFEE00; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding-bottom: 10px; border-bottom: 1px solid #1a1a1a; margin-bottom: 12px; }
+    .event-bar .event-date { color: #888; font-weight: 400; margin-left: 6px; }
+    .result-name { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .result-members { font-size: 13px; color: #999; margin-bottom: 14px; line-height: 1.4; }
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .result-cell { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 10px; padding: 10px 12px; }
+    .result-cell .label { font-size: 10px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .result-cell .value { font-size: 15px; color: #fff; font-weight: 700; }
+    .result-cell.time .value { color: #FFEE00; font-variant-numeric: tabular-nums; }
+    .result-cell.rank .value { color: #FFEE00; }
+    .result-cell.full { grid-column: 1 / -1; }
+
+    .count-info { color: #888; font-size: 13px; text-align: center; padding: 14px 0 20px; }
+
+    @media (max-width: 380px) {
+      .result-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <a href="index.html">← Retour au site</a>
+  <div class="title">Résultats <span>personnels</span></div>
+  <div class="subtitle">Cherche ton nom ou celui de ton équipe pour retrouver tes courses</div>
+</div>
+
+<div class="search-wrap">
+  <input id="search" class="search-input" type="search" placeholder="Ton nom, ton prénom ou ton équipe..." autocomplete="off">
+  <div class="search-hint" id="search-hint">Tape au moins 2 caractères</div>
+</div>
+
+<div class="content">
+  <div id="count-info" class="count-info" hidden></div>
+  <div id="results"></div>
+</div>
+
+<script>
+const CAT_LABELS = {
+  'solo scaled femmes': 'Solo Scaled Femmes',
+  'solo rx femmes': 'Solo RX Femmes',
+  'solo scaled hommes': 'Solo Scaled Hommes',
+  'solo rx hommes': 'Solo RX Hommes',
+  'duo scaled femmes': 'Duo Scaled Femmes',
+  'duo rx femme': 'Duo RX Femmes',
+  'duo scaled hommes': 'Duo Scaled Hommes',
+  'duo rx homme': 'Duo RX Hommes',
+  'duo scaled mixte': 'Duo Scaled Mixte',
+  'duo rx mixte': 'Duo RX Mixte',
+  'relais': 'Relais',
+};
+
+let allEvents = [];
+
+async function loadAll() {
+  try {
+    const res = await fetch('/data/event-1.json');
+    if (!res.ok) throw new Error('Fetch failed');
+    const ev = await res.json();
+    const enriched = enrichWithRank(ev);
+    allEvents.push(enriched);
+  } catch (err) {
+    console.error('Erreur chargement event-1.json', err);
+  }
+}
+
+function enrichWithRank(ev) {
+  const byCat = {};
+  for (const r of ev.resultats) {
+    if (!byCat[r.cat]) byCat[r.cat] = [];
+    byCat[r.cat].push(r);
+  }
+  for (const cat in byCat) {
+    byCat[cat].sort((a, b) => (a.temps || '').localeCompare(b.temps || ''));
+    byCat[cat].forEach((r, i) => {
+      r._rank = i + 1;
+      r._totalInCat = byCat[cat].length;
+    });
+  }
+  return ev;
+}
+
+function ordinalSuffix(n) {
+  if (n === 1) return 'er';
+  return 'e';
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
+}
+
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function search(q) {
+  q = q.toLowerCase().trim();
+  if (q.length < 2) return [];
+  const matches = [];
+  for (const ev of allEvents) {
+    for (const r of ev.resultats) {
+      const nom = (r.nom || '').toLowerCase();
+      const membres = (r.membres || '').toLowerCase();
+      if (nom.includes(q) || membres.includes(q)) {
+        matches.push({ ev, r });
+      }
+    }
+  }
+  matches.sort((a, b) => new Date(b.ev.event.date) - new Date(a.ev.event.date));
+  return matches;
+}
+
+function render(query) {
+  const list = search(query);
+  const results = document.getElementById('results');
+  const countInfo = document.getElementById('count-info');
+  const hint = document.getElementById('search-hint');
+
+  if (query.length < 2) {
+    results.innerHTML = '<div class="empty-state">Tape ton nom ou celui de ton équipe pour voir tes résultats.</div>';
+    countInfo.hidden = true;
+    hint.textContent = 'Tape au moins 2 caractères';
+    return;
+  }
+
+  if (list.length === 0) {
+    results.innerHTML = '<div class="empty-state">Aucun résultat trouvé.<br>Essaie une autre orthographe ou ton nom d\'équipe.</div>';
+    countInfo.hidden = true;
+    hint.textContent = '';
+    return;
+  }
+
+  countInfo.hidden = false;
+  countInfo.textContent = list.length + ' résultat' + (list.length > 1 ? 's' : '') + ' trouvé' + (list.length > 1 ? 's' : '');
+  hint.textContent = '';
+
+  results.innerHTML = list.map(({ ev, r }) => {
+    const catLabel = CAT_LABELS[r.cat] || r.cat;
+    const rankLabel = r._rank + ordinalSuffix(r._rank);
+    return `
+      <div class="result-card">
+        <div class="event-bar">${escapeHtml(ev.event.nom)} <span class="event-date">— ${formatDate(ev.event.date)}</span></div>
+        <div class="result-name">${escapeHtml(r.nom)}</div>
+        ${r.membres ? `<div class="result-members">${escapeHtml(r.membres)}</div>` : ''}
+        <div class="result-grid">
+          <div class="result-cell time">
+            <div class="label">Temps</div>
+            <div class="value">${escapeHtml(r.temps || '—')}</div>
+          </div>
+          <div class="result-cell rank">
+            <div class="label">Classement</div>
+            <div class="value">${rankLabel} / ${r._totalInCat}</div>
+          </div>
+          <div class="result-cell full">
+            <div class="label">Catégorie</div>
+            <div class="value">${escapeHtml(catLabel)}${r.age ? ' · ' + escapeHtml(r.age) + ' ans' : ''}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+const input = document.getElementById('search');
+let debounceTimer = null;
+input.addEventListener('input', () => {
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(() => render(input.value), 120);
+});
+
+(async () => {
+  await loadAll();
+  render('');
+})();
+</script>
+
+</body>
+</html>
