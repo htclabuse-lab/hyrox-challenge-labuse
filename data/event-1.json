@@ -1,0 +1,835 @@
+{
+  "event": {
+    "id": 1,
+    "nom": "Hyrox Challenge La Buse #1",
+    "date": "2026-04-26",
+    "lieu": "Saint-Paul, La Réunion",
+    "source": "extracted from leaderboard.html (hardcoded JS DATA)"
+  },
+  "resultats": [
+    {
+      "nom": "WARRIORS GIRL",
+      "membres": "BALMY Leslie / CADO Marion",
+      "cat": "duo scaled femmes",
+      "age": "25-34",
+      "temps": "00:57:36",
+      "solo": false
+    },
+    {
+      "nom": "LES MUMS",
+      "membres": "BERSANI DA COSTA Cecile / GUERARD Typhaine",
+      "cat": "duo scaled femmes",
+      "age": "35-44",
+      "temps": "00:54:30",
+      "solo": false
+    },
+    {
+      "nom": "HYBRID DARLING",
+      "membres": "BLANCHARD Elisabeth / PANECHOU Clémence",
+      "cat": "duo scaled femmes",
+      "age": "35-44",
+      "temps": "00:52:19",
+      "solo": false
+    },
+    {
+      "nom": "MIEL",
+      "membres": "LAW-YAT Florence / ONORA Ketty",
+      "cat": "duo scaled femmes",
+      "age": "45-54",
+      "temps": "00:59:45",
+      "solo": false
+    },
+    {
+      "nom": "DOMI ET MUMU",
+      "membres": "ETHEVE Dominique / TURPIN Murielle",
+      "cat": "duo scaled femmes",
+      "age": "35-44",
+      "temps": "01:07:29",
+      "solo": false
+    },
+    {
+      "nom": "WORKING MUMS",
+      "membres": "BAILLOT Tamara / TARACONAT Daphnée",
+      "cat": "duo scaled femmes",
+      "age": "25-34",
+      "temps": "01:15:46",
+      "solo": false
+    },
+    {
+      "nom": "LES CHEETAH",
+      "membres": "CADENET Charlotte / MUSSARD Dorynda",
+      "cat": "duo scaled femmes",
+      "age": "16-24",
+      "temps": "01:19:00",
+      "solo": false
+    },
+    {
+      "nom": "LES INSEPARABLES",
+      "membres": "ESPEL Gaelle / SAMBAOUMAELO Elodie",
+      "cat": "duo scaled femmes",
+      "age": "35-44",
+      "temps": "01:28:20",
+      "solo": false
+    },
+    {
+      "nom": "TEAM 9H30",
+      "membres": "LUCAS Henriette / PICARDO Isabelle",
+      "cat": "duo scaled femmes",
+      "age": "55+",
+      "temps": "01:30:50",
+      "solo": false
+    },
+    {
+      "nom": "LAKANE Lynne",
+      "membres": "",
+      "cat": "scaled femmes",
+      "age": "25-34",
+      "temps": "01:07:15",
+      "solo": true
+    },
+    {
+      "nom": "PERON Amandine",
+      "membres": "",
+      "cat": "scaled femmes",
+      "age": "25-34",
+      "temps": "01:14:08",
+      "solo": true
+    },
+    {
+      "nom": "DELOT Anne-Elie",
+      "membres": "",
+      "cat": "scaled femmes",
+      "age": "25-34",
+      "temps": "01:19:35",
+      "solo": true
+    },
+    {
+      "nom": "RIPERT Blondie",
+      "membres": "",
+      "cat": "scaled femmes",
+      "age": "25-34",
+      "temps": "01:25:39",
+      "solo": true
+    },
+    {
+      "nom": "CORDELIER Chloë",
+      "membres": "",
+      "cat": "scaled femmes",
+      "age": "35-44",
+      "temps": "01:11:56",
+      "solo": true
+    },
+    {
+      "nom": "ATCHAPA Emilie",
+      "membres": "",
+      "cat": "scaled femmes",
+      "age": "35-44",
+      "temps": "01:23:03",
+      "solo": true
+    },
+    {
+      "nom": "HOARAU Sidonia",
+      "membres": "",
+      "cat": "scaled femmes",
+      "age": "35-44",
+      "temps": "01:38:30",
+      "solo": true
+    },
+    {
+      "nom": "HAMBURGER Nathalie",
+      "membres": "",
+      "cat": "scaled femmes",
+      "age": "45-54",
+      "temps": "01:37:16",
+      "solo": true
+    },
+    {
+      "nom": "GALAOR Marie",
+      "membres": "",
+      "cat": "rx femme",
+      "age": "25-34",
+      "temps": "01:19:35",
+      "solo": true
+    },
+    {
+      "nom": "ABHERVE Julie",
+      "membres": "",
+      "cat": "rx femme",
+      "age": "25-34",
+      "temps": "01:20:46",
+      "solo": true
+    },
+    {
+      "nom": "ADIBA Sarah",
+      "membres": "",
+      "cat": "rx femme",
+      "age": "25-34",
+      "temps": "01:22:58",
+      "solo": true
+    },
+    {
+      "nom": "HUET Anaëlle",
+      "membres": "",
+      "cat": "rx femme",
+      "age": "16-24",
+      "temps": "01:53:45",
+      "solo": true
+    },
+    {
+      "nom": "LES COPINES D'ABORD",
+      "membres": "FAUS LLOPIS Célia / MEEUS Marie",
+      "cat": "duo rx femme",
+      "age": "35-44",
+      "temps": "01:04:54",
+      "solo": false
+    },
+    {
+      "nom": "No pain No champaign",
+      "membres": "HOAREAU Jennifer / WYZEN Ophelie",
+      "cat": "duo rx femme",
+      "age": "35-44",
+      "temps": "01:26:50",
+      "solo": false
+    },
+    {
+      "nom": "ROB ET LUDO",
+      "membres": "DUBOIS Ludovic / GOUGON Robin",
+      "cat": "duo rx homme",
+      "age": "35-44",
+      "temps": "00:56:18",
+      "solo": false
+    },
+    {
+      "nom": "CA PART!!",
+      "membres": "MORENO Titouan / SOUALRD Lilian",
+      "cat": "duo rx homme",
+      "age": "25-34",
+      "temps": "01:02:05",
+      "solo": false
+    },
+    {
+      "nom": "LLB TEAM",
+      "membres": "BALOUNAÏK Samuel / LE LIVEC Thomas",
+      "cat": "duo rx homme",
+      "age": "25-34",
+      "temps": "01:02:09",
+      "solo": false
+    },
+    {
+      "nom": "FITNESS PORK",
+      "membres": "SITALAPRESAD Julien / TRAVERS Emilien",
+      "cat": "duo rx homme",
+      "age": "25-34",
+      "temps": "01:03:59",
+      "solo": false
+    },
+    {
+      "nom": "LES POTES CORNES",
+      "membres": "DROUILLET Romain / LEPINAY Nicolas",
+      "cat": "duo rx homme",
+      "age": "35-44",
+      "temps": "01:07:11",
+      "solo": false
+    },
+    {
+      "nom": "SURKOUTDETETE",
+      "membres": "MARDAYE Gael / PRIGENT Gaet",
+      "cat": "duo rx homme",
+      "age": "35-44",
+      "temps": "01:02:12",
+      "solo": false
+    },
+    {
+      "nom": "LES PUPUCES",
+      "membres": "D'HELFT Rémi / VITRY Nicolas",
+      "cat": "duo rx homme",
+      "age": "16-24",
+      "temps": "01:13:09",
+      "solo": false
+    },
+    {
+      "nom": "LACRAMPE",
+      "membres": "GOUAILLARDET Ivan / ROUSSEAU Tony",
+      "cat": "duo rx homme",
+      "age": "35-44",
+      "temps": "01:13:32",
+      "solo": false
+    },
+    {
+      "nom": "KRYSTEAM",
+      "membres": "FOLIO Olivier / TECHER Thierry",
+      "cat": "duo rx homme",
+      "age": "45-54",
+      "temps": "01:14:52",
+      "solo": false
+    },
+    {
+      "nom": "LES 404",
+      "membres": "WAN-HOI Jean-Philippe / TACOUN Kévin",
+      "cat": "duo rx homme",
+      "age": "45-54",
+      "temps": "01:14:32",
+      "solo": false
+    },
+    {
+      "nom": "HOLD BRO",
+      "membres": "DODIER Frederic / KAREL Sebastien",
+      "cat": "duo rx homme",
+      "age": "45-54",
+      "temps": "01:14:51",
+      "solo": false
+    },
+    {
+      "nom": "LES CROSSFATTEURS",
+      "membres": "BOUVREAU Romain / HAMBURGER Bobby",
+      "cat": "duo rx homme",
+      "age": "45-54",
+      "temps": "01:17:48",
+      "solo": false
+    },
+    {
+      "nom": "LES KILLEURS DE BIERE",
+      "membres": "LAURET Guillaume / MAILLOT Laurent",
+      "cat": "duo rx homme",
+      "age": "45-54",
+      "temps": "01:21:43",
+      "solo": false
+    },
+    {
+      "nom": "DAMLUD",
+      "membres": "DAMOUR Ludovic / CAMPANELLA Damien",
+      "cat": "duo rx homme",
+      "age": "35-44",
+      "temps": "01:12:54",
+      "solo": false
+    },
+    {
+      "nom": "CHILLI CHEESE",
+      "membres": "CHAPUIS Tsiky / ECOLE François-Xavier",
+      "cat": "duo rx homme",
+      "age": "25-34",
+      "temps": "01:34:04",
+      "solo": false
+    },
+    {
+      "nom": "KOK LA KOUR",
+      "membres": "HOAREAU Didier / TATEL Erickson",
+      "cat": "duo scaled hommes",
+      "age": "25-34",
+      "temps": "00:45:58",
+      "solo": false
+    },
+    {
+      "nom": "BLACK AND WHITE",
+      "membres": "HOARAU Axel / VALEAMA Daya",
+      "cat": "duo scaled hommes",
+      "age": "25-34",
+      "temps": "00:43:29",
+      "solo": false
+    },
+    {
+      "nom": "JUJU ET SEB",
+      "membres": "BOURDIN Julien / FABIANO Sebastien",
+      "cat": "duo scaled hommes",
+      "age": "35-44",
+      "temps": "00:46:58",
+      "solo": false
+    },
+    {
+      "nom": "POWER RANGERS",
+      "membres": "LARTIN Cedric / SURATI Anass",
+      "cat": "duo scaled hommes",
+      "age": "25-34",
+      "temps": "00:52:50",
+      "solo": false
+    },
+    {
+      "nom": "CRS",
+      "membres": "DESFEUX Dylan / PAULE Willy",
+      "cat": "duo scaled hommes",
+      "age": "25-34",
+      "temps": "00:52:20",
+      "solo": false
+    },
+    {
+      "nom": "INVICT'IL",
+      "membres": "BEGHIN Olivier / MALEJAC Alexis",
+      "cat": "duo scaled hommes",
+      "age": "45-54",
+      "temps": "00:54:26",
+      "solo": false
+    },
+    {
+      "nom": "LES RANDOMS",
+      "membres": "GRONDIN Benjamin / GRONDIN Mathieu",
+      "cat": "duo scaled hommes",
+      "age": "16-24",
+      "temps": "01:05:28",
+      "solo": false
+    },
+    {
+      "nom": "KHURYX",
+      "membres": "KUHRY Tom / KUHRY Frederic",
+      "cat": "duo scaled hommes",
+      "age": "25-34",
+      "temps": "01:06:05",
+      "solo": false
+    },
+    {
+      "nom": "HIBRED CREW",
+      "membres": "CELESTIN Pascal / MINSSIEUX Alexis",
+      "cat": "duo scaled hommes",
+      "age": "35-44",
+      "temps": "01:06:40",
+      "solo": false
+    },
+    {
+      "nom": "MEME PAS MAL",
+      "membres": "BECASSE Julien / EVENOU Benjamin",
+      "cat": "duo scaled hommes",
+      "age": "35-44",
+      "temps": "01:06:54",
+      "solo": false
+    },
+    {
+      "nom": "THANOS",
+      "membres": "BOISI Thano joel / MALBROUQUI Giovanny",
+      "cat": "duo scaled hommes",
+      "age": "35-44",
+      "temps": "01:01:36",
+      "solo": false
+    },
+    {
+      "nom": "LES PAPANGS",
+      "membres": "MAURER Marine / RIVIERE Teddy",
+      "cat": "duo scaled mixte",
+      "age": "25-34",
+      "temps": "01:00:42",
+      "solo": false
+    },
+    {
+      "nom": "LES MINOUS",
+      "membres": "PENA Cyril / PENA Manon",
+      "cat": "duo scaled mixte",
+      "age": "35-44",
+      "temps": "00:59:00",
+      "solo": false
+    },
+    {
+      "nom": "DS TEAM",
+      "membres": "COTBAY Sebastien / COUTAYEN Davina",
+      "cat": "duo scaled mixte",
+      "age": "35-44",
+      "temps": "01:01:12",
+      "solo": false
+    },
+    {
+      "nom": "TIC ET TAC",
+      "membres": "COVIN Guillaume / DUBARD Cynthia",
+      "cat": "duo scaled mixte",
+      "age": "25-34",
+      "temps": "01:04:37",
+      "solo": false
+    },
+    {
+      "nom": "LENTS MAIS LEGENDAIRES",
+      "membres": "DURAND Lison / THOUVENIN Pierre",
+      "cat": "duo scaled mixte",
+      "age": "25-34",
+      "temps": "01:05:45",
+      "solo": false
+    },
+    {
+      "nom": "SANTÉ MASTER",
+      "membres": "ANILHA Vanessa / LEPERLIER Ludovic",
+      "cat": "duo scaled mixte",
+      "age": "35-44",
+      "temps": "01:02:05",
+      "solo": false
+    },
+    {
+      "nom": "KESKONFOULA",
+      "membres": "BERHIL Jaouad / VALY Erwan",
+      "cat": "duo scaled mixte",
+      "age": "45-54",
+      "temps": "00:59:18",
+      "solo": false
+    },
+    {
+      "nom": "ADLAU",
+      "membres": "POINAPIN Adrien / POIRIER Laurine",
+      "cat": "duo scaled mixte",
+      "age": "25-34",
+      "temps": "01:19:52",
+      "solo": false
+    },
+    {
+      "nom": "THE THUNDERBOLTS",
+      "membres": "PILJEAN Ludovic / SHUM-KIVAN Emilie",
+      "cat": "duo scaled mixte",
+      "age": "35-44",
+      "temps": "01:09:05",
+      "solo": false
+    },
+    {
+      "nom": "DESHAYES",
+      "membres": "DESHAYES Luc / RIVIERE Karine",
+      "cat": "duo scaled mixte",
+      "age": "",
+      "temps": "01:14:04",
+      "solo": false
+    },
+    {
+      "nom": "90 POURCENTS",
+      "membres": "BERTHELIER Magalie / MENARD Samuel",
+      "cat": "duo rx mixte",
+      "age": "25-34",
+      "temps": "00:57:23",
+      "solo": false
+    },
+    {
+      "nom": "LES GROSSES MYRTILLES",
+      "membres": "BRENDLE Alicia / PAULE Tom",
+      "cat": "duo rx mixte",
+      "age": "25-34",
+      "temps": "01:10:32",
+      "solo": false
+    },
+    {
+      "nom": "FAST AND FERROUS",
+      "membres": "HOAREAU Elisa / LEDEE Nathan",
+      "cat": "duo rx mixte",
+      "age": "25-34",
+      "temps": "01:12:24",
+      "solo": false
+    },
+    {
+      "nom": "BAC TO THE BONE",
+      "membres": "HENRIETTE Thomas / MADI Sarah",
+      "cat": "duo rx mixte",
+      "age": "35-44",
+      "temps": "01:15:02",
+      "solo": false
+    },
+    {
+      "nom": "VOLACANIK",
+      "membres": "LUCAS Joris / ORUS Natacha",
+      "cat": "duo rx mixte",
+      "age": "35-44",
+      "temps": "01:17:48",
+      "solo": false
+    },
+    {
+      "nom": "KFÉ O LAIT",
+      "membres": "BUATOIS Blandine / TIMBOU Jonathan",
+      "cat": "duo rx mixte",
+      "age": "35-44",
+      "temps": "01:12:18",
+      "solo": false
+    },
+    {
+      "nom": "RUN AND BEER",
+      "membres": "CHARITER Sabrina / RENOUARD Nicolas",
+      "cat": "duo rx mixte",
+      "age": "35-44",
+      "temps": "01:23:42",
+      "solo": false
+    },
+    {
+      "nom": "BADASS PEI",
+      "membres": "JANAC Dany / SMITH Marion",
+      "cat": "duo rx mixte",
+      "age": "25-34",
+      "temps": "01:32:10",
+      "solo": false
+    },
+    {
+      "nom": "ELISABETH Patrick",
+      "membres": "",
+      "cat": "scaled hommes",
+      "age": "35-44",
+      "temps": "00:55:58",
+      "solo": true
+    },
+    {
+      "nom": "FLORIAN Florian",
+      "membres": "",
+      "cat": "scaled hommes",
+      "age": "16-24",
+      "temps": "01:00:48",
+      "solo": true
+    },
+    {
+      "nom": "ROBIGEAU Kenny",
+      "membres": "",
+      "cat": "scaled hommes",
+      "age": "25-34",
+      "temps": "01:01:47",
+      "solo": true
+    },
+    {
+      "nom": "GUILLEMIN Justin",
+      "membres": "",
+      "cat": "scaled hommes",
+      "age": "35-44",
+      "temps": "01:02:18",
+      "solo": true
+    },
+    {
+      "nom": "MEZINO Kevin",
+      "membres": "",
+      "cat": "scaled hommes",
+      "age": "35-44",
+      "temps": "01:02:25",
+      "solo": true
+    },
+    {
+      "nom": "BEGUE Florent",
+      "membres": "",
+      "cat": "scaled hommes",
+      "age": "35-44",
+      "temps": "01:09:35",
+      "solo": true
+    },
+    {
+      "nom": "PETIT Bruno",
+      "membres": "",
+      "cat": "scaled hommes",
+      "age": "35-44",
+      "temps": "01:12:30",
+      "solo": true
+    },
+    {
+      "nom": "CARRON Mathias",
+      "membres": "",
+      "cat": "scaled hommes",
+      "age": "25-34",
+      "temps": "01:42:19",
+      "solo": true
+    },
+    {
+      "nom": "JANNAULT Clément",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "35-44",
+      "temps": "01:00:36",
+      "solo": true
+    },
+    {
+      "nom": "EMMA Julien",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "35-44",
+      "temps": "01:06:47",
+      "solo": true
+    },
+    {
+      "nom": "MOREL Jt",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "35-44",
+      "temps": "01:08:49",
+      "solo": true
+    },
+    {
+      "nom": "PATELLI Melvin",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "25-34",
+      "temps": "01:03:15",
+      "solo": true
+    },
+    {
+      "nom": "BEGUE Bastien",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "16-24",
+      "temps": "01:12:43",
+      "solo": true
+    },
+    {
+      "nom": "GARA Yanse",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "35-44",
+      "temps": "01:12:58",
+      "solo": true
+    },
+    {
+      "nom": "ECLAPIER Thomas",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "25-34",
+      "temps": "01:14:25",
+      "solo": true
+    },
+    {
+      "nom": "BALLANT Michael",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "45-54",
+      "temps": "01:16:20",
+      "solo": true
+    },
+    {
+      "nom": "LEPELLETIER Guillaume",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "45-54",
+      "temps": "01:17:27",
+      "solo": true
+    },
+    {
+      "nom": "CERVEAUX Damien",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "25-34",
+      "temps": "01:15:58",
+      "solo": true
+    },
+    {
+      "nom": "BARATIER Guillaume",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "35-44",
+      "temps": "01:18:56",
+      "solo": true
+    },
+    {
+      "nom": "ABHERVE Julie",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "25-34",
+      "temps": "01:20:46",
+      "solo": true
+    },
+    {
+      "nom": "CARMAGNOLE Loris",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "16-24",
+      "temps": "01:21:47",
+      "solo": true
+    },
+    {
+      "nom": "BOURSOIT François",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "35-44",
+      "temps": "01:22:08",
+      "solo": true
+    },
+    {
+      "nom": "LAURET David",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "45-54",
+      "temps": "01:23:18",
+      "solo": true
+    },
+    {
+      "nom": "BARET Stéphane",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "25-34",
+      "temps": "01:54:35",
+      "solo": true
+    },
+    {
+      "nom": "JOSEPH Killian",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "25-34",
+      "temps": "01:36:06",
+      "solo": true
+    },
+    {
+      "nom": "DESPRET Maxime",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "25-34",
+      "temps": "01:32:46",
+      "solo": true
+    },
+    {
+      "nom": "DIDAT Samuel",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "25-34",
+      "temps": "01:31:47",
+      "solo": true
+    },
+    {
+      "nom": "MAS Frederic",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "45-54",
+      "temps": "01:30:35",
+      "solo": true
+    },
+    {
+      "nom": "VALLY-ADAM Khalil",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "45-54",
+      "temps": "01:43:06",
+      "solo": true
+    },
+    {
+      "nom": "RIVIERE Dany",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "55+",
+      "temps": "01:49:07",
+      "solo": true
+    },
+    {
+      "nom": "AJORQUE David",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "45-54",
+      "temps": "02:17:39",
+      "solo": true
+    },
+    {
+      "nom": "ADVICE DESRUISSEAUX Julien",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "35-44",
+      "temps": "02:07:10",
+      "solo": true
+    },
+    {
+      "nom": "DUFOULON Jeremy",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "35-44",
+      "temps": "01:40:07",
+      "solo": true
+    },
+    {
+      "nom": "LESCROC Jérôme",
+      "membres": "",
+      "cat": "rx hommes",
+      "age": "35-44",
+      "temps": "01:33:03",
+      "solo": true
+    },
+    {
+      "nom": "HYPER READY",
+      "membres": "ROUZENG Noemie / FONTAINE Didier / HUET Armand / ROMILY Jemila",
+      "cat": "relais",
+      "age": "45-54",
+      "temps": "01:11:03",
+      "solo": false
+    },
+    {
+      "nom": "ONLY GOD CAN JUDGE US",
+      "membres": "DENA Vincent / BUSTOS Etienne Benoit / VELOUPOULE Santhi / NGUYEN Christophe",
+      "cat": "relais",
+      "age": "",
+      "temps": "01:19:59",
+      "solo": false
+    }
+  ]
+}
