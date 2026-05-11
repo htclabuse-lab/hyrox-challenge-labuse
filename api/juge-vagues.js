@@ -17,22 +17,32 @@ export default async function handler(req, res) {
 
     const { data, error } = await supabase
       .from('Inscriptions')
-      .select('vague')
-      .not('vague', 'is', null)
-      .is('heure_depart', null);
+      .select('vague, heure_depart')
+      .not('vague', 'is', null);
 
     if (error) {
       console.error('Erreur Supabase juge-vagues:', error);
       return res.status(500).json({ error: 'Erreur base de données' });
     }
 
-    const counts = {};
+    const map = {};
     for (const row of data || []) {
-      counts[row.vague] = (counts[row.vague] || 0) + 1;
+      const v = row.vague;
+      if (!map[v]) map[v] = { count: 0, heure_depart: null };
+      map[v].count++;
+      if (row.heure_depart) {
+        if (!map[v].heure_depart || row.heure_depart < map[v].heure_depart) {
+          map[v].heure_depart = row.heure_depart;
+        }
+      }
     }
 
-    const vagues = Object.entries(counts)
-      .map(([numero, athletes_count]) => ({ numero: parseInt(numero, 10), athletes_count }))
+    const vagues = Object.entries(map)
+      .map(([numero, info]) => ({
+        numero: parseInt(numero, 10),
+        athletes_count: info.count,
+        heure_depart: info.heure_depart,
+      }))
       .sort((a, b) => a.numero - b.numero);
 
     return res.status(200).json({ vagues });
