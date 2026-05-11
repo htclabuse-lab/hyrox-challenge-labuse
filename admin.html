@@ -120,6 +120,15 @@
     <!-- ONGLET ORDRE DE PASSAGE -->
     <div class="tab-content" id="tab-passage">
       <div style="font-size:13px;color:#888;margin-bottom:1rem;">Tous les inscrits dans l'ordre de passage — vagues de 4 — triés par temps estimé</div>
+      <div style="background:#1a1400;border:1px solid #FFEE00;border-radius:10px;padding:14px;margin-bottom:1rem;">
+        <div style="font-size:13px;color:#FFEE00;font-weight:700;margin-bottom:10px;">⚙️ Actions admin sur la table Inscriptions</div>
+        <div style="font-size:12px;color:#aaa;margin-bottom:12px;line-height:1.4;">Les boutons ci-dessous <strong>écrivent en base</strong> ce que le tableau ci-dessous affiche en lecture seule. À utiliser pour tester la page juges <code>/juge.html</code> avant la clôture des inscriptions.</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button type="button" onclick="seedTest()" style="background:#ffaa00;color:#0a0a0a;border:none;padding:12px 18px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;font-family:sans-serif;">🧪 Écrire dossards + vagues (TEST)</button>
+          <button type="button" onclick="resetDossards()" style="background:transparent;color:#ff6666;border:1px solid #ff6666;padding:12px 18px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;font-family:sans-serif;">🗑️ Réinitialiser dossards, vagues, heures de départ</button>
+        </div>
+        <div id="admin-action-feedback" style="margin-top:12px;font-size:13px;min-height:18px;"></div>
+      </div>
       <div id="passage-content"></div>
     </div>
 
@@ -390,6 +399,48 @@ function renderTshirts() {
     a.href = url;
     a.download = 'inscrits_hyrox.csv';
     a.click();
+  }
+
+  function showAdminFeedback(msg, color) {
+    var el = document.getElementById('admin-action-feedback');
+    el.style.color = color;
+    el.style.fontWeight = '700';
+    el.textContent = msg;
+  }
+
+  async function seedTest() {
+    if (!confirm('🧪 ÉCRIRE LES DOSSARDS ET VAGUES EN BASE ?\n\nCe bouton écrit dans la table Inscriptions (colonnes dossard et vague) en utilisant l\'algorithme de passage actuellement affiché.\n\nÀ utiliser uniquement pour TESTER la page juges avant l\'event.\n\nC\'est réversible avec le bouton 🗑️ Réinitialiser.')) return;
+    var pwd = prompt('Mot de passe juges (pour confirmer l\'action côté serveur) :');
+    if (!pwd) return;
+    showAdminFeedback('Écriture en cours…', '#ffaa00');
+    try {
+      var res = await fetch('/api/admin-seed-test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) });
+      var data = await res.json();
+      if (!res.ok) return showAdminFeedback('❌ ' + (data.error || 'Erreur'), '#ff6666');
+      var msg = '✅ ' + data.athletes_assigned + ' athlète(s) assigné(s) dans ' + data.vagues_count + ' vague(s).';
+      if (data.skipped_count > 0) msg += ' ' + data.skipped_count + ' ignoré(s) (catégorie non reconnue).';
+      showAdminFeedback(msg, '#b6f0b6');
+      loadData();
+    } catch (err) {
+      showAdminFeedback('❌ Erreur réseau, réessaie', '#ff6666');
+    }
+  }
+
+  async function resetDossards() {
+    if (!confirm('⚠️ RÉINITIALISER TOUS LES DOSSARDS, VAGUES ET HEURES DE DÉPART ?\n\nCette action va :\n• Supprimer TOUS les pointages (table Pointages vidée)\n• Remettre dossard, vague, heure_depart à NULL pour TOUTES les inscriptions\n\nLes inscriptions, noms, paiements ne sont PAS touchés.')) return;
+    if (!confirm('Confirme une seconde fois : tu es sûre de vouloir tout réinitialiser ?')) return;
+    var pwd = prompt('Mot de passe juges (pour confirmer l\'action côté serveur) :');
+    if (!pwd) return;
+    showAdminFeedback('Réinitialisation en cours…', '#ffaa00');
+    try {
+      var res = await fetch('/api/admin-reset-dossards', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) });
+      var data = await res.json();
+      if (!res.ok) return showAdminFeedback('❌ ' + (data.error || 'Erreur'), '#ff6666');
+      showAdminFeedback('✅ ' + data.inscriptions_reset + ' inscription(s) réinitialisée(s), ' + data.pointages_deleted + ' pointage(s) supprimé(s).', '#b6f0b6');
+      loadData();
+    } catch (err) {
+      showAdminFeedback('❌ Erreur réseau, réessaie', '#ff6666');
+    }
   }
 </script>
 </body>
