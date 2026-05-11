@@ -157,6 +157,7 @@
   <button type="button" class="nav-btn" id="nav-avenir" onclick="showTab('avenir')">À venir</button>
   <button type="button" class="nav-btn" id="nav-passes" onclick="showTab('passes')">Passés</button>
   <button type="button" class="nav-btn nav-juge" onclick="window.location.href='juge.html'">🏁 Juge</button>
+  <button type="button" class="nav-btn nav-juge" onclick="window.location.href='resultats.html'">🔎 Résultats personnels</button>
 </div>
 
 <div class="content">
@@ -261,7 +262,7 @@
         <div class="actions-grid">
           <button type="button" class="action-btn" onclick="toggleSection('planning-avenir',this)">📅 Planning</button>
           <button type="button" class="action-btn" onclick="toggleSection('rulebook-avenir',this)">📋 Rule book</button>
-          <button type="button" class="action-btn" onclick="toggleSection('lb-avenir',this)">🏆 Leaderboard</button>
+          <button type="button" class="action-btn" onclick="window.location.href='leaderboard.html?event=2'">🏆 Leaderboard</button>
           <button type="button" class="action-btn" onclick="toggleSection('photos-avenir',this)">📸 Photos</button>
         </div>
         <div class="sub-section" id="planning-avenir">
@@ -302,7 +303,7 @@
           <span class="format-tag">110 participants</span>
         </div>
         <div class="actions-grid">
-          <button type="button" class="action-btn" onclick="toggleSection('lb-passe',this)">🏆 Leaderboard</button>
+          <button type="button" class="action-btn" onclick="window.location.href='leaderboard.html?event=1'">🏆 Leaderboard</button>
           <button type="button" class="action-btn" onclick="toggleSection('planning-passe',this)">📅 Planning</button>
           <button type="button" class="action-btn" onclick="toggleSection('photos-passe',this)">📸 Photos</button>
           <button type="button" class="action-btn" onclick="showTab('avenir')">➡️ Prochaine édition</button>

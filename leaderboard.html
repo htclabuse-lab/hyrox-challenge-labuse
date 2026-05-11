@@ -14,12 +14,17 @@
     .title span { color: #FFEE00; }
     .subtitle { font-size: 13px; color: #888; margin-top: 4px; }
 
-    .event-tabs { max-width: 600px; margin: 1rem auto 0; padding: 0 1rem; display: flex; gap: 8px; }
-    .event-tab { flex: 1; padding: 12px 14px; background: #111; border: 2px solid #222; border-radius: 10px; color: #888; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; text-align: center; }
-    .event-tab.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
-    .event-tab .ev-meta { font-size: 11px; opacity: 0.7; font-weight: 400; display: block; margin-top: 2px; }
+    .gate-wrap { max-width: 420px; margin: 4rem auto 0; padding: 0 1rem; }
+    .gate-card { background: #111; border: 2px solid #FFEE00; border-radius: 14px; padding: 2rem 1.5rem; text-align: center; }
+    .gate-card h2 { color: #FFEE00; font-size: 17px; margin-bottom: 10px; letter-spacing: 0.5px; }
+    .gate-card p { color: #aaa; font-size: 13px; margin-bottom: 1.2rem; line-height: 1.5; }
+    .gate-card input { width: 100%; padding: 14px 16px; border-radius: 10px; border: 1px solid #333; background: #0a0a0a; color: #fff; font-size: 15px; margin-bottom: 12px; font-family: inherit; }
+    .gate-card input:focus { outline: none; border-color: #FFEE00; }
+    .gate-card button { width: 100%; padding: 14px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 15px; font-weight: 800; cursor: pointer; font-family: inherit; }
+    .gate-card button:disabled { opacity: 0.5; }
+    .gate-err { color: #ff7676; font-size: 13px; margin-top: 10px; min-height: 18px; }
 
-    .search-wrap { max-width: 600px; margin: 1rem auto 0; padding: 0 1rem; }
+    .search-wrap { max-width: 600px; margin: 1.5rem auto 0; padding: 0 1rem; }
     .search-input { width: 100%; padding: 14px 16px; border-radius: 10px; border: 2px solid #333; background: #111; color: #fff; font-size: 15px; font-family: inherit; }
     .search-input:focus { outline: none; border-color: #FFEE00; }
 
@@ -70,36 +75,50 @@
     .summary .srow.total { grid-column: 1 / -1; background: #1a1a00; border-color: #FFEE00; }
     .summary .srow.total .val { color: #FFEE00; font-size: 18px; }
 
+    .preview-banner { max-width: 600px; margin: 1rem auto 0; padding: 10px 14px; background: #1a1400; border: 1px dashed #FFEE00; border-radius: 8px; color: #FFEE00; font-size: 12px; text-align: center; }
+
     .empty-state, .no-results { padding: 3rem 1rem; text-align: center; color: #666; font-size: 13px; line-height: 1.6; }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
 
 <div class="header">
   <a href="index.html">← Retour au site</a>
-  <div class="title">Leader<span>board</span></div>
-  <div id="event-subtitle" class="subtitle">Choisis un événement</div>
+  <div class="title" id="header-title">Leader<span>board</span></div>
+  <div id="header-subtitle" class="subtitle"></div>
 </div>
 
-<div class="event-tabs" id="event-tabs"></div>
-
-<div class="search-wrap">
-  <input id="search" class="search-input" type="search" placeholder="🔎 Cherche un athlète ou une équipe..." autocomplete="off">
-</div>
-
-<div class="filters">
-  <div>
-    <div class="filter-label">Catégorie</div>
-    <div class="filter-group" id="filter-cat"></div>
-  </div>
-  <div>
-    <div class="filter-label">Catégorie d'âge</div>
-    <div class="filter-group" id="filter-age"></div>
+<!-- Écran mot de passe (event #2 non publié) -->
+<div id="gate" class="gate-wrap" hidden>
+  <div class="gate-card">
+    <h2>🔒 Événement non publié</h2>
+    <p>Le leaderboard de cet événement n'est pas encore visible publiquement.<br>Si tu es organisatrice, entre le mot de passe pour le consulter en mode preview.</p>
+    <input id="gate-pw" type="password" placeholder="Mot de passe" autocomplete="off">
+    <button id="gate-btn">Voir le leaderboard</button>
+    <div id="gate-err" class="gate-err"></div>
   </div>
 </div>
 
-<div class="content" id="leaderboard">
-  <div class="empty-state">Chargement…</div>
+<!-- Contenu principal -->
+<div id="main" hidden>
+  <div id="preview-banner" class="preview-banner" hidden>👁️ Mode preview — les visiteurs voient un écran de mot de passe à la place</div>
+  <div class="search-wrap">
+    <input id="search" class="search-input" type="search" placeholder="🔎 Cherche un athlète ou une équipe..." autocomplete="off">
+  </div>
+  <div class="filters">
+    <div>
+      <div class="filter-label">Catégorie</div>
+      <div class="filter-group" id="filter-cat"></div>
+    </div>
+    <div>
+      <div class="filter-label">Catégorie d'âge</div>
+      <div class="filter-group" id="filter-age"></div>
+    </div>
+  </div>
+  <div class="content" id="leaderboard">
+    <div class="empty-state">Chargement…</div>
+  </div>
 </div>
 
 <script>
@@ -124,26 +143,26 @@ const CAT_LABELS = {
 };
 const AGE_ORDER = ['16-24', '25-34', '35-44', '45-54', '55+'];
 
-let allEvents = [];
-let selectedEventIdx = 0;
+const params = new URLSearchParams(window.location.search);
+const eventId = parseInt(params.get('event') || '1', 10);
+
+let eventData = null;
 let currentCat = 'all';
 let currentAge = 'all';
 let searchQ = '';
 let expandedKey = null;
+let previewMode = false;
 
 function $(id) { return document.getElementById(id); }
-
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
 }
-
 function timeToSeconds(t) {
   if (!t) return Number.MAX_SAFE_INTEGER;
   const p = String(t).split(':');
   if (p.length !== 3) return Number.MAX_SAFE_INTEGER;
   return parseInt(p[0]) * 3600 + parseInt(p[1]) * 60 + parseInt(p[2]);
 }
-
 function formatBrut(totalSec) {
   const s = Math.max(0, Math.floor(totalSec));
   const h = Math.floor(s / 3600);
@@ -152,69 +171,75 @@ function formatBrut(totalSec) {
   if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`;
   return `${m}m ${String(sec).padStart(2,'0')}s`;
 }
-
 function formatDateFr(iso) {
+  if (!iso) return '';
   const d = new Date(iso);
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
 }
 
-async function loadAll() {
-  try {
-    const r = await fetch('/api/event2-resultats');
-    if (r.ok) {
-      const ev = await r.json();
-      allEvents.push(ev);
+async function loadEvent(password) {
+  if (eventId === 1) {
+    try {
+      const r = await fetch('/data/event-1.json');
+      if (!r.ok) throw new Error('fetch failed');
+      eventData = await r.json();
+      enterMain();
+    } catch (err) {
+      $('leaderboard').innerHTML = '<div class="no-results">Impossible de charger les résultats de cet événement.</div>';
+      $('main').hidden = false;
+      $('gate').hidden = true;
     }
-  } catch (err) { console.error('event-2', err); }
-  try {
-    const r = await fetch('/data/event-1.json');
-    if (r.ok) {
-      const ev = await r.json();
-      allEvents.push(ev);
-    }
-  } catch (err) { console.error('event-1', err); }
-  if (allEvents.length === 0) {
-    $('leaderboard').innerHTML = '<div class="no-results">Impossible de charger les résultats.</div>';
     return;
   }
-  // Default: event #2 si il a des résultats finis, sinon event #1
-  selectedEventIdx = (allEvents[0].resultats && allEvents[0].resultats.length > 0) ? 0 : Math.min(1, allEvents.length - 1);
-  renderTabs();
+  // event #2
+  try {
+    const r = await fetch('/api/event2-resultats', {
+      method: password ? 'POST' : 'GET',
+      headers: password ? { 'Content-Type': 'application/json' } : undefined,
+      body: password ? JSON.stringify({ password }) : undefined,
+    });
+    const d = await r.json();
+    if (d && d.gated) {
+      if (password) {
+        // gate sent with wrong password
+        $('gate-err').textContent = 'Mot de passe incorrect';
+        $('gate-btn').disabled = false;
+        return;
+      }
+      $('gate').hidden = false;
+      $('main').hidden = true;
+      $('header-subtitle').textContent = 'Événement non publié';
+      return;
+    }
+    eventData = d;
+    previewMode = !!password;
+    enterMain();
+  } catch (err) {
+    $('leaderboard').innerHTML = '<div class="no-results">Impossible de charger les résultats de cet événement.</div>';
+    $('main').hidden = false;
+    $('gate').hidden = true;
+  }
+}
+
+function enterMain() {
+  if (!eventData || !eventData.event) {
+    $('leaderboard').innerHTML = '<div class="no-results">Aucune donnée.</div>';
+    $('main').hidden = false;
+    $('gate').hidden = true;
+    return;
+  }
+  $('gate').hidden = true;
+  $('main').hidden = false;
+  $('preview-banner').hidden = !previewMode;
+  $('header-title').innerHTML = escapeHtml(eventData.event.nom);
+  const subtitle = eventData.event.in_progress ? 'Résultats en direct' : formatDateFr(eventData.event.date);
+  $('header-subtitle').textContent = subtitle;
   renderFilters();
   render();
 }
 
-function renderTabs() {
-  const tabs = $('event-tabs');
-  tabs.innerHTML = allEvents.map((ev, idx) => {
-    const subtitle = ev.event.in_progress ? 'en cours' : formatDateFr(ev.event.date);
-    return `<button class="event-tab ${idx === selectedEventIdx ? 'active' : ''}" data-idx="${idx}">
-      ${escapeHtml(ev.event.nom)}
-      <span class="ev-meta">${escapeHtml(subtitle)}</span>
-    </button>`;
-  }).join('');
-  tabs.querySelectorAll('.event-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      selectedEventIdx = parseInt(btn.dataset.idx, 10);
-      currentCat = 'all';
-      currentAge = 'all';
-      searchQ = '';
-      $('search').value = '';
-      expandedKey = null;
-      renderTabs();
-      renderFilters();
-      render();
-    });
-  });
-  const ev = allEvents[selectedEventIdx];
-  if (ev) $('event-subtitle').textContent = ev.event.in_progress ? 'Résultats en direct' : ev.event.nom + ' — ' + formatDateFr(ev.event.date);
-}
-
 function renderFilters() {
-  const ev = allEvents[selectedEventIdx];
-  if (!ev) return;
-  // Catégories présentes dans cet event
-  const catsInEvent = new Set(ev.resultats.map(r => r.cat));
+  const catsInEvent = new Set(eventData.resultats.map(r => r.cat));
   const catsArr = CAT_ORDER.filter(c => catsInEvent.has(c));
   $('filter-cat').innerHTML = '<button class="filter-btn active" data-cat="all">Toutes</button>' +
     catsArr.map(c => `<button class="filter-btn" data-cat="${escapeHtml(c)}">${escapeHtml(CAT_LABELS[c] || c)}</button>`).join('');
@@ -227,7 +252,7 @@ function renderFilters() {
     });
   });
 
-  const agesInEvent = new Set(ev.resultats.map(r => r.age).filter(Boolean));
+  const agesInEvent = new Set(eventData.resultats.map(r => r.age).filter(Boolean));
   const agesArr = AGE_ORDER.filter(a => agesInEvent.has(a));
   $('filter-age').innerHTML = '<button class="filter-btn active" data-age="all">Toutes</button>' +
     agesArr.map(a => `<button class="filter-btn" data-age="${escapeHtml(a)}">${escapeHtml(a)} ans</button>`).join('');
@@ -248,17 +273,13 @@ function matchSearch(r, q) {
 }
 
 function render() {
-  const ev = allEvents[selectedEventIdx];
-  if (!ev) return;
-
-  const filtered = ev.resultats.filter(r => {
+  const filtered = eventData.resultats.filter(r => {
     if (currentCat !== 'all' && r.cat !== currentCat) return false;
     if (currentAge !== 'all' && r.age !== currentAge) return false;
     if (searchQ && !matchSearch(r, searchQ)) return false;
     return true;
   });
 
-  // Group by cat, then by age. Each (cat, age) is sorted by temps.
   const byCat = {};
   for (const r of filtered) {
     if (!byCat[r.cat]) byCat[r.cat] = {};
@@ -282,14 +303,9 @@ function render() {
     html += `<div class="cat-section">
       <div class="cat-title"><span>${escapeHtml(CAT_LABELS[cat] || cat)}</span><span class="cat-count">${catCount} participant${catCount > 1 ? 's' : ''}</span></div>
       <div class="cat-body">`;
-
     const ages = AGE_ORDER.filter(a => ageGroups[a]);
-    // Add "no age" group at the end if present
     if (ageGroups['—']) ages.push('—');
-    if (ages.length === 0) {
-      // shouldn't happen but defensive
-      ages.push(...Object.keys(ageGroups));
-    }
+    if (ages.length === 0) ages.push(...Object.keys(ageGroups));
     for (const age of ages) {
       const rows = ageGroups[age];
       if (!rows || rows.length === 0) continue;
@@ -300,7 +316,7 @@ function render() {
         const posClass = pos === 1 ? 'pos-1' : pos === 2 ? 'pos-2' : pos === 3 ? 'pos-3' : 'pos-n';
         const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : String(pos);
         const hasDetail = Array.isArray(r.splits) && r.splits.length > 0;
-        const rowKey = `${selectedEventIdx}-${cat}-${age}-${i}`;
+        const rowKey = `${cat}-${age}-${i}`;
         const isExpanded = expandedKey === rowKey;
         const chev = hasDetail ? `<span class="chev">${isExpanded ? '▴' : '▾'}</span>` : '';
         html += `<div class="row${hasDetail ? ' clickable' : ''}" data-key="${rowKey}"${hasDetail ? ' data-clickable="1"' : ''}>
@@ -309,14 +325,11 @@ function render() {
           <div class="time">${escapeHtml(r.temps || '—')}</div>
           ${chev}
         </div>`;
-        if (hasDetail && isExpanded) {
-          html += renderDetails(r);
-        }
+        if (hasDetail && isExpanded) html += renderDetails(r);
       });
     }
     html += '</div></div>';
   }
-
   if (total === 0) {
     html = '<div class="no-results">Aucun résultat ne correspond.<br>Modifie ta recherche ou tes filtres.</div>';
   }
@@ -359,6 +372,17 @@ function renderDetails(r) {
   </div>`;
 }
 
+// Gate handlers
+$('gate-btn').addEventListener('click', async () => {
+  const pw = $('gate-pw').value;
+  if (!pw) { $('gate-err').textContent = 'Mot de passe requis'; return; }
+  $('gate-btn').disabled = true;
+  $('gate-err').textContent = '';
+  await loadEvent(pw);
+});
+$('gate-pw').addEventListener('keypress', e => { if (e.key === 'Enter') $('gate-btn').click(); });
+
+// Search
 const searchInput = $('search');
 let debounceTimer = null;
 searchInput.addEventListener('input', () => {
@@ -370,7 +394,7 @@ searchInput.addEventListener('input', () => {
   }, 120);
 });
 
-loadAll();
+loadEvent();
 </script>
 </body>
 </html>

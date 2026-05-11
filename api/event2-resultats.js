@@ -48,11 +48,22 @@ function fmtName(nom, prenom) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
+  if (req.method !== 'GET' && req.method !== 'POST') {
     return res.status(405).json({ error: 'Méthode non autorisée' });
   }
 
   try {
+    const published = process.env.EVENT2_PUBLISHED === 'true';
+    const password = req.method === 'POST' ? (req.body && req.body.password) : null;
+    const passwordOk = password && password === process.env.JUGES_PASSWORD;
+
+    if (!published && !passwordOk) {
+      return res.status(200).json({
+        gated: true,
+        message: "Cet événement n'est pas encore publié",
+      });
+    }
+
     const supabaseUrl = 'https://mzyfnmjzlosranptwucr.supabase.co';
     const supabase = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_KEY);
 
