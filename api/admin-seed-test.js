@@ -27,14 +27,13 @@ function getCatKey(categorie) {
 
 function getTempsOrder(temps) {
   if (!temps) return 99;
-  if (temps.includes('moins') || temps.includes('1h')) {
-    if (temps.includes('moins')) return 1;
-    if (temps.includes('1h10') || (temps.includes('1h') && temps.includes('1h10'))) return 3;
-    if (temps.includes('1h20')) return 4;
-    if (temps.includes('1h30')) return 5;
-    if (temps.includes('1h40') || temps.includes('plus')) return 6;
-    if (temps.includes('1h') && !temps.includes('1h1') && !temps.includes('1h2') && !temps.includes('1h3') && !temps.includes('1h4')) return 2;
-  }
+  const t = String(temps).toLowerCase();
+  if (t.includes('moins')) return 1;
+  if (t.includes('1h et 1h10')) return 2;
+  if (t.includes('1h10 et 1h20')) return 3;
+  if (t.includes('1h20 et 1h30')) return 4;
+  if (t.includes('1h30 et 1h40')) return 5;
+  if (t.includes('1h40') || t.includes('plus')) return 6;
   return 99;
 }
 

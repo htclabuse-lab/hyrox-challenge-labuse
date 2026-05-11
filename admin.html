@@ -164,14 +164,13 @@
 
   function getTempsOrder(temps) {
     if (!temps) return 99;
-    if (temps.includes('moins') || temps.includes('1h')) {
-      if (temps.includes('moins')) return 1;
-      if (temps.includes('1h10') || (temps.includes('1h') && temps.includes('1h10'))) return 3;
-      if (temps.includes('1h20')) return 4;
-      if (temps.includes('1h30')) return 5;
-      if (temps.includes('1h40') || temps.includes('plus')) return 6;
-      if (temps.includes('1h') && !temps.includes('1h1') && !temps.includes('1h2') && !temps.includes('1h3') && !temps.includes('1h4')) return 2;
-    }
+    var t = String(temps).toLowerCase();
+    if (t.indexOf('moins') !== -1) return 1;
+    if (t.indexOf('1h et 1h10') !== -1) return 2;
+    if (t.indexOf('1h10 et 1h20') !== -1) return 3;
+    if (t.indexOf('1h20 et 1h30') !== -1) return 4;
+    if (t.indexOf('1h30 et 1h40') !== -1) return 5;
+    if (t.indexOf('1h40') !== -1 || t.indexOf('plus') !== -1) return 6;
     return 99;
   }
 
@@ -365,7 +364,7 @@ function renderPassage() {
         html += '<div style="width:24px;height:24px;border-radius:50%;background:#FFEE00;color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;">' + athleteNum + '</div>';
         html += '<div style="flex:1;color:#fff;font-weight:600;">' + (d.nom||'—') + ' ' + (d.prenom||'') + (d.nom_equipe ? ' <span style="color:#888;font-weight:400;">— ' + d.nom_equipe + '</span>' : '') + '</div>';
         html += '<div style="color:#888;font-size:11px;min-width:140px;text-align:right;flex-shrink:0;">' + getCatLabel(key) + '</div>';
-        html += '<div style="color:#FFEE00;font-family:monospace;font-size:12px;min-width:60px;text-align:right;flex-shrink:0;">' + (d.temps_estime||'—') + '</div>';
+        html += '<div style="color:#FFEE00;font-size:12px;font-weight:700;min-width:140px;text-align:right;flex-shrink:0;background:#1a1a00;padding:3px 10px;border-radius:6px;border:1px solid #3a3a00;">' + (d.temps_estime||'—') + '</div>';
         html += '</div>';
         athleteNum++;
       });

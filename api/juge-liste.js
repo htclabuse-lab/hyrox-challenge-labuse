@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
     const { data, error } = await supabase
       .from('Inscriptions')
-      .select('id, dossard, nom, prenom, categorie, nom_equipe, vague, heure_depart, statut_paiement')
+      .select('id, dossard, nom, prenom, categorie, nom_equipe, vague, heure_depart, statut_paiement, temps_estime')
       .not('dossard', 'is', null)
       .order('dossard', { ascending: true });
 
