@@ -34,10 +34,13 @@
     .toast { padding: 12px 14px; border-radius: 10px; margin: 12px 0; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     .toast.success { background: #1a3a1a; border: 1px solid #2a5a2a; color: #b6f0b6; }
     .toast.error { background: #3a1a1a; border: 1px solid #5a2a2a; color: #ffb6b6; }
-    .toast.final { background: #1a1a00; border: 2px solid #FFEE00; color: #FFEE00; flex-direction: column; align-items: stretch; padding: 14px; }
+    .toast.final { background: #1a1a00; border: 2px solid #FFEE00; color: #FFEE00; flex-direction: column; align-items: stretch; padding: 14px; gap: 0; }
     .toast.final .final-label { font-size: 12px; font-weight: 700; opacity: 0.8; letter-spacing: 1px; }
-    .toast.final .final-time { font-size: 32px; font-weight: 900; font-variant-numeric: tabular-nums; margin: 4px 0; }
-    .toast.final .final-meta { font-size: 13px; opacity: 0.85; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .toast.final .final-time { font-size: 32px; font-weight: 900; font-variant-numeric: tabular-nums; margin: 4px 0 10px; }
+    .toast.final .final-detail { font-size: 13px; opacity: 0.95; line-height: 1.7; }
+    .toast.final .final-detail strong { color: #FFEE00; font-weight: 800; }
+    .toast.final .final-detail .row-label { display: inline-block; min-width: 110px; color: #d8d27a; }
+    .toast.final .final-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
     .toast .undo-btn { background: transparent; border: 1px solid currentColor; color: inherit; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-weight: 700; white-space: nowrap; }
 
     .refresh-btn { background: #111; border: 1px solid #333; color: #aaa; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; margin: 8px 0 12px; }
@@ -116,10 +119,10 @@
   <div id="final-banner" class="toast final" hidden>
     <span class="final-label">🏁 TEMPS FINAL</span>
     <span id="final-time" class="final-time">0h 00m 00s</span>
-    <span class="final-meta">
-      <span id="final-meta-text"></span>
+    <div id="final-meta-text" class="final-detail"></div>
+    <div class="final-actions">
       <button id="final-undo-btn" class="undo-btn">Annuler (5s)</button>
-    </span>
+    </div>
   </div>
   <div id="station-toast" class="toast error" hidden></div>
   <button id="station-refresh" class="refresh-btn">↻ Rafraîchir la liste</button>
@@ -492,12 +495,15 @@ $('sheet-point').addEventListener('click', async () => {
   const label = ath ? (ath.nom_equipe || ath.prenom || '') : '';
 
   if (state.role.station === 8 && ath && ath.heure_depart) {
-    const elapsedSec = Math.floor((new Date(data.pointage.timestamp_pointage).getTime() - new Date(ath.heure_depart).getTime()) / 1000);
-    const totalSec = elapsedSec + pen30 * 30 + pen5 * 300;
+    const brutSec = Math.floor((new Date(data.pointage.timestamp_pointage).getTime() - new Date(ath.heure_depart).getTime()) / 1000);
+    const myPointages = state.allPointages.filter(p => p.inscription_id === id);
+    const totalPen30 = myPointages.reduce((s, p) => s + (p.penalite_30s || 0), 0);
+    const totalPen5 = myPointages.reduce((s, p) => s + (p.penalite_5min || 0), 0);
+    const penSec = totalPen30 * 30 + totalPen5 * 300;
+    const totalSec = brutSec + penSec;
     showFinalBanner({
       label: `Dossard ${ath.dossard} — ${label}`,
-      pen30, pen5,
-      totalSec,
+      brutSec, totalPen30, totalPen5, penSec, totalSec,
     });
   } else {
     let elapsedText = '';
@@ -519,13 +525,20 @@ function showUndoBanner(msg) {
   startUndoCountdown($('undo-btn'));
 }
 
-function showFinalBanner({ label, pen30, pen5, totalSec }) {
+function showFinalBanner({ label, brutSec, totalPen30, totalPen5, penSec, totalSec }) {
   $('undo-banner').hidden = true;
   $('final-time').textContent = formatHMS(totalSec);
-  let metaParts = [label];
-  if (pen30 > 0) metaParts.push(`+${pen30}×30s`);
-  if (pen5 > 0) metaParts.push(`+${pen5}×5min`);
-  $('final-meta-text').textContent = metaParts.join(' · ');
+  let detail = `<strong>${escapeHtml(label)}</strong><br>`;
+  detail += `<span class="row-label">Temps brut</span> ${formatHMS(brutSec)}<br>`;
+  if (totalPen30 > 0 || totalPen5 > 0) {
+    const parts = [];
+    if (totalPen5 > 0) parts.push(`${totalPen5}×5min`);
+    if (totalPen30 > 0) parts.push(`${totalPen30}×30s`);
+    detail += `<span class="row-label">Pénalités</span> ${parts.join(' + ')} <strong>(+${formatHMS(penSec)})</strong>`;
+  } else {
+    detail += `<span class="row-label">Pénalités</span> aucune`;
+  }
+  $('final-meta-text').innerHTML = detail;
   $('final-banner').hidden = false;
   $('final-undo-btn').disabled = false;
   startUndoCountdown($('final-undo-btn'));
