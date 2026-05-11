@@ -4,7 +4,9 @@
     "nom": "Hyrox Challenge La Buse #1",
     "date": "2026-04-26",
     "lieu": "Saint-Paul, La Réunion",
-    "source": "extracted from leaderboard.html (hardcoded JS DATA)"
+    "source": "extracted from leaderboard.html (hardcoded JS DATA)",
+    "categories_normalized": true,
+    "notes": "Catégories normalisées au format event #2 (\"solo X\" préfixe explicite pour les non-duos)."
   },
   "resultats": [
     {
@@ -82,7 +84,7 @@
     {
       "nom": "LAKANE Lynne",
       "membres": "",
-      "cat": "scaled femmes",
+      "cat": "solo scaled femmes",
       "age": "25-34",
       "temps": "01:07:15",
       "solo": true
@@ -90,7 +92,7 @@
     {
       "nom": "PERON Amandine",
       "membres": "",
-      "cat": "scaled femmes",
+      "cat": "solo scaled femmes",
       "age": "25-34",
       "temps": "01:14:08",
       "solo": true
@@ -98,7 +100,7 @@
     {
       "nom": "DELOT Anne-Elie",
       "membres": "",
-      "cat": "scaled femmes",
+      "cat": "solo scaled femmes",
       "age": "25-34",
       "temps": "01:19:35",
       "solo": true
@@ -106,7 +108,7 @@
     {
       "nom": "RIPERT Blondie",
       "membres": "",
-      "cat": "scaled femmes",
+      "cat": "solo scaled femmes",
       "age": "25-34",
       "temps": "01:25:39",
       "solo": true
@@ -114,7 +116,7 @@
     {
       "nom": "CORDELIER Chloë",
       "membres": "",
-      "cat": "scaled femmes",
+      "cat": "solo scaled femmes",
       "age": "35-44",
       "temps": "01:11:56",
       "solo": true
@@ -122,7 +124,7 @@
     {
       "nom": "ATCHAPA Emilie",
       "membres": "",
-      "cat": "scaled femmes",
+      "cat": "solo scaled femmes",
       "age": "35-44",
       "temps": "01:23:03",
       "solo": true
@@ -130,7 +132,7 @@
     {
       "nom": "HOARAU Sidonia",
       "membres": "",
-      "cat": "scaled femmes",
+      "cat": "solo scaled femmes",
       "age": "35-44",
       "temps": "01:38:30",
       "solo": true
@@ -138,7 +140,7 @@
     {
       "nom": "HAMBURGER Nathalie",
       "membres": "",
-      "cat": "scaled femmes",
+      "cat": "solo scaled femmes",
       "age": "45-54",
       "temps": "01:37:16",
       "solo": true
@@ -146,7 +148,7 @@
     {
       "nom": "GALAOR Marie",
       "membres": "",
-      "cat": "rx femme",
+      "cat": "solo rx femmes",
       "age": "25-34",
       "temps": "01:19:35",
       "solo": true
@@ -154,7 +156,7 @@
     {
       "nom": "ABHERVE Julie",
       "membres": "",
-      "cat": "rx femme",
+      "cat": "solo rx femmes",
       "age": "25-34",
       "temps": "01:20:46",
       "solo": true
@@ -162,7 +164,7 @@
     {
       "nom": "ADIBA Sarah",
       "membres": "",
-      "cat": "rx femme",
+      "cat": "solo rx femmes",
       "age": "25-34",
       "temps": "01:22:58",
       "solo": true
@@ -170,7 +172,7 @@
     {
       "nom": "HUET Anaëlle",
       "membres": "",
-      "cat": "rx femme",
+      "cat": "solo rx femmes",
       "age": "16-24",
       "temps": "01:53:45",
       "solo": true
@@ -546,7 +548,7 @@
     {
       "nom": "ELISABETH Patrick",
       "membres": "",
-      "cat": "scaled hommes",
+      "cat": "solo scaled hommes",
       "age": "35-44",
       "temps": "00:55:58",
       "solo": true
@@ -554,7 +556,7 @@
     {
       "nom": "FLORIAN Florian",
       "membres": "",
-      "cat": "scaled hommes",
+      "cat": "solo scaled hommes",
       "age": "16-24",
       "temps": "01:00:48",
       "solo": true
@@ -562,7 +564,7 @@
     {
       "nom": "ROBIGEAU Kenny",
       "membres": "",
-      "cat": "scaled hommes",
+      "cat": "solo scaled hommes",
       "age": "25-34",
       "temps": "01:01:47",
       "solo": true
@@ -570,7 +572,7 @@
     {
       "nom": "GUILLEMIN Justin",
       "membres": "",
-      "cat": "scaled hommes",
+      "cat": "solo scaled hommes",
       "age": "35-44",
       "temps": "01:02:18",
       "solo": true
@@ -578,7 +580,7 @@
     {
       "nom": "MEZINO Kevin",
       "membres": "",
-      "cat": "scaled hommes",
+      "cat": "solo scaled hommes",
       "age": "35-44",
       "temps": "01:02:25",
       "solo": true
@@ -586,7 +588,7 @@
     {
       "nom": "BEGUE Florent",
       "membres": "",
-      "cat": "scaled hommes",
+      "cat": "solo scaled hommes",
       "age": "35-44",
       "temps": "01:09:35",
       "solo": true
@@ -594,7 +596,7 @@
     {
       "nom": "PETIT Bruno",
       "membres": "",
-      "cat": "scaled hommes",
+      "cat": "solo scaled hommes",
       "age": "35-44",
       "temps": "01:12:30",
       "solo": true
@@ -602,7 +604,7 @@
     {
       "nom": "CARRON Mathias",
       "membres": "",
-      "cat": "scaled hommes",
+      "cat": "solo scaled hommes",
       "age": "25-34",
       "temps": "01:42:19",
       "solo": true
@@ -610,7 +612,7 @@
     {
       "nom": "JANNAULT Clément",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "35-44",
       "temps": "01:00:36",
       "solo": true
@@ -618,7 +620,7 @@
     {
       "nom": "EMMA Julien",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "35-44",
       "temps": "01:06:47",
       "solo": true
@@ -626,7 +628,7 @@
     {
       "nom": "MOREL Jt",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "35-44",
       "temps": "01:08:49",
       "solo": true
@@ -634,7 +636,7 @@
     {
       "nom": "PATELLI Melvin",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "25-34",
       "temps": "01:03:15",
       "solo": true
@@ -642,7 +644,7 @@
     {
       "nom": "BEGUE Bastien",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "16-24",
       "temps": "01:12:43",
       "solo": true
@@ -650,7 +652,7 @@
     {
       "nom": "GARA Yanse",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "35-44",
       "temps": "01:12:58",
       "solo": true
@@ -658,7 +660,7 @@
     {
       "nom": "ECLAPIER Thomas",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "25-34",
       "temps": "01:14:25",
       "solo": true
@@ -666,7 +668,7 @@
     {
       "nom": "BALLANT Michael",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "45-54",
       "temps": "01:16:20",
       "solo": true
@@ -674,7 +676,7 @@
     {
       "nom": "LEPELLETIER Guillaume",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "45-54",
       "temps": "01:17:27",
       "solo": true
@@ -682,7 +684,7 @@
     {
       "nom": "CERVEAUX Damien",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "25-34",
       "temps": "01:15:58",
       "solo": true
@@ -690,7 +692,7 @@
     {
       "nom": "BARATIER Guillaume",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "35-44",
       "temps": "01:18:56",
       "solo": true
@@ -698,7 +700,7 @@
     {
       "nom": "ABHERVE Julie",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "25-34",
       "temps": "01:20:46",
       "solo": true
@@ -706,7 +708,7 @@
     {
       "nom": "CARMAGNOLE Loris",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "16-24",
       "temps": "01:21:47",
       "solo": true
@@ -714,7 +716,7 @@
     {
       "nom": "BOURSOIT François",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "35-44",
       "temps": "01:22:08",
       "solo": true
@@ -722,7 +724,7 @@
     {
       "nom": "LAURET David",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "45-54",
       "temps": "01:23:18",
       "solo": true
@@ -730,7 +732,7 @@
     {
       "nom": "BARET Stéphane",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "25-34",
       "temps": "01:54:35",
       "solo": true
@@ -738,7 +740,7 @@
     {
       "nom": "JOSEPH Killian",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "25-34",
       "temps": "01:36:06",
       "solo": true
@@ -746,7 +748,7 @@
     {
       "nom": "DESPRET Maxime",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "25-34",
       "temps": "01:32:46",
       "solo": true
@@ -754,7 +756,7 @@
     {
       "nom": "DIDAT Samuel",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "25-34",
       "temps": "01:31:47",
       "solo": true
@@ -762,7 +764,7 @@
     {
       "nom": "MAS Frederic",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "45-54",
       "temps": "01:30:35",
       "solo": true
@@ -770,7 +772,7 @@
     {
       "nom": "VALLY-ADAM Khalil",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "45-54",
       "temps": "01:43:06",
       "solo": true
@@ -778,7 +780,7 @@
     {
       "nom": "RIVIERE Dany",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "55+",
       "temps": "01:49:07",
       "solo": true
@@ -786,7 +788,7 @@
     {
       "nom": "AJORQUE David",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "45-54",
       "temps": "02:17:39",
       "solo": true
@@ -794,7 +796,7 @@
     {
       "nom": "ADVICE DESRUISSEAUX Julien",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "35-44",
       "temps": "02:07:10",
       "solo": true
@@ -802,7 +804,7 @@
     {
       "nom": "DUFOULON Jeremy",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "35-44",
       "temps": "01:40:07",
       "solo": true
@@ -810,7 +812,7 @@
     {
       "nom": "LESCROC Jérôme",
       "membres": "",
-      "cat": "rx hommes",
+      "cat": "solo rx hommes",
       "age": "35-44",
       "temps": "01:33:03",
       "solo": true
