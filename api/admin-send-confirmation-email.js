@@ -1,0 +1,203 @@
+import { createClient } from '@supabase/supabase-js';
+
+function getAgeCat(dob) {
+  if (!dob) return null;
+  const age = new Date().getFullYear() - parseInt(String(dob).split('-')[0], 10);
+  if (age < 16) return null;
+  if (age <= 24) return '16-24 ans';
+  if (age <= 34) return '25-34 ans';
+  if (age <= 44) return '35-44 ans';
+  if (age <= 54) return '45-54 ans';
+  return '55 ans et +';
+}
+
+function getMoyenneAge(dobs) {
+  const ages = (dobs || []).filter(Boolean).map(d => new Date().getFullYear() - parseInt(String(d).split('-')[0], 10));
+  if (ages.length === 0) return null;
+  const moy = Math.round(ages.reduce((a, b) => a + b, 0) / ages.length);
+  if (moy < 16) return null;
+  if (moy <= 24) return '16-24 ans';
+  if (moy <= 34) return '25-34 ans';
+  if (moy <= 44) return '35-44 ans';
+  if (moy <= 54) return '45-54 ans';
+  return '55 ans et +';
+}
+
+function buildEmailHtml(inscription) {
+  const montantPaye = inscription.prix || 0;
+  const isDuo = inscription.categorie?.toLowerCase().includes('duo');
+  const isRelais = inscription.categorie?.toLowerCase().includes('relais');
+  const tshirt = `${inscription.tshirt_taille || ''} ${inscription.tshirt_coupe || ''}`.trim();
+  const prenom = inscription.prenom || '';
+  const nom = inscription.nom || '';
+
+  let categorieAge = null;
+  if (isDuo || isRelais) {
+    const dobs = [
+      inscription.date_naissance,
+      inscription.co1_date_naissance,
+      inscription.co2_date_naissance,
+      inscription.co3_date_naissance,
+    ];
+    categorieAge = getMoyenneAge(dobs);
+  } else {
+    categorieAge = getAgeCat(inscription.date_naissance);
+  }
+
+  const labelAge = (isDuo || isRelais) ? "Catégorie d'âge équipe" : "Catégorie d'âge";
+  const valAge = categorieAge ? (isDuo || isRelais ? categorieAge + ' (moyenne)' : categorieAge) : '—';
+
+  let equipeLine = '';
+  if (inscription.nom_equipe) {
+    equipeLine = `
+      <tr>
+        <td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Équipe</td>
+        <td style="padding:8px 0;color:#FFEE00;font-weight:700;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${inscription.nom_equipe}</td>
+      </tr>
+    `;
+  }
+
+  let coequipiersHtml = '';
+  if (isDuo || isRelais) {
+    const coequipiers = [];
+    if (inscription.co1_nom) coequipiers.push({ num: 2, nom: inscription.co1_nom, prenom: inscription.co1_prenom || '', tshirt: inscription.co1_tshirt || '' });
+    if (inscription.co2_nom) coequipiers.push({ num: 3, nom: inscription.co2_nom, prenom: inscription.co2_prenom || '', tshirt: inscription.co2_tshirt || '' });
+    if (inscription.co3_nom) coequipiers.push({ num: 4, nom: inscription.co3_nom, prenom: inscription.co3_prenom || '', tshirt: inscription.co3_tshirt || '' });
+    if (coequipiers.length > 0) {
+      coequipiersHtml = `
+        <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #222;">
+          <div style="color:#FFEE00;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">👥 Coéquipiers</div>
+          ${coequipiers.map(co => `
+            <div style="background:#0a0a0a;border:1px solid #222;border-radius:8px;padding:10px 14px;margin-bottom:8px;">
+              <div style="color:#fff;font-size:14px;font-weight:600;">Athlète ${co.num} : ${co.prenom} ${co.nom}</div>
+              <div style="color:#888;font-size:12px;margin-top:2px;">T-shirt : ${co.tshirt || '—'}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+  }
+
+  return `
+    <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#0a0a0a;color:#fff;padding:2rem;border-radius:12px;">
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <h1 style="color:#FFEE00;margin:0;font-size:26px;font-weight:800;letter-spacing:-0.5px;">Hyrox Challenge <span style="color:#fff">La Buse</span></h1>
+      </div>
+      <h2 style="color:#FFEE00;margin-top:1.5rem;font-size:22px;">Inscription confirmée ! 🎉</h2>
+      <p style="color:#ccc;line-height:1.7;margin-top:1rem;">
+        Bonjour <strong style="color:#fff;">${prenom}</strong>,<br><br>
+        Ton inscription au <strong style="color:#FFEE00;">Hyrox Challenge La Buse #2</strong> est bien confirmée. À très vite sur la ligne de départ ! 💪
+      </p>
+      <div style="background:#111;border:1px solid #222;border-radius:12px;padding:1.25rem;margin-top:1.5rem;">
+        <div style="color:#FFEE00;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">📋 Récap de ton inscription</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Athlète</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${prenom} ${nom}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Catégorie</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${inscription.categorie || '—'}</td></tr>
+          ${equipeLine}
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">T-shirt</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${tshirt || '—'}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">${labelAge}</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${valAge}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Temps estimé</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${inscription.temps_estime || '—'}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;">Montant payé</td><td style="padding:8px 0;color:#FFEE00;font-weight:800;text-align:right;font-size:16px;">${montantPaye} €</td></tr>
+        </table>
+        ${coequipiersHtml}
+      </div>
+      <div style="background:#1a1a00;border:1px solid #FFEE00;border-radius:12px;padding:1rem 1.25rem;margin-top:1rem;">
+        <div style="color:#FFEE00;font-weight:700;font-size:14px;line-height:1.6;">⚠️ N'oublie pas : un podium est prévu pour chaque catégorie d'âge !</div>
+        <div style="color:#ccc;font-size:13px;line-height:1.6;margin-top:6px;">Reste avec nous jusqu'à la cérémonie de remise des prix, tu pourrais y être 🏆</div>
+      </div>
+      <div style="background:#0d1400;border:1px solid #FFEE00;border-radius:12px;padding:1.25rem;margin-top:1.5rem;text-align:center;">
+        <div style="color:#FFEE00;font-weight:800;font-size:14px;margin-bottom:8px;">📅 Dimanche 12 juillet 2026</div>
+        <div style="color:#ccc;font-size:14px;">📍 Crossfit La Buse — Saint-Paul, La Réunion</div>
+      </div>
+      <div style="text-align:center;margin-top:1.5rem;">
+        <a href="https://hyrox-challenge-labuse.vercel.app" style="background:#FFEE00;color:#0a0a0a;padding:14px 36px;border-radius:10px;text-decoration:none;font-weight:800;display:inline-block;">Voir le site</a>
+      </div>
+      <p style="color:#888;font-size:13px;line-height:1.7;margin-top:2rem;text-align:center;">
+        Ton dossard et tes horaires de passage te seront communiqués par email une fois toutes les inscriptions clôturées.
+      </p>
+      <p style="color:#555;font-size:11px;text-align:center;margin-top:2rem;border-top:1px solid #222;padding-top:1.25rem;">
+        Hyrox Training Club La Buse — Saint-Paul, La Réunion<br>
+        <a href="https://hyrox-challenge-labuse.vercel.app" style="color:#888;text-decoration:none;">hyrox-challenge-labuse.vercel.app</a>
+      </p>
+    </div>
+  `;
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Méthode non autorisée' });
+  }
+
+  try {
+    const { password, inscription_id } = req.body || {};
+
+    if (!password || password !== process.env.JUGES_PASSWORD) {
+      return res.status(401).json({ error: 'Non autorisé' });
+    }
+
+    if (!Number.isInteger(inscription_id) || inscription_id <= 0) {
+      return res.status(400).json({ error: 'inscription_id invalide' });
+    }
+
+    const supabase = createClient('https://mzyfnmjzlosranptwucr.supabase.co', process.env.SUPABASE_SERVICE_KEY);
+
+    const { data: inscription, error: fetchErr } = await supabase
+      .from('Inscriptions')
+      .select('*')
+      .eq('id', inscription_id)
+      .single();
+
+    if (fetchErr || !inscription) {
+      console.error('Erreur fetch:', fetchErr);
+      return res.status(404).json({ error: 'Inscription introuvable' });
+    }
+
+    if (!inscription.email) {
+      return res.status(400).json({ error: 'Cette inscription n\'a pas d\'email' });
+    }
+
+    const resendKey = process.env.RESEND_API_KEY;
+    if (!resendKey) {
+      return res.status(500).json({ error: 'RESEND_API_KEY non configurée' });
+    }
+
+    const html = buildEmailHtml(inscription);
+
+    const resendResponse = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + resendKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Hyrox Challenge La Buse <noreply@htclabuse.fr>',
+        to: inscription.email,
+        subject: '✅ Inscription confirmée — Hyrox Challenge La Buse',
+        html,
+      }),
+    });
+
+    if (!resendResponse.ok) {
+      const errorText = await resendResponse.text();
+      console.error('Erreur Resend:', resendResponse.status, errorText);
+      return res.status(502).json({ error: 'Erreur d\'envoi Resend', details: errorText });
+    }
+
+    const result = await resendResponse.json();
+    return res.status(200).json({
+      success: true,
+      sent_to: inscription.email,
+      resend_id: result.id || null,
+      inscription: {
+        id: inscription.id,
+        prenom: inscription.prenom,
+        nom: inscription.nom,
+        nom_equipe: inscription.nom_equipe,
+        prix: inscription.prix,
+      },
+    });
+  } catch (err) {
+    console.error('Erreur admin-send-confirmation-email:', err);
+    return res.status(500).json({ error: 'Erreur serveur' });
+  }
+}
