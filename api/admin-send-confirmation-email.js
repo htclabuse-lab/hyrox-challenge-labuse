@@ -129,18 +129,113 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { password, inscription_id } = req.body || {};
+    const { password, mode } = req.body || {};
 
     if (!password || password !== process.env.JUGES_PASSWORD) {
       return res.status(401).json({ error: 'Non autorisé' });
     }
 
+    const resendKey = process.env.RESEND_API_KEY;
+    if (!resendKey) {
+      return res.status(500).json({ error: 'RESEND_API_KEY non configurée' });
+    }
+
+    const FROM = 'Hyrox Challenge La Buse <noreply@htclabuse.fr>';
+
+    // ----- MODE 'custom' : envoi unique à un email arbitraire avec subject/html sur mesure -----
+    if (mode === 'custom') {
+      const { to, subject, html } = req.body;
+      if (!to || typeof to !== 'string' || !to.includes('@')) {
+        return res.status(400).json({ error: 'to (email) invalide' });
+      }
+      if (!subject || !html) {
+        return res.status(400).json({ error: 'subject et html requis' });
+      }
+      const resp = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: FROM, to, subject, html }),
+      });
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok) {
+        return res.status(502).json({ error: 'Erreur Resend', status: resp.status, details: data });
+      }
+      return res.status(200).json({ success: true, mode: 'custom', sent_to: to, resend_id: data.id || null });
+    }
+
+    // ----- MODE 'broadcast' : envoi à tous les inscrits payés (ou subset), HTML/subject custom -----
+    if (mode === 'broadcast') {
+      const { subject, html, limit, exclude_emails } = req.body;
+      if (!subject || !html) {
+        return res.status(400).json({ error: 'subject et html requis' });
+      }
+
+      const supabase = createClient('https://mzyfnmjzlosranptwucr.supabase.co', process.env.SUPABASE_SERVICE_KEY);
+      const { data: inscriptions, error: fetchErr } = await supabase
+        .from('Inscriptions')
+        .select('email')
+        .eq('statut_paiement', 'paye')
+        .not('email', 'is', null);
+
+      if (fetchErr) {
+        console.error('Erreur fetch broadcast:', fetchErr);
+        return res.status(500).json({ error: 'Erreur lecture inscriptions' });
+      }
+
+      const excludeSet = new Set((exclude_emails || []).map(e => String(e).trim().toLowerCase()));
+      const seen = new Set();
+      const eligibles = [];
+      for (const r of inscriptions || []) {
+        const email = String(r.email || '').trim().toLowerCase();
+        if (!email || !email.includes('@')) continue;
+        if (excludeSet.has(email)) continue;
+        if (seen.has(email)) continue;
+        seen.add(email);
+        eligibles.push(email);
+      }
+
+      const cap = (typeof limit === 'number' && limit > 0) ? limit : eligibles.length;
+      const targets = eligibles.slice(0, cap);
+
+      if (targets.length === 0) {
+        return res.status(200).json({ success: true, mode: 'broadcast', total_eligible: eligibles.length, sent: 0, sent_emails: [] });
+      }
+
+      const sent_emails = [];
+      const failures = [];
+      for (let i = 0; i < targets.length; i += 100) {
+        const batch = targets.slice(i, i + 100);
+        const payload = batch.map(email => ({ from: FROM, to: email, subject, html }));
+        const resp = await fetch('https://api.resend.com/emails/batch', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          failures.push({ batch_start: i, status: resp.status, error: data });
+        } else {
+          sent_emails.push(...batch);
+        }
+      }
+
+      return res.status(200).json({
+        success: failures.length === 0,
+        mode: 'broadcast',
+        total_eligible: eligibles.length,
+        sent: sent_emails.length,
+        sent_emails,
+        failures,
+      });
+    }
+
+    // ----- MODE 'standard' (par défaut) : envoi du template de confirmation d'inscription -----
+    const { inscription_id } = req.body;
     if (!Number.isInteger(inscription_id) || inscription_id <= 0) {
       return res.status(400).json({ error: 'inscription_id invalide' });
     }
 
     const supabase = createClient('https://mzyfnmjzlosranptwucr.supabase.co', process.env.SUPABASE_SERVICE_KEY);
-
     const { data: inscription, error: fetchErr } = await supabase
       .from('Inscriptions')
       .select('*')
@@ -151,30 +246,15 @@ export default async function handler(req, res) {
       console.error('Erreur fetch:', fetchErr);
       return res.status(404).json({ error: 'Inscription introuvable' });
     }
-
     if (!inscription.email) {
       return res.status(400).json({ error: 'Cette inscription n\'a pas d\'email' });
     }
 
-    const resendKey = process.env.RESEND_API_KEY;
-    if (!resendKey) {
-      return res.status(500).json({ error: 'RESEND_API_KEY non configurée' });
-    }
-
     const html = buildEmailHtml(inscription);
-
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + resendKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'Hyrox Challenge La Buse <noreply@htclabuse.fr>',
-        to: inscription.email,
-        subject: '✅ Inscription confirmée — Hyrox Challenge La Buse',
-        html,
-      }),
+      headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: FROM, to: inscription.email, subject: '✅ Inscription confirmée — Hyrox Challenge La Buse', html }),
     });
 
     if (!resendResponse.ok) {
@@ -186,6 +266,7 @@ export default async function handler(req, res) {
     const result = await resendResponse.json();
     return res.status(200).json({
       success: true,
+      mode: 'standard',
       sent_to: inscription.email,
       resend_id: result.id || null,
       inscription: {
