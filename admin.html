@@ -431,13 +431,24 @@ function renderTshirts() {
     return n;
   }
 
+  // Regroupement patchs : sans distinction hommes/femmes/mixte
+  var PATCH_GROUP_ORDER = ['Solo RX', 'Solo Scaled', 'Duo RX', 'Duo Scaled', 'Relais'];
+  function getPatchGroup(catKey) {
+    if (catKey === 'relais') return 'Relais';
+    if (catKey.indexOf('solo') === 0 && catKey.indexOf('rx') !== -1) return 'Solo RX';
+    if (catKey.indexOf('solo') === 0 && catKey.indexOf('scaled') !== -1) return 'Solo Scaled';
+    if (catKey.indexOf('duo') === 0 && catKey.indexOf('rx') !== -1) return 'Duo RX';
+    if (catKey.indexOf('duo') === 0 && catKey.indexOf('scaled') !== -1) return 'Duo Scaled';
+    return null;
+  }
+
   function renderInventaire() {
     var paid = allData.filter(function(d) { return d.statut_paiement === 'paye'; });
 
     // Trophées : 1 par (catégorie × tranche d'âge) avec ≥1 participant
     var trophees = {}; // {catKey: {ageBucket: count_inscriptions}}
-    // Patchs : nb total de participants par catégorie
-    var patchs = {}; // {catKey: nbParticipants}
+    // Patchs : nb total de participants par GROUPE (sans distinction H/F/Mixte)
+    var patchs = {}; // {patchGroup: nbParticipants}
 
     paid.forEach(function(d) {
       var catKey = getCatKey(d.categorie);
@@ -445,7 +456,8 @@ function renderTshirts() {
       var age = getTrancheAge(d);
       if (!trophees[catKey]) trophees[catKey] = {};
       trophees[catKey][age] = (trophees[catKey][age] || 0) + 1;
-      patchs[catKey] = (patchs[catKey] || 0) + getNbParticipants(d);
+      var grp = getPatchGroup(catKey);
+      if (grp) patchs[grp] = (patchs[grp] || 0) + getNbParticipants(d);
     });
 
     var totalTrophees = 0;
@@ -489,16 +501,16 @@ function renderTshirts() {
     if (!hasAnyTrophee) html += '<div style="padding:1rem;color:#666;font-size:13px;text-align:center;">Aucun inscrit payé pour l\'instant</div>';
     html += '</div>';
 
-    // Détail Patchs
-    html += '<div style="font-size:14px;font-weight:800;color:#FFEE00;margin:1.2rem 0 0.6rem;text-transform:uppercase;letter-spacing:1px;">🏅 Détail des patchs par catégorie</div>';
+    // Détail Patchs (sans distinction H/F/Mixte)
+    html += '<div style="font-size:14px;font-weight:800;color:#FFEE00;margin:1.2rem 0 0.6rem;text-transform:uppercase;letter-spacing:1px;">🏅 Détail des patchs (par format & niveau, sans distinction H/F)</div>';
     html += '<div style="background:#111;border:1px solid #222;border-radius:10px;overflow:hidden;">';
     var hasAnyPatch = false;
-    CAT_ORDER.forEach(function(cat) {
-      if (!patchs[cat]) return;
+    PATCH_GROUP_ORDER.forEach(function(grp) {
+      if (!patchs[grp]) return;
       hasAnyPatch = true;
       html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid #1a1a1a;font-size:13px;">';
-      html += '<div style="color:#fff;font-weight:600;">' + getCatLabel(cat) + '</div>';
-      html += '<div style="color:#FFEE00;font-weight:800;font-size:15px;">' + patchs[cat] + ' patchs</div>';
+      html += '<div style="color:#fff;font-weight:600;">' + grp + '</div>';
+      html += '<div style="color:#FFEE00;font-weight:800;font-size:15px;">' + patchs[grp] + ' patchs</div>';
       html += '</div>';
     });
     if (!hasAnyPatch) html += '<div style="padding:1rem;color:#666;font-size:13px;text-align:center;">Aucun inscrit payé pour l\'instant</div>';
