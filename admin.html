@@ -80,6 +80,7 @@
       <button type="button" class="main-tab" onclick="showMainTab('categories', this)">📊 Par catégorie</button>
       <button type="button" class="main-tab" onclick="showMainTab('passage', this)">⏱ Ordre de passage</button>
       <button type="button" class="main-tab" onclick="showMainTab('tshirts', this)">👕 T-shirts</button>
+      <button type="button" class="main-tab" onclick="showMainTab('inventaire', this)">🏆 Trophées & Patchs</button>
     </div>
 
     <!-- ONGLET ORDRE D'INSCRIPTION -->
@@ -135,6 +136,12 @@
     <!-- ONGLET TSHIRTS -->
     <div class="tab-content" id="tab-tshirts">
       <div class="tshirt-grid" id="tshirt-grid"></div>
+    </div>
+
+    <!-- ONGLET TROPHÉES & PATCHS -->
+    <div class="tab-content" id="tab-inventaire">
+      <div style="font-size:13px;color:#888;margin-bottom:1rem;">Calculé uniquement sur les inscriptions <strong style="color:#FFEE00;">payées</strong>. Mis à jour à chaque ouverture de la page.</div>
+      <div id="inventaire-content"></div>
     </div>
 
   </div>
@@ -233,6 +240,7 @@
     renderCategories();
     renderPassage();
     renderTshirts();
+    renderInventaire();
   }
 
   function renderStats() {
@@ -401,6 +409,102 @@ function renderTshirts() {
       html += '<div class="tshirt-card"><div class="tshirt-val">' + counts[k] + '</div><div class="tshirt-label">' + k + '</div></div>';
     });
     document.getElementById('tshirt-grid').innerHTML = html || '<div style="color:#666;font-size:13px;">Aucune donnée</div>';
+  }
+
+  function getTrancheAge(d) {
+    var dobs = [d.date_naissance, d.co1_date_naissance, d.co2_date_naissance, d.co3_date_naissance].filter(Boolean);
+    if (dobs.length === 0) return '— inconnu';
+    var ages = dobs.map(function(dob){ return new Date().getFullYear() - parseInt(dob.split('-')[0]); });
+    var moy = Math.round(ages.reduce(function(a,b){ return a+b; }, 0) / ages.length);
+    if (moy <= 24) return '16-24 ans';
+    if (moy <= 34) return '25-34 ans';
+    if (moy <= 44) return '35-44 ans';
+    if (moy <= 54) return '45-54 ans';
+    return '55+ ans';
+  }
+
+  function getNbParticipants(d) {
+    var n = 1;
+    if (d.co1_nom) n++;
+    if (d.co2_nom) n++;
+    if (d.co3_nom) n++;
+    return n;
+  }
+
+  function renderInventaire() {
+    var paid = allData.filter(function(d) { return d.statut_paiement === 'paye'; });
+
+    // Trophées : 1 par (catégorie × tranche d'âge) avec ≥1 participant
+    var trophees = {}; // {catKey: {ageBucket: count_inscriptions}}
+    // Patchs : nb total de participants par catégorie
+    var patchs = {}; // {catKey: nbParticipants}
+
+    paid.forEach(function(d) {
+      var catKey = getCatKey(d.categorie);
+      if (!catKey || CAT_ORDER.indexOf(catKey) === -1) return;
+      var age = getTrancheAge(d);
+      if (!trophees[catKey]) trophees[catKey] = {};
+      trophees[catKey][age] = (trophees[catKey][age] || 0) + 1;
+      patchs[catKey] = (patchs[catKey] || 0) + getNbParticipants(d);
+    });
+
+    var totalTrophees = 0;
+    CAT_ORDER.forEach(function(cat) {
+      if (trophees[cat]) totalTrophees += Object.keys(trophees[cat]).length;
+    });
+    var totalPatchs = 0;
+    Object.keys(patchs).forEach(function(cat) { totalPatchs += patchs[cat]; });
+
+    var html = '';
+
+    // Big totals
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.5rem;">';
+    html += '<div style="background:#1a1400;border:2px solid #FFEE00;border-radius:12px;padding:1.5rem;text-align:center;">';
+    html += '<div style="font-size:42px;font-weight:900;color:#FFEE00;line-height:1;">' + totalTrophees + '</div>';
+    html += '<div style="font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:2px;margin-top:8px;">🏆 Trophées à acheter</div>';
+    html += '</div>';
+    html += '<div style="background:#1a1400;border:2px solid #FFEE00;border-radius:12px;padding:1.5rem;text-align:center;">';
+    html += '<div style="font-size:42px;font-weight:900;color:#FFEE00;line-height:1;">' + totalPatchs + '</div>';
+    html += '<div style="font-size:12px;color:#aaa;text-transform:uppercase;letter-spacing:2px;margin-top:8px;">🏅 Patchs à acheter</div>';
+    html += '</div>';
+    html += '</div>';
+
+    // Détail Trophées
+    html += '<div style="font-size:14px;font-weight:800;color:#FFEE00;margin:1.2rem 0 0.6rem;text-transform:uppercase;letter-spacing:1px;">🏆 Détail des trophées par catégorie × tranche d\'âge</div>';
+    html += '<div style="background:#111;border:1px solid #222;border-radius:10px;overflow:hidden;margin-bottom:1.5rem;">';
+    var hasAnyTrophee = false;
+    CAT_ORDER.forEach(function(cat) {
+      if (!trophees[cat]) return;
+      hasAnyTrophee = true;
+      html += '<div style="padding:10px 14px;background:#1a1a1a;color:#fff;font-weight:700;font-size:13px;border-top:1px solid #222;">' + getCatLabel(cat) + '</div>';
+      var ages = Object.keys(trophees[cat]).sort();
+      ages.forEach(function(age) {
+        var nbInsc = trophees[cat][age];
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 14px;border-top:1px solid #1a1a1a;font-size:13px;">';
+        html += '<div style="color:#aaa;">' + age + ' <span style="color:#666;font-size:11px;">(' + nbInsc + ' inscript.)</span></div>';
+        html += '<div style="color:#FFEE00;font-weight:800;">1 trophée</div>';
+        html += '</div>';
+      });
+    });
+    if (!hasAnyTrophee) html += '<div style="padding:1rem;color:#666;font-size:13px;text-align:center;">Aucun inscrit payé pour l\'instant</div>';
+    html += '</div>';
+
+    // Détail Patchs
+    html += '<div style="font-size:14px;font-weight:800;color:#FFEE00;margin:1.2rem 0 0.6rem;text-transform:uppercase;letter-spacing:1px;">🏅 Détail des patchs par catégorie</div>';
+    html += '<div style="background:#111;border:1px solid #222;border-radius:10px;overflow:hidden;">';
+    var hasAnyPatch = false;
+    CAT_ORDER.forEach(function(cat) {
+      if (!patchs[cat]) return;
+      hasAnyPatch = true;
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid #1a1a1a;font-size:13px;">';
+      html += '<div style="color:#fff;font-weight:600;">' + getCatLabel(cat) + '</div>';
+      html += '<div style="color:#FFEE00;font-weight:800;font-size:15px;">' + patchs[cat] + ' patchs</div>';
+      html += '</div>';
+    });
+    if (!hasAnyPatch) html += '<div style="padding:1rem;color:#666;font-size:13px;text-align:center;">Aucun inscrit payé pour l\'instant</div>';
+    html += '</div>';
+
+    document.getElementById('inventaire-content').innerHTML = html;
   }
 
   function exportCSV() {
