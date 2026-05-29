@@ -501,22 +501,67 @@ function renderTshirts() {
     if (!hasAnyTrophee) html += '<div style="padding:1rem;color:#666;font-size:13px;text-align:center;">Aucun inscrit payé pour l\'instant</div>';
     html += '</div>';
 
-    // Détail Patchs (sans distinction H/F/Mixte)
-    html += '<div style="font-size:14px;font-weight:800;color:#FFEE00;margin:1.2rem 0 0.6rem;text-transform:uppercase;letter-spacing:1px;">🏅 Détail des patchs (par format & niveau, sans distinction H/F)</div>';
+    // Détail Patchs (sans distinction H/F/Mixte) + Stock & à racheter
+    html += '<div style="font-size:14px;font-weight:800;color:#FFEE00;margin:1.2rem 0 0.6rem;text-transform:uppercase;letter-spacing:1px;">🏅 Patchs — besoins, stock restant & à racheter</div>';
+    html += '<div style="font-size:12px;color:#888;margin-bottom:0.6rem;line-height:1.5;">Tape ton stock actuel par groupe → le calcul "à racheter" se met à jour tout seul. Sauvegardé localement dans ton navigateur.</div>';
+
     html += '<div style="background:#111;border:1px solid #222;border-radius:10px;overflow:hidden;">';
-    var hasAnyPatch = false;
+    // Header
+    html += '<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:8px;padding:10px 14px;background:#1a1a1a;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700;">';
+    html += '<div>Groupe</div><div style="text-align:right;">Nécessaire</div><div style="text-align:right;">Stock</div><div style="text-align:right;color:#FFEE00;">À racheter</div>';
+    html += '</div>';
     PATCH_GROUP_ORDER.forEach(function(grp) {
-      if (!patchs[grp]) return;
-      hasAnyPatch = true;
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid #1a1a1a;font-size:13px;">';
+      var besoin = patchs[grp] || 0;
+      var stockKey = 'stock_patch_' + grp.replace(/[\s]/g, '_').toLowerCase();
+      var stockSaved = localStorage.getItem(stockKey);
+      var stock = stockSaved !== null ? parseInt(stockSaved) : 0;
+      var aRacheter = Math.max(0, besoin - stock);
+      var excedent = stock - besoin;
+      html += '<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:8px;padding:10px 14px;border-top:1px solid #1a1a1a;font-size:13px;align-items:center;">';
       html += '<div style="color:#fff;font-weight:600;">' + grp + '</div>';
-      html += '<div style="color:#FFEE00;font-weight:800;font-size:15px;">' + patchs[grp] + ' patchs</div>';
+      html += '<div style="color:#aaa;text-align:right;font-variant-numeric:tabular-nums;">' + besoin + '</div>';
+      html += '<div style="text-align:right;"><input type="number" min="0" value="' + stock + '" data-stock-key="' + stockKey + '" style="width:70px;padding:5px 8px;border:1px solid #333;background:#0a0a0a;color:#fff;border-radius:6px;font-size:13px;text-align:right;font-family:inherit;"></div>';
+      if (aRacheter > 0) {
+        html += '<div style="text-align:right;color:#ff6666;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;">' + aRacheter + '</div>';
+      } else if (excedent > 0) {
+        html += '<div style="text-align:right;color:#7a9a7a;font-weight:600;font-size:12px;">+' + excedent + ' excédent</div>';
+      } else {
+        html += '<div style="text-align:right;color:#7a9a7a;font-weight:600;font-size:12px;">OK</div>';
+      }
       html += '</div>';
     });
-    if (!hasAnyPatch) html += '<div style="padding:1rem;color:#666;font-size:13px;text-align:center;">Aucun inscrit payé pour l\'instant</div>';
+    // Total row
+    var totalARacheter = 0;
+    PATCH_GROUP_ORDER.forEach(function(grp) {
+      var besoin = patchs[grp] || 0;
+      var stockKey = 'stock_patch_' + grp.replace(/[\s]/g, '_').toLowerCase();
+      var stockSaved = localStorage.getItem(stockKey);
+      var stock = stockSaved !== null ? parseInt(stockSaved) : 0;
+      totalARacheter += Math.max(0, besoin - stock);
+    });
+    html += '<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:8px;padding:12px 14px;background:#1a1400;border-top:2px solid #FFEE00;font-size:14px;font-weight:800;align-items:center;">';
+    html += '<div style="color:#FFEE00;">TOTAL À RACHETER</div>';
+    html += '<div></div><div></div>';
+    html += '<div style="text-align:right;color:#FFEE00;font-size:18px;font-variant-numeric:tabular-nums;">' + totalARacheter + '</div>';
+    html += '</div>';
+    html += '</div>';
+
+    // Lien vers page imprimable
+    html += '<div style="margin-top:1.5rem;text-align:center;">';
+    html += '<a href="recap-achats.html" target="_blank" style="display:inline-block;background:#FFEE00;color:#0a0a0a;padding:12px 24px;border-radius:10px;font-weight:800;text-decoration:none;font-size:14px;">🖨️ Voir la page imprimable (pour réunion)</a>';
     html += '</div>';
 
     document.getElementById('inventaire-content').innerHTML = html;
+
+    // Hook pour sauvegarder les valeurs et recalculer
+    document.querySelectorAll('input[data-stock-key]').forEach(function(input) {
+      input.addEventListener('change', function() {
+        var key = this.getAttribute('data-stock-key');
+        var val = parseInt(this.value) || 0;
+        localStorage.setItem(key, val);
+        renderInventaire(); // recompute & re-render
+      });
+    });
   }
 
   function exportCSV() {

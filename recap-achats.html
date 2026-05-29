@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Récap commande — Hyrox Challenge La Buse #2</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0a0a0a; color: #fff; padding: 2rem 1rem; min-height: 100vh; }
+  .container { max-width: 720px; margin: 0 auto; }
+
+  .header { border-bottom: 3px solid #FFEE00; padding-bottom: 1rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
+  .header h1 { color: #FFEE00; font-size: 24px; font-weight: 800; }
+  .header h1 .sub { color: #fff; font-weight: 400; font-size: 16px; display: block; margin-top: 4px; }
+  .header .meta { font-size: 12px; color: #888; text-align: right; }
+  .header .meta strong { color: #FFEE00; }
+
+  .section { margin-bottom: 2rem; }
+  .section-title { color: #FFEE00; font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #333; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  thead th { background: #1a1a1a; color: #aaa; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; padding: 10px 12px; text-align: left; }
+  thead th.num { text-align: right; }
+  tbody td { padding: 10px 12px; border-top: 1px solid #1a1a1a; }
+  tbody td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  tbody td .grp { font-weight: 700; color: #fff; }
+  tbody td .sub { font-size: 11px; color: #888; }
+  tbody tr.total td { background: #1a1400; border-top: 2px solid #FFEE00; font-weight: 800; color: #FFEE00; padding: 12px; font-size: 15px; }
+  tbody td.racheter { color: #ff6666; font-weight: 800; }
+  tbody td.ok { color: #7a9a7a; font-weight: 600; font-size: 12px; }
+
+  .footnote { font-size: 11px; color: #666; margin-top: 1rem; font-style: italic; }
+
+  .actions { text-align: center; margin: 2rem 0; }
+  .btn-print { background: #FFEE00; color: #0a0a0a; padding: 12px 24px; border-radius: 10px; font-weight: 800; border: none; cursor: pointer; font-size: 14px; font-family: inherit; }
+
+  /* Mode impression : fond blanc, texte sombre */
+  @media print {
+    body { background: #fff; color: #000; padding: 1rem; }
+    .container { max-width: 100%; }
+    .header { border-bottom-color: #000; }
+    .header h1 { color: #000; }
+    .header h1 .sub { color: #444; }
+    .header .meta strong { color: #000; }
+    .section-title { color: #000; border-bottom-color: #aaa; }
+    thead th { background: #eee; color: #000; }
+    tbody td { color: #000; border-top-color: #ddd; }
+    tbody td .grp { color: #000; }
+    tbody td .sub { color: #555; }
+    tbody tr.total td { background: #ffe; color: #000; border-top-color: #000; }
+    tbody td.racheter { color: #c00; }
+    .actions { display: none; }
+    .footnote { color: #555; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>Récap commande — Patchs &amp; Trophées<span class="sub">Hyrox Challenge La Buse #2 — 12 juillet 2026</span></h1>
+    <div class="meta">Généré le <strong id="gen-date">—</strong><br>(<span id="paid-count">—</span> inscriptions payées)</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🏅 Patchs — par format &amp; niveau (sans distinction H/F)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Groupe</th>
+          <th class="num">Nécessaire</th>
+          <th class="num">Stock</th>
+          <th class="num">À racheter</th>
+        </tr>
+      </thead>
+      <tbody id="patchs-body"></tbody>
+    </table>
+    <div class="footnote">Stock : valeurs entrées dans le navigateur (page admin). Si non renseigné, considéré comme 0.</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">🏆 Trophées — pour les 1ers de chaque (catégorie × tranche d'âge)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Catégorie</th>
+          <th>Tranche d'âge</th>
+          <th class="num">Trophée(s)</th>
+        </tr>
+      </thead>
+      <tbody id="trophees-body"></tbody>
+    </table>
+  </div>
+
+  <div class="actions">
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimer cette page</button>
+  </div>
+</div>
+
+<script>
+const CAT_ORDER = [
+  'duo scaled hommes', 'duo rx homme', 'solo scaled hommes', 'solo rx hommes',
+  'duo scaled mixte', 'duo rx mixte',
+  'duo scaled femmes', 'duo rx femme',
+  'solo scaled femmes', 'solo rx femmes',
+  'relais'
+];
+const CAT_LABELS = {
+  'duo scaled hommes': 'Duo Scaled Hommes',
+  'duo rx homme': 'Duo RX Hommes',
+  'solo scaled hommes': 'Solo Scaled Hommes',
+  'solo rx hommes': 'Solo RX Hommes',
+  'duo scaled mixte': 'Duo Scaled Mixte',
+  'duo rx mixte': 'Duo RX Mixte',
+  'duo scaled femmes': 'Duo Scaled Femmes',
+  'duo rx femme': 'Duo RX Femmes',
+  'solo scaled femmes': 'Solo Scaled Femmes',
+  'solo rx femmes': 'Solo RX Femmes',
+  'relais': 'Relais',
+};
+const PATCH_GROUP_ORDER = ['Solo RX', 'Solo Scaled', 'Duo RX', 'Duo Scaled', 'Relais'];
+
+function getCatKey(c) {
+  if (!c) return '';
+  c = c.toLowerCase();
+  if (c.includes('relais')) return 'relais';
+  if (c.includes('duo') && c.includes('scaled') && (c.includes('femme') || c.includes('féminin'))) return 'duo scaled femmes';
+  if (c.includes('duo') && c.includes('scaled') && (c.includes('homme') || c.includes('masculin')) && !c.includes('mixte')) return 'duo scaled hommes';
+  if (c.includes('duo') && c.includes('scaled') && c.includes('mixte')) return 'duo scaled mixte';
+  if (c.includes('duo') && c.includes('rx') && (c.includes('femme') || c.includes('féminin')) && !c.includes('mixte')) return 'duo rx femme';
+  if (c.includes('duo') && c.includes('rx') && (c.includes('homme') || c.includes('masculin')) && !c.includes('mixte')) return 'duo rx homme';
+  if (c.includes('duo') && c.includes('rx') && c.includes('mixte')) return 'duo rx mixte';
+  if (c.includes('solo') && c.includes('scaled') && (c.includes('femme') || c.includes('féminin'))) return 'solo scaled femmes';
+  if (c.includes('solo') && c.includes('scaled') && (c.includes('homme') || c.includes('masculin'))) return 'solo scaled hommes';
+  if (c.includes('solo') && c.includes('rx') && (c.includes('femme') || c.includes('féminin'))) return 'solo rx femmes';
+  if (c.includes('solo') && c.includes('rx') && (c.includes('homme') || c.includes('masculin'))) return 'solo rx hommes';
+  return c;
+}
+function getPatchGroup(catKey) {
+  if (catKey === 'relais') return 'Relais';
+  if (catKey.indexOf('solo') === 0 && catKey.indexOf('rx') !== -1) return 'Solo RX';
+  if (catKey.indexOf('solo') === 0 && catKey.indexOf('scaled') !== -1) return 'Solo Scaled';
+  if (catKey.indexOf('duo') === 0 && catKey.indexOf('rx') !== -1) return 'Duo RX';
+  if (catKey.indexOf('duo') === 0 && catKey.indexOf('scaled') !== -1) return 'Duo Scaled';
+  return null;
+}
+function getTrancheAge(d) {
+  var dobs = [d.date_naissance, d.co1_date_naissance, d.co2_date_naissance, d.co3_date_naissance].filter(Boolean);
+  if (dobs.length === 0) return '— inconnu';
+  var ages = dobs.map(function(dob){ return new Date().getFullYear() - parseInt(dob.split('-')[0]); });
+  var moy = Math.round(ages.reduce(function(a,b){ return a+b; }, 0) / ages.length);
+  if (moy <= 24) return '16-24 ans';
+  if (moy <= 34) return '25-34 ans';
+  if (moy <= 44) return '35-44 ans';
+  if (moy <= 54) return '45-54 ans';
+  return '55+ ans';
+}
+function getNbParticipants(d) {
+  var n = 1;
+  if (d.co1_nom) n++;
+  if (d.co2_nom) n++;
+  if (d.co3_nom) n++;
+  return n;
+}
+
+const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+(async function() {
+  const { data, error } = await db.from('Inscriptions').select('*');
+  if (error) { document.body.innerHTML = '<div style="color:#f55;padding:2rem;">Erreur chargement : ' + error.message + '</div>'; return; }
+  const paid = data.filter(d => d.statut_paiement === 'paye');
+
+  document.getElementById('gen-date').textContent = new Date().toLocaleString('fr-FR', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  document.getElementById('paid-count').textContent = paid.length;
+
+  // Patchs
+  const patchs = {};
+  const trophees = {};
+  paid.forEach(d => {
+    const catKey = getCatKey(d.categorie);
+    if (!catKey || CAT_ORDER.indexOf(catKey) === -1) return;
+    const grp = getPatchGroup(catKey);
+    if (grp) patchs[grp] = (patchs[grp] || 0) + getNbParticipants(d);
+    const age = getTrancheAge(d);
+    if (!trophees[catKey]) trophees[catKey] = {};
+    trophees[catKey][age] = (trophees[catKey][age] || 0) + 1;
+  });
+
+  // Render patchs
+  let patchsHtml = '';
+  let totalARacheter = 0;
+  PATCH_GROUP_ORDER.forEach(grp => {
+    const besoin = patchs[grp] || 0;
+    const stockKey = 'stock_patch_' + grp.replace(/[\s]/g, '_').toLowerCase();
+    const stockSaved = localStorage.getItem(stockKey);
+    const stock = stockSaved !== null ? parseInt(stockSaved) : 0;
+    const aRacheter = Math.max(0, besoin - stock);
+    totalARacheter += aRacheter;
+    const excedent = stock - besoin;
+    let lastCell = '';
+    if (aRacheter > 0) lastCell = `<td class="num racheter">${aRacheter}</td>`;
+    else if (excedent > 0) lastCell = `<td class="num ok">+${excedent} excédent</td>`;
+    else lastCell = '<td class="num ok">OK</td>';
+    patchsHtml += `<tr><td><span class="grp">${grp}</span></td><td class="num">${besoin}</td><td class="num">${stock}</td>${lastCell}</tr>`;
+  });
+  patchsHtml += `<tr class="total"><td>TOTAL À RACHETER</td><td></td><td></td><td class="num">${totalARacheter}</td></tr>`;
+  document.getElementById('patchs-body').innerHTML = patchsHtml;
+
+  // Render trophées
+  let trophyHtml = '';
+  let totalTrophees = 0;
+  CAT_ORDER.forEach(cat => {
+    if (!trophees[cat]) return;
+    const ages = Object.keys(trophees[cat]).sort();
+    ages.forEach((age, idx) => {
+      trophyHtml += `<tr>`;
+      if (idx === 0) {
+        trophyHtml += `<td rowspan="${ages.length}"><span class="grp">${CAT_LABELS[cat] || cat}</span></td>`;
+      }
+      trophyHtml += `<td>${age} <span class="sub">(${trophees[cat][age]} inscript.)</span></td>`;
+      trophyHtml += `<td class="num">1</td>`;
+      trophyHtml += `</tr>`;
+      totalTrophees++;
+    });
+  });
+  trophyHtml += `<tr class="total"><td colspan="2">TOTAL TROPHÉES</td><td class="num">${totalTrophees}</td></tr>`;
+  document.getElementById('trophees-body').innerHTML = trophyHtml;
+})();
+</script>
+</body>
+</html>
