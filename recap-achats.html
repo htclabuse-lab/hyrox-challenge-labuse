@@ -188,14 +188,15 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     trophees[catKey][age] = (trophees[catKey][age] || 0) + 1;
   });
 
-  // Render patchs
+  // Render patchs - valeurs par défaut = stock restant après event #1
+  const DEFAULT_STOCK = { 'Solo RX': 20, 'Solo Scaled': 34, 'Duo RX': 50, 'Duo Scaled': 40, 'Relais': 92 };
   let patchsHtml = '';
   let totalARacheter = 0;
   PATCH_GROUP_ORDER.forEach(grp => {
     const besoin = patchs[grp] || 0;
     const stockKey = 'stock_patch_' + grp.replace(/[\s]/g, '_').toLowerCase();
     const stockSaved = localStorage.getItem(stockKey);
-    const stock = stockSaved !== null ? parseInt(stockSaved) : 0;
+    const stock = stockSaved !== null ? parseInt(stockSaved) : (DEFAULT_STOCK[grp] || 0);
     const aRacheter = Math.max(0, besoin - stock);
     totalARacheter += aRacheter;
     const excedent = stock - besoin;

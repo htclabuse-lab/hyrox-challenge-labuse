@@ -510,11 +510,13 @@ function renderTshirts() {
     html += '<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:8px;padding:10px 14px;background:#1a1a1a;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700;">';
     html += '<div>Groupe</div><div style="text-align:right;">Nécessaire</div><div style="text-align:right;">Stock</div><div style="text-align:right;color:#FFEE00;">À racheter</div>';
     html += '</div>';
+    // Valeurs par défaut = stock restant après event #1 (commande 50/100/100/100/100 - distribué)
+    var DEFAULT_STOCK = { 'Solo RX': 20, 'Solo Scaled': 34, 'Duo RX': 50, 'Duo Scaled': 40, 'Relais': 92 };
     PATCH_GROUP_ORDER.forEach(function(grp) {
       var besoin = patchs[grp] || 0;
       var stockKey = 'stock_patch_' + grp.replace(/[\s]/g, '_').toLowerCase();
       var stockSaved = localStorage.getItem(stockKey);
-      var stock = stockSaved !== null ? parseInt(stockSaved) : 0;
+      var stock = stockSaved !== null ? parseInt(stockSaved) : (DEFAULT_STOCK[grp] || 0);
       var aRacheter = Math.max(0, besoin - stock);
       var excedent = stock - besoin;
       html += '<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:8px;padding:10px 14px;border-top:1px solid #1a1a1a;font-size:13px;align-items:center;">';
@@ -536,7 +538,7 @@ function renderTshirts() {
       var besoin = patchs[grp] || 0;
       var stockKey = 'stock_patch_' + grp.replace(/[\s]/g, '_').toLowerCase();
       var stockSaved = localStorage.getItem(stockKey);
-      var stock = stockSaved !== null ? parseInt(stockSaved) : 0;
+      var stock = stockSaved !== null ? parseInt(stockSaved) : (DEFAULT_STOCK[grp] || 0);
       totalARacheter += Math.max(0, besoin - stock);
     });
     html += '<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:8px;padding:12px 14px;background:#1a1400;border-top:2px solid #FFEE00;font-size:14px;font-weight:800;align-items:center;">';
