@@ -138,6 +138,12 @@
           <button type="button" class="cat-btn" onclick="setCat(this,'relais-mix',136,'Relais Mixte')"><span class="check">✓</span><div>Relais Mixte</div><div class="prix-tag">136 €</div></button>
         </div>
       </div>
+      <div class="field">
+        <div class="group-label">Parent-Enfant — 1 parent + 1 enfant (samedi après-midi)</div>
+        <div class="grid2">
+          <button type="button" class="cat-btn" onclick="setCat(this,'parent-enfant',68,'Parent-Enfant')"><span class="check">✓</span><div>Parent-Enfant</div><div class="niveau">1 parent + 1 enfant</div><div class="prix-tag">68 €</div></button>
+        </div>
+      </div>
       <div class="field" id="nom-equipe-bloc" style="display:none;">
         <label class="label">Nom d'équipe</label>
         <input type="text" id="nom-equipe" placeholder="Ex : Les Barbares">
@@ -250,6 +256,8 @@
   const STRIPE_SOLO         = 'https://buy.stripe.com/8x28wOb5X2xB7rre4s8Vi05';
   const STRIPE_DUO          = 'https://buy.stripe.com/00w8wO8XPb47h216C08Vi04';
   const STRIPE_RELAIS       = 'https://buy.stripe.com/5kQbJ0ca15JN8vv4tS8Vi03';
+  // ⚠️ PARENT-ENFANT 68€ — À CRÉER dans Stripe puis REMPLACER l'URL ci-dessous :
+  const STRIPE_PARENT_ENFANT = 'https://buy.stripe.com/REMPLACER_PAR_LIEN_68EUR';
   // Prévente (-10%) — utilisé quand le code promo HTCLABUSE10 est appliqué
   const STRIPE_SOLO_PREV    = 'https://buy.stripe.com/9B614mca15JN133d0o8Vi02';
   const STRIPE_DUO_PREV     = 'https://buy.stripe.com/00w4gya1Tegj7rrgcA8Vi01';
@@ -298,21 +306,27 @@
     state.cat = id; state.prix = prix; state.catLabel = label;
     var isDuo = id.startsWith('duo');
     var isRelais = id.startsWith('relais');
+    var isParentEnfant = id === 'parent-enfant';
     var nomEquipeBloc = document.getElementById('nom-equipe-bloc');
     nomEquipeBloc.style.display = (isDuo || isRelais) ? 'block' : 'none';
-    var count = isRelais ? 3 : isDuo ? 1 : 0;
+    var count = isRelais ? 3 : (isDuo || isParentEnfant) ? 1 : 0;
     var bloc = document.getElementById('membres-bloc');
     if (count > 0) {
       var html = '';
       for (var i = 0; i < count; i++) {
         var n = i + 2;
-        html += '<div class="card"><div class="member-card"><div class="member-title">Coéquipier ' + n + '</div>';
+        var memberTitle = isParentEnfant ? 'Enfant' : 'Coéquipier ' + n;
+        html += '<div class="card"><div class="member-card"><div class="member-title">' + memberTitle + '</div>';
         html += '<div class="grid2"><div class="field"><label class="label">Nom</label><input type="text" id="m'+i+'nom" placeholder="NOM"></div>';
         html += '<div class="field"><label class="label">Prénom</label><input type="text" id="m'+i+'prenom" placeholder="Prénom"></div></div>';
         html += '<div class="field"><label class="label">Date de naissance</label><input type="date" id="m'+i+'dob"></div>';
         html += '<div class="field"><label class="label">Taille t-shirt</label><select id="m'+i+'ts">';
-        html += '<option>XS Homme</option><option>S Homme</option><option>M Homme</option><option>L Homme</option><option>XL Homme</option><option>XXL Homme</option>';
-        html += '<option>XS Femme</option><option>S Femme</option><option>M Femme</option><option>L Femme</option><option>XL Femme</option>';
+        if (isParentEnfant) {
+          html += '<option>6 ans</option><option>8 ans</option><option>10 ans</option><option>12 ans</option><option>14 ans</option>';
+        } else {
+          html += '<option>XS Homme</option><option>S Homme</option><option>M Homme</option><option>L Homme</option><option>XL Homme</option><option>XXL Homme</option>';
+          html += '<option>XS Femme</option><option>S Femme</option><option>M Femme</option><option>L Femme</option><option>XL Femme</option>';
+        }
         html += '</select></div></div></div>';
       }
       bloc.innerHTML = html;
@@ -349,7 +363,7 @@
   }
 
   function goStep(n) {
-    var isSolo = !state.cat.startsWith('duo') && !state.cat.startsWith('relais');
+    var isSolo = !state.cat.startsWith('duo') && !state.cat.startsWith('relais') && state.cat !== 'parent-enfant';
 
     if (currentStep === 0) {
       if (!document.getElementById('nom').value.trim()) { alert('Merci de renseigner ton nom.'); return; }
@@ -407,14 +421,16 @@
     var eq = document.getElementById('nom-equipe').value;
     if (eq) rows.splice(2, 0, ['Équipe', eq]);
 
-    if (isDuo || isRelais) {
+    var isParentEnfant = state.cat === 'parent-enfant';
+    if (isDuo || isRelais || isParentEnfant) {
       var count = isRelais ? 3 : 1;
       for (var i = 0; i < count; i++) {
         var n = i + 2;
         var mnom = document.getElementById('m'+i+'nom') ? document.getElementById('m'+i+'nom').value : '';
         var mprenom = document.getElementById('m'+i+'prenom') ? document.getElementById('m'+i+'prenom').value : '';
         var mts = document.getElementById('m'+i+'ts') ? document.getElementById('m'+i+'ts').value : '';
-        rows.push(['Coéquipier ' + n, (mnom||'—') + ' ' + (mprenom||'') + ' — ' + mts]);
+        var memberLabel = isParentEnfant ? 'Enfant' : 'Coéquipier ' + n;
+        rows.push([memberLabel, (mnom||'—') + ' ' + (mprenom||'') + ' — ' + mts]);
       }
     }
 
@@ -467,6 +483,7 @@
   //  Sélection du bon lien Stripe selon catégorie + code promo
   // ============================================
   function getStripeLink() {
+    if (state.cat === 'parent-enfant') return STRIPE_PARENT_ENFANT;
     var isRelais = state.cat.startsWith('relais');
     var isDuo = state.cat.startsWith('duo');
     // Si un code promo valide est appliqué → on utilise les liens prévente (-10%)
