@@ -81,6 +81,7 @@
       <button type="button" class="main-tab" onclick="showMainTab('passage', this)">⏱ Ordre de passage</button>
       <button type="button" class="main-tab" onclick="showMainTab('tshirts', this)">👕 T-shirts</button>
       <button type="button" class="main-tab" onclick="showMainTab('inventaire', this)">🏆 Trophées & Patchs</button>
+      <button type="button" class="main-tab" onclick="showMainTab('parent-enfant', this)">👨‍👧 Parent-Enfant</button>
     </div>
 
     <!-- ONGLET ORDRE D'INSCRIPTION -->
@@ -142,6 +143,12 @@
     <div class="tab-content" id="tab-inventaire">
       <div style="font-size:13px;color:#888;margin-bottom:1rem;">Calculé uniquement sur les inscriptions <strong style="color:#FFEE00;">payées</strong>. Mis à jour à chaque ouverture de la page.</div>
       <div id="inventaire-content"></div>
+    </div>
+
+    <!-- ONGLET PARENT-ENFANT -->
+    <div class="tab-content" id="tab-parent-enfant">
+      <div id="pe-list"></div>
+      <div id="pe-tshirts"></div>
     </div>
 
   </div>
@@ -241,6 +248,7 @@
     renderPassage();
     renderTshirts();
     renderInventaire();
+    renderParentEnfant();
   }
 
   function renderStats() {
@@ -393,9 +401,14 @@ function shortTemps(t) {
 
     document.getElementById('passage-content').innerHTML = html || '<div style="color:#666;padding:2rem;text-align:center;">Aucun inscrit</div>';
   }
-function renderTshirts() {
+function isParentEnfant(d) {
+    return d.categorie && d.categorie.toLowerCase().indexOf('parent') !== -1;
+  }
+
+  function renderTshirts() {
     var counts = {};
     allData.forEach(function(d) {
+      if (isParentEnfant(d)) return; // comptés à part dans l'onglet Parent-Enfant
       if (d.tshirt_taille && d.tshirt_coupe) {
         var key = d.tshirt_taille + ' ' + d.tshirt_coupe;
         counts[key] = (counts[key] || 0) + 1;
@@ -409,6 +422,57 @@ function renderTshirts() {
       html += '<div class="tshirt-card"><div class="tshirt-val">' + counts[k] + '</div><div class="tshirt-label">' + k + '</div></div>';
     });
     document.getElementById('tshirt-grid').innerHTML = html || '<div style="color:#666;font-size:13px;">Aucune donnée</div>';
+  }
+
+  function renderParentEnfant() {
+    var list = allData.filter(isParentEnfant);
+
+    // --- Liste des binômes ---
+    var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + list.length + '</strong> binôme(s) Parent-Enfant — épreuve du samedi après-midi (hors vagues du dimanche)</div>';
+    if (list.length === 0) {
+      html += '<div style="color:#666;padding:2rem;text-align:center;">Aucune inscription Parent-Enfant pour le moment</div>';
+    } else {
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Parent</th><th>T-shirt parent</th><th>Enfant</th><th>T-shirt enfant</th><th>Statut</th><th>Date</th></tr></thead><tbody>';
+      list.forEach(function(d, i) {
+        var dt = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
+        html += '<tr>';
+        html += '<td style="color:#FFEE00;font-weight:700;">' + (i+1) + '</td>';
+        html += '<td><strong style="color:#fff;">' + (d.nom||'—') + '</strong> ' + (d.prenom||'') + '</td>';
+        html += '<td>' + (d.tshirt_taille||'—') + ' ' + (d.tshirt_coupe||'') + '</td>';
+        html += '<td><strong style="color:#fff;">' + (d.co1_nom||'—') + '</strong> ' + (d.co1_prenom||'') + '</td>';
+        html += '<td>' + (d.co1_tshirt||'—') + '</td>';
+        html += '<td>' + getStatut(d.statut_paiement) + '</td>';
+        html += '<td style="font-size:12px;">' + dt + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    document.getElementById('pe-list').innerHTML = html;
+
+    // --- Comptage t-shirts (parents adulte / enfants) ---
+    var parentCounts = {};
+    var enfantCounts = {};
+    list.forEach(function(d) {
+      if (d.tshirt_taille && d.tshirt_coupe) {
+        var k = d.tshirt_taille + ' ' + d.tshirt_coupe;
+        parentCounts[k] = (parentCounts[k] || 0) + 1;
+      }
+      if (d.co1_tshirt) enfantCounts[d.co1_tshirt] = (enfantCounts[d.co1_tshirt] || 0) + 1;
+    });
+
+    function gridHtml(counts, sortFn) {
+      var keys = Object.keys(counts).sort(sortFn);
+      if (keys.length === 0) return '<div style="color:#666;font-size:13px;">Aucune donnée</div>';
+      var g = '<div class="tshirt-grid">';
+      keys.forEach(function(k){ g += '<div class="tshirt-card"><div class="tshirt-val">' + counts[k] + '</div><div class="tshirt-label">' + k + '</div></div>'; });
+      return g + '</div>';
+    }
+
+    var tHtml = '<div style="font-weight:800;color:#FFEE00;margin:1.5rem 0 0.5rem;">👕 T-shirts parents (adulte)</div>';
+    tHtml += gridHtml(parentCounts);
+    tHtml += '<div style="font-weight:800;color:#FFEE00;margin:1.5rem 0 0.5rem;">👕 T-shirts enfants</div>';
+    tHtml += gridHtml(enfantCounts, function(a, b){ return parseInt(a) - parseInt(b); });
+    document.getElementById('pe-tshirts').innerHTML = tHtml;
   }
 
   function getTrancheAge(d) {
