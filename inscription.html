@@ -364,6 +364,7 @@
 
   function goStep(n) {
     var isSolo = !state.cat.startsWith('duo') && !state.cat.startsWith('relais') && state.cat !== 'parent-enfant';
+    var isParentEnfant = state.cat === 'parent-enfant';
 
     if (currentStep === 0) {
       if (!document.getElementById('nom').value.trim()) { alert('Merci de renseigner ton nom.'); return; }
@@ -383,10 +384,10 @@
     if (currentStep === 3 && !isSolo) {
       var count = state.cat.startsWith('relais') ? 3 : 1;
       for (var i = 0; i < count; i++) {
-        var n2 = i + 2;
-        if (!document.getElementById('m'+i+'nom') || !document.getElementById('m'+i+'nom').value.trim()) { alert('Merci de renseigner le nom du coéquipier ' + n2 + '.'); return; }
-        if (!document.getElementById('m'+i+'prenom') || !document.getElementById('m'+i+'prenom').value.trim()) { alert('Merci de renseigner le prénom du coéquipier ' + n2 + '.'); return; }
-        if (!document.getElementById('m'+i+'dob') || !document.getElementById('m'+i+'dob').value) { alert('Merci de renseigner la date de naissance du coéquipier ' + n2 + '.'); return; }
+        var qui = isParentEnfant ? "l'enfant" : 'du coéquipier ' + (i + 2);
+        if (!document.getElementById('m'+i+'nom') || !document.getElementById('m'+i+'nom').value.trim()) { alert('Merci de renseigner le nom de ' + qui + '.'); return; }
+        if (!document.getElementById('m'+i+'prenom') || !document.getElementById('m'+i+'prenom').value.trim()) { alert('Merci de renseigner le prénom de ' + qui + '.'); return; }
+        if (!document.getElementById('m'+i+'dob') || !document.getElementById('m'+i+'dob').value) { alert('Merci de renseigner la date de naissance de ' + qui + '.'); return; }
       }
     }
     if (currentStep === 4) {
@@ -395,6 +396,10 @@
 
     if (isSolo && n === 3 && currentStep === 2) n = 4;
     if (isSolo && n === 3 && currentStep === 4) n = 2;
+
+    // Parent-Enfant : pas d'étape "temps estimé" (step 4)
+    if (isParentEnfant && n === 4 && currentStep === 3) n = 5;
+    if (isParentEnfant && n === 4 && currentStep === 5) n = 3;
 
     document.getElementById('step'+currentStep).style.display = 'none';
     document.getElementById('step'+n).style.display = 'block';
@@ -415,8 +420,9 @@
       ['Email', document.getElementById('email').value||'—'],
       ['Catégorie', state.catLabel||'—'],
       ['T-shirt', (state.taille||'—') + ' ' + (state.coupe||'')],
-      ['Temps estimé', tempsVal],
     ];
+    // Pas de "temps estimé" pour le format Parent-Enfant
+    if (state.cat !== 'parent-enfant') rows.push(['Temps estimé', tempsVal]);
 
     var eq = document.getElementById('nom-equipe').value;
     if (eq) rows.splice(2, 0, ['Équipe', eq]);
