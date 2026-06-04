@@ -123,6 +123,59 @@ function buildEmailHtml(inscription) {
   `;
 }
 
+function buildParentEnfantEmailHtml(inscription) {
+  const prenomParent = inscription.prenom || '';
+  const nomParent = inscription.nom || '';
+  const prenomEnfant = inscription.co1_prenom || '';
+  const nomEnfant = inscription.co1_nom || '';
+  const tshirtParent = `${inscription.tshirt_taille || ''} ${inscription.tshirt_coupe || ''}`.trim() || '—';
+  const tshirtEnfant = inscription.co1_tshirt || '—';
+  const montantPaye = inscription.prix || 68;
+
+  return `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#fff;padding:2rem;border-radius:12px;">
+      <div style="text-align:center;margin-bottom:1.5rem;">
+        <h1 style="color:#FFEE00;margin:0;font-size:24px;font-weight:800;letter-spacing:-0.5px;">HYROX <span style="color:#fff">PARENTS / ENFANTS</span></h1>
+        <div style="color:#aaa;font-size:13px;margin-top:6px;letter-spacing:2px;">— LA BUSE · 1ÈRE ÉDITION KIDS —</div>
+      </div>
+      <h2 style="color:#FFEE00;margin-top:1.5rem;font-size:22px;">Inscription confirmée ! 🎉</h2>
+      <p style="color:#ccc;line-height:1.7;margin-top:1rem;">
+        Bonjour <strong style="color:#fff;">${prenomParent}</strong>,<br><br>
+        Ton inscription au <strong style="color:#FFEE00;">format Parent / Enfant</strong> est bien confirmée. On a hâte de vous voir, toi et <strong style="color:#fff;">${prenomEnfant}</strong>, samedi sur la ligne de départ ! 💪
+      </p>
+      <div style="background:#111;border:1px solid #222;border-radius:12px;padding:1.25rem;margin-top:1.5rem;">
+        <div style="color:#FFEE00;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">📋 Récap de votre inscription</div>
+        <table style="width:100%;border-collapse:collapse;">
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Parent</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${prenomParent} ${nomParent}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Enfant</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${prenomEnfant} ${nomEnfant}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">T-shirt parent</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${tshirtParent}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">T-shirt enfant</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${tshirtEnfant}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Format</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">Duo Parent + Enfant</td></tr>
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;">Montant payé</td><td style="padding:8px 0;color:#FFEE00;font-weight:800;text-align:right;font-size:16px;">${montantPaye} €</td></tr>
+        </table>
+      </div>
+      <div style="margin-top:1.5rem;text-align:center;">
+        <img src="https://hyrox-challenge-labuse.vercel.app/affiche-parcours-parent-enfant.jpg" alt="Le parcours Hyrox Parents/Enfants" style="max-width:100%;border-radius:12px;border:1px solid #222;display:block;margin:0 auto;">
+      </div>
+      <div style="background:#0d1400;border:1px solid #FFEE00;border-radius:12px;padding:1.25rem;margin-top:1.5rem;text-align:center;">
+        <div style="color:#FFEE00;font-weight:800;font-size:14px;margin-bottom:8px;">📅 Samedi 27 juin 2026 — après-midi</div>
+        <div style="color:#ccc;font-size:14px;">📍 Crossfit La Buse — Saint-Paul, La Réunion</div>
+      </div>
+      <p style="color:#888;font-size:13px;text-align:center;margin-top:1rem;font-style:italic;">L'horaire précis de votre passage vous sera communiqué quelques jours avant.</p>
+      <p style="color:#FFEE00;font-weight:800;text-align:center;font-size:18px;margin-top:2rem;letter-spacing:1px;">Ce samedi, on fait équipe en famille 💛</p>
+      <p style="color:#555;font-size:11px;text-align:center;margin-top:2rem;border-top:1px solid #222;padding-top:1.25rem;">
+        Hyrox Training Club La Buse — Saint-Paul, La Réunion<br>
+        <a href="https://hyrox-challenge-labuse.vercel.app" style="color:#888;text-decoration:none;">hyrox-challenge-labuse.vercel.app</a>
+      </p>
+    </div>
+  `;
+}
+
+function isParentEnfantInscription(inscription) {
+  const cat = (inscription.categorie || '').toLowerCase();
+  return cat.indexOf('parent') !== -1 && cat.indexOf('enfant') !== -1;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Méthode non autorisée' });
@@ -250,11 +303,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Cette inscription n\'a pas d\'email' });
     }
 
-    const html = buildEmailHtml(inscription);
+    const parentEnfantMode = isParentEnfantInscription(inscription);
+    const html = parentEnfantMode ? buildParentEnfantEmailHtml(inscription) : buildEmailHtml(inscription);
+    const subject = parentEnfantMode
+      ? '🎉 Inscription confirmée — Hyrox Parents / Enfants La Buse'
+      : '✅ Inscription confirmée — Hyrox Challenge La Buse';
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM, to: inscription.email, subject: '✅ Inscription confirmée — Hyrox Challenge La Buse', html }),
+      body: JSON.stringify({ from: FROM, to: inscription.email, subject, html }),
     });
 
     if (!resendResponse.ok) {
