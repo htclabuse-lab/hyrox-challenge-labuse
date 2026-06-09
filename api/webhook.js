@@ -184,7 +184,7 @@ function buildParentEnfantEmailHtml(inscription) {
         <img src="https://hyrox-challenge-labuse.vercel.app/affiche-parcours-parent-enfant.jpg" alt="Le parcours Hyrox Parents/Enfants" style="max-width:100%;border-radius:12px;border:1px solid #222;display:block;margin:0 auto;">
       </div>
       <div style="background:#0d1400;border:1px solid #FFEE00;border-radius:12px;padding:1.25rem;margin-top:1.5rem;text-align:center;">
-        <div style="color:#FFEE00;font-weight:800;font-size:14px;margin-bottom:8px;">📅 Samedi 27 juin 2026 — après-midi</div>
+        <div style="color:#FFEE00;font-weight:800;font-size:14px;margin-bottom:8px;">📅 Samedi 27 juin 2026 — à partir de 14h</div>
         <div style="color:#ccc;font-size:14px;">📍 Crossfit La Buse — Saint-Paul, La Réunion</div>
       </div>
       <p style="color:#888;font-size:13px;text-align:center;margin-top:1rem;font-style:italic;">L'horaire précis de votre passage vous sera communiqué quelques jours avant.</p>
