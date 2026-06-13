@@ -85,9 +85,11 @@ export default async function handler(req, res) {
     }
 
     try {
-      const parentEnfantMode = isParentEnfantInscription(inscription);
+      // Détection Parent-Enfant : soit via la catégorie de l'inscription en DB,
+      // soit via le montant payé Stripe (68€ = Parent-Enfant) si aucune inscription trouvée.
+      const parentEnfantMode = isParentEnfantInscription(inscription) || (!inscription && montantPaye === 68);
       const html = parentEnfantMode
-        ? buildParentEnfantEmailHtml(inscription)
+        ? buildParentEnfantEmailHtml(inscription, nomStripe, montantPaye)
         : buildEmailHtml(inscription, nomStripe, montantPaye);
       const subject = parentEnfantMode
         ? '🎉 Inscription confirmée — Hyrox Parents / Enfants La Buse'
@@ -149,14 +151,22 @@ function isParentEnfantInscription(inscription) {
   return cat.indexOf('parent') !== -1 && cat.indexOf('enfant') !== -1;
 }
 
-function buildParentEnfantEmailHtml(inscription) {
-  const prenomParent = inscription.prenom || '';
-  const nomParent = inscription.nom || '';
-  const prenomEnfant = inscription.co1_prenom || '';
-  const nomEnfant = inscription.co1_nom || '';
-  const tshirtParent = `${inscription.tshirt_taille || ''} ${inscription.tshirt_coupe || ''}`.trim() || '—';
-  const tshirtEnfant = inscription.co1_tshirt || '—';
-  const montantPaye = inscription.prix || 68;
+function buildParentEnfantEmailHtml(inscription, nomStripe, montantStripe) {
+  // Fallback si aucune inscription en DB (paiement direct via lien Stripe sans formulaire)
+  const noInscription = !inscription;
+  const prenomParent = noInscription ? (nomStripe || '').split(' ')[0] || '' : (inscription.prenom || '');
+  const nomParent = noInscription ? (nomStripe || '').split(' ').slice(1).join(' ') : (inscription.nom || '');
+  const prenomEnfant = noInscription ? '' : (inscription.co1_prenom || '');
+  const nomEnfant = noInscription ? '' : (inscription.co1_nom || '');
+  const tshirtParent = noInscription ? '—' : (`${inscription.tshirt_taille || ''} ${inscription.tshirt_coupe || ''}`.trim() || '—');
+  const tshirtEnfant = noInscription ? '—' : (inscription.co1_tshirt || '—');
+  const montantPaye = noInscription ? (montantStripe || 68) : (inscription.prix || 68);
+  const enfantBloc = noInscription
+    ? `<tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;" colspan="2"><em>Les informations de l'enfant (nom, t-shirt) seront ajoutées après contact avec l'organisation.</em></td></tr>`
+    : `
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Enfant</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${prenomEnfant} ${nomEnfant}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">T-shirt parent</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${tshirtParent}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">T-shirt enfant</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${tshirtEnfant}</td></tr>`;
 
   return `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#0a0a0a;color:#fff;padding:2rem;border-radius:12px;">
@@ -173,9 +183,7 @@ function buildParentEnfantEmailHtml(inscription) {
         <div style="color:#FFEE00;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">📋 Récap de votre inscription</div>
         <table style="width:100%;border-collapse:collapse;">
           <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Parent</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${prenomParent} ${nomParent}</td></tr>
-          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Enfant</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${prenomEnfant} ${nomEnfant}</td></tr>
-          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">T-shirt parent</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${tshirtParent}</td></tr>
-          <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">T-shirt enfant</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${tshirtEnfant}</td></tr>
+          ${enfantBloc}
           <tr><td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Format</td><td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">Duo Parent + Enfant</td></tr>
           <tr><td style="padding:8px 0;color:#888;font-size:14px;">Montant payé</td><td style="padding:8px 0;color:#FFEE00;font-weight:800;text-align:right;font-size:16px;">${montantPaye} €</td></tr>
         </table>
