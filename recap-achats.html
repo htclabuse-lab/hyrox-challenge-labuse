@@ -70,12 +70,13 @@
           <th>Groupe</th>
           <th class="num">Nécessaire</th>
           <th class="num">Stock</th>
+          <th class="num">Latent</th>
           <th class="num">À racheter</th>
         </tr>
       </thead>
       <tbody id="patchs-body"></tbody>
     </table>
-    <div class="footnote">Stock : valeurs entrées dans le navigateur (page admin). Si non renseigné, considéré comme 0.</div>
+    <div class="footnote">Stock + Latent : valeurs entrées dans le navigateur (page admin). "Latent" = stock en cours de fabrication / livraison.</div>
   </div>
 
   <div class="section">
@@ -188,25 +189,30 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     trophees[catKey][age] = (trophees[catKey][age] || 0) + 1;
   });
 
-  // Render patchs - valeurs par défaut = stock restant après event #1
+  // Render patchs - valeurs par défaut (Stock event #1 restant + Latent = en fabrication)
   const DEFAULT_STOCK = { 'Solo RX': 20, 'Solo Scaled': 34, 'Duo RX': 50, 'Duo Scaled': 40, 'Relais': 92 };
+  const DEFAULT_LATENT = { 'Solo RX': 15, 'Solo Scaled': 3, 'Duo RX': 32, 'Duo Scaled': 43, 'Relais': 0 };
   let patchsHtml = '';
   let totalARacheter = 0;
   PATCH_GROUP_ORDER.forEach(grp => {
     const besoin = patchs[grp] || 0;
     const stockKey = 'stock_patch_' + grp.replace(/[\s]/g, '_').toLowerCase();
+    const latentKey = 'stock_latent_' + grp.replace(/[\s]/g, '_').toLowerCase();
     const stockSaved = localStorage.getItem(stockKey);
+    const latentSaved = localStorage.getItem(latentKey);
     const stock = stockSaved !== null ? parseInt(stockSaved) : (DEFAULT_STOCK[grp] || 0);
-    const aRacheter = Math.max(0, besoin - stock);
+    const latent = latentSaved !== null ? parseInt(latentSaved) : (DEFAULT_LATENT[grp] || 0);
+    const totalStock = stock + latent;
+    const aRacheter = Math.max(0, besoin - totalStock);
     totalARacheter += aRacheter;
-    const excedent = stock - besoin;
+    const excedent = totalStock - besoin;
     let lastCell = '';
     if (aRacheter > 0) lastCell = `<td class="num racheter">${aRacheter}</td>`;
     else if (excedent > 0) lastCell = `<td class="num ok">+${excedent} excédent</td>`;
     else lastCell = '<td class="num ok">OK</td>';
-    patchsHtml += `<tr><td><span class="grp">${grp}</span></td><td class="num">${besoin}</td><td class="num">${stock}</td>${lastCell}</tr>`;
+    patchsHtml += `<tr><td><span class="grp">${grp}</span></td><td class="num">${besoin}</td><td class="num">${stock}</td><td class="num">${latent}</td>${lastCell}</tr>`;
   });
-  patchsHtml += `<tr class="total"><td>TOTAL À RACHETER</td><td></td><td></td><td class="num">${totalARacheter}</td></tr>`;
+  patchsHtml += `<tr class="total"><td>TOTAL À RACHETER</td><td></td><td></td><td></td><td class="num">${totalARacheter}</td></tr>`;
   document.getElementById('patchs-body').innerHTML = patchsHtml;
 
   // Render trophées

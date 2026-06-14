@@ -571,22 +571,29 @@ function isParentEnfant(d) {
 
     html += '<div style="background:#111;border:1px solid #222;border-radius:10px;overflow:hidden;">';
     // Header
-    html += '<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:8px;padding:10px 14px;background:#1a1a1a;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700;">';
-    html += '<div>Groupe</div><div style="text-align:right;">Nécessaire</div><div style="text-align:right;">Stock</div><div style="text-align:right;color:#FFEE00;">À racheter</div>';
+    var GRID = 'grid-template-columns:1.4fr 0.8fr 0.85fr 0.85fr 1.1fr;';
+    html += '<div style="display:grid;' + GRID + 'gap:8px;padding:10px 14px;background:#1a1a1a;font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700;">';
+    html += '<div>Groupe</div><div style="text-align:right;">Nécessaire</div><div style="text-align:right;">Stock</div><div style="text-align:right;">Latent</div><div style="text-align:right;color:#FFEE00;">À racheter</div>';
     html += '</div>';
-    // Valeurs par défaut = stock restant après event #1 (commande 50/100/100/100/100 - distribué)
+    // Valeurs par défaut
     var DEFAULT_STOCK = { 'Solo RX': 20, 'Solo Scaled': 34, 'Duo RX': 50, 'Duo Scaled': 40, 'Relais': 92 };
+    var DEFAULT_LATENT = { 'Solo RX': 15, 'Solo Scaled': 3, 'Duo RX': 32, 'Duo Scaled': 43, 'Relais': 0 };
     PATCH_GROUP_ORDER.forEach(function(grp) {
       var besoin = patchs[grp] || 0;
       var stockKey = 'stock_patch_' + grp.replace(/[\s]/g, '_').toLowerCase();
+      var latentKey = 'stock_latent_' + grp.replace(/[\s]/g, '_').toLowerCase();
       var stockSaved = localStorage.getItem(stockKey);
+      var latentSaved = localStorage.getItem(latentKey);
       var stock = stockSaved !== null ? parseInt(stockSaved) : (DEFAULT_STOCK[grp] || 0);
-      var aRacheter = Math.max(0, besoin - stock);
-      var excedent = stock - besoin;
-      html += '<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:8px;padding:10px 14px;border-top:1px solid #1a1a1a;font-size:13px;align-items:center;">';
+      var latent = latentSaved !== null ? parseInt(latentSaved) : (DEFAULT_LATENT[grp] || 0);
+      var totalStock = stock + latent;
+      var aRacheter = Math.max(0, besoin - totalStock);
+      var excedent = totalStock - besoin;
+      html += '<div style="display:grid;' + GRID + 'gap:8px;padding:10px 14px;border-top:1px solid #1a1a1a;font-size:13px;align-items:center;">';
       html += '<div style="color:#fff;font-weight:600;">' + grp + '</div>';
       html += '<div style="color:#aaa;text-align:right;font-variant-numeric:tabular-nums;">' + besoin + '</div>';
-      html += '<div style="text-align:right;"><input type="number" min="0" value="' + stock + '" data-stock-key="' + stockKey + '" style="width:70px;padding:5px 8px;border:1px solid #333;background:#0a0a0a;color:#fff;border-radius:6px;font-size:13px;text-align:right;font-family:inherit;"></div>';
+      html += '<div style="text-align:right;"><input type="number" min="0" value="' + stock + '" data-stock-key="' + stockKey + '" style="width:60px;padding:5px 8px;border:1px solid #333;background:#0a0a0a;color:#fff;border-radius:6px;font-size:13px;text-align:right;font-family:inherit;"></div>';
+      html += '<div style="text-align:right;"><input type="number" min="0" value="' + latent + '" data-stock-key="' + latentKey + '" style="width:60px;padding:5px 8px;border:1px solid #444;background:#0a0a0a;color:#ddd;border-radius:6px;font-size:13px;text-align:right;font-family:inherit;"></div>';
       if (aRacheter > 0) {
         html += '<div style="text-align:right;color:#ff6666;font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;">' + aRacheter + '</div>';
       } else if (excedent > 0) {
@@ -601,13 +608,16 @@ function isParentEnfant(d) {
     PATCH_GROUP_ORDER.forEach(function(grp) {
       var besoin = patchs[grp] || 0;
       var stockKey = 'stock_patch_' + grp.replace(/[\s]/g, '_').toLowerCase();
+      var latentKey = 'stock_latent_' + grp.replace(/[\s]/g, '_').toLowerCase();
       var stockSaved = localStorage.getItem(stockKey);
+      var latentSaved = localStorage.getItem(latentKey);
       var stock = stockSaved !== null ? parseInt(stockSaved) : (DEFAULT_STOCK[grp] || 0);
-      totalARacheter += Math.max(0, besoin - stock);
+      var latent = latentSaved !== null ? parseInt(latentSaved) : (DEFAULT_LATENT[grp] || 0);
+      totalARacheter += Math.max(0, besoin - stock - latent);
     });
-    html += '<div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1.2fr;gap:8px;padding:12px 14px;background:#1a1400;border-top:2px solid #FFEE00;font-size:14px;font-weight:800;align-items:center;">';
+    html += '<div style="display:grid;' + GRID + 'gap:8px;padding:12px 14px;background:#1a1400;border-top:2px solid #FFEE00;font-size:14px;font-weight:800;align-items:center;">';
     html += '<div style="color:#FFEE00;">TOTAL À RACHETER</div>';
-    html += '<div></div><div></div>';
+    html += '<div></div><div></div><div></div>';
     html += '<div style="text-align:right;color:#FFEE00;font-size:18px;font-variant-numeric:tabular-nums;">' + totalARacheter + '</div>';
     html += '</div>';
     html += '</div>';
