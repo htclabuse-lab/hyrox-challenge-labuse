@@ -36,6 +36,10 @@
     .cat-btn .niveau { font-size: 10px; color: #aaa; margin-top: 2px; }
     .cat-btn .prix-tag { font-size: 12px; font-weight: 700; color: #C0392B; margin-top: 4px; }
     .cat-btn.selected .niveau { color: #C0392B; opacity: 0.7; }
+    .formats-complet { position: relative; }
+    .formats-complet::before { content: "🚫 COMPLET — événement plein"; display: block; background: #C0392B; color: #fff; font-weight: 800; text-align: center; padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; letter-spacing: 1px; }
+    .formats-complet .cat-btn { opacity: 0.35; cursor: not-allowed !important; pointer-events: none; text-decoration: line-through; }
+    .formats-complet .group-label { opacity: 0.55; text-decoration: line-through; }
     .toggle-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid #eee; background: #fafafa; color: #888; font-size: 13px; cursor: pointer; font-family: sans-serif; position: relative; }
     .toggle-btn.selected { border-color: #C0392B; background: #fff5f5; color: #C0392B; font-weight: 600; }
     .toggle-btn .check { display: none; position: absolute; top: 5px; right: 6px; width: 16px; height: 16px; border-radius: 50%; background: #C0392B; color: white; font-size: 10px; line-height: 16px; text-align: center; }
@@ -69,7 +73,7 @@
   <div class="header">
     <div class="logo">Hyrox Challenge <span>La Buse</span></div>
     <div class="subtitle">
-      <div style="font-size:15px;color:#C0392B;font-weight:700;margin-bottom:4px;">🏃 Hyrox Challenge — dim. 12 juillet 2026</div>
+      <div style="font-size:15px;color:#C0392B;font-weight:700;margin-bottom:4px;text-decoration:line-through;opacity:.6;">🏃 Hyrox Challenge — dim. 12 juillet 2026 <span style="background:#C0392B;color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;margin-left:6px;text-decoration:none;display:inline-block;letter-spacing:1px;">COMPLET</span></div>
       <div style="font-size:15px;color:#1B7B49;font-weight:700;margin-bottom:6px;">👨‍👧 Parent-Enfant — sam. 27 juin 2026</div>
       <div style="font-size:11px;color:#888;">Crossfit La Buse — Saint-Paul</div>
     </div>
@@ -114,6 +118,7 @@
   <div id="step1" style="display:none;">
     <div class="card">
       <div class="section-title">Choix de la catégorie</div>
+      <div class="formats-complet">
       <div class="field">
         <div class="group-label">Solo · <span style="color:#C0392B;">🏃 dim. 12 juillet</span></div>
         <div class="grid2">
@@ -141,6 +146,7 @@
           <button type="button" class="cat-btn" onclick="setCat(this,'relais-f',136,'Relais Femmes')"><span class="check">✓</span><div>Relais Femmes</div><div class="prix-tag">136 €</div></button>
           <button type="button" class="cat-btn" onclick="setCat(this,'relais-mix',136,'Relais Mixte')"><span class="check">✓</span><div>Relais Mixte</div><div class="prix-tag">136 €</div></button>
         </div>
+      </div>
       </div>
       <div class="field">
         <div class="group-label">Parent-Enfant · <span style="color:#1B7B49;">👨‍👧 sam. 27 juin à partir de 14h</span> · 1 parent + 1 enfant</div>
