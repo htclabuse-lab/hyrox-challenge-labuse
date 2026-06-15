@@ -273,6 +273,8 @@
   const STRIPE_SOLO_PREV    = 'https://buy.stripe.com/9B614mca15JN133d0o8Vi02';
   const STRIPE_DUO_PREV     = 'https://buy.stripe.com/00w4gya1Tegj7rrgcA8Vi01';
   const STRIPE_RELAIS_PREV  = 'https://buy.stripe.com/aFa4gy4Hz5JN5jj1hG8Vi00';
+  // Parent-Enfant famille nombreuse (-10%) — 61,20 €
+  const STRIPE_PARENT_ENFANT_PREV = 'https://buy.stripe.com/eVq3cuca1fkn5jj9Oc8Vi08';
 
   const CODES_PROMO = { 'HTCLABUSE10': 0.10 };
 
@@ -516,7 +518,10 @@
   //  Sélection du bon lien Stripe selon catégorie + code promo
   // ============================================
   function getStripeLink() {
-    if (state.cat === 'parent-enfant') return STRIPE_PARENT_ENFANT;
+    if (state.cat === 'parent-enfant') {
+      if (codeApplique === 'HTCLABUSE10') return STRIPE_PARENT_ENFANT_PREV;
+      return STRIPE_PARENT_ENFANT;
+    }
     var isRelais = state.cat.startsWith('relais');
     var isDuo = state.cat.startsWith('duo');
     // Si un code promo valide est appliqué → on utilise les liens prévente (-10%)
