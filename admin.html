@@ -436,6 +436,14 @@ function isParentEnfant(d) {
     statsHtml += '<div style="background:#1a1a1a;border:1px solid #C0392B;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:24px;font-weight:800;color:#C0392B;">' + nbXL + '</div><div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">🟥 XL 400m</div></div>';
     statsHtml += '<div style="background:#1a1a1a;border:1px solid #666;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:24px;font-weight:800;color:#888;">' + nbSansReponse + '</div><div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">⏳ Sans réponse</div></div>';
     statsHtml += '</div>';
+    if (nbSansReponse > 0) {
+      statsHtml += '<div style="background:#1a1400;border:1px solid #FFEE00;border-radius:10px;padding:14px;margin-bottom:1rem;">';
+      statsHtml += '<div style="font-size:13px;color:#FFEE00;font-weight:700;margin-bottom:8px;">🔒 Verrouillage Standard par défaut</div>';
+      statsHtml += '<div style="font-size:12px;color:#aaa;margin-bottom:12px;line-height:1.4;">Passe les <strong style="color:#fff;">' + nbSansReponse + ' binôme(s) sans réponse</strong> en format <strong style="color:#FFA726;">Standard 200m</strong> (à lancer après la deadline du 22 juin).</div>';
+      statsHtml += '<button type="button" onclick="verrouillerStandardDefaut()" style="background:#FFA726;color:#0a0a0a;border:none;padding:12px 18px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;font-family:sans-serif;">🟧 Appliquer Standard aux ' + nbSansReponse + ' sans réponse</button>';
+      statsHtml += '<div id="verrouillage-feedback" style="margin-top:10px;font-size:13px;min-height:18px;"></div>';
+      statsHtml += '</div>';
+    }
 
     // --- Vagues du samedi 27 juin ---
     var waveHtml = statsHtml + '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:16px;">⏱ Vagues — samedi 27 juin 2026</div>';
@@ -529,6 +537,23 @@ function isParentEnfant(d) {
     tHtml += '<div style="font-weight:800;color:#FFEE00;margin:1.5rem 0 0.5rem;">👕 T-shirts enfants</div>';
     tHtml += gridHtml(enfantCounts, function(a, b){ return parseInt(a) - parseInt(b); });
     document.getElementById('pe-tshirts').innerHTML = tHtml;
+  }
+
+  async function verrouillerStandardDefaut() {
+    var fb = document.getElementById('verrouillage-feedback');
+    var sansRep = allData.filter(function(d){ return isParentEnfant(d) && !d.niveau; });
+    if (sansRep.length === 0) { fb.innerHTML = '<span style="color:#888;">Aucun binôme sans réponse, rien à faire.</span>'; return; }
+    if (!confirm('Passer ' + sansRep.length + ' binôme(s) sans réponse en format Standard 200m ?\n\nAction irréversible.')) return;
+    fb.innerHTML = '<span style="color:#FFA726;">Mise à jour…</span>';
+    var ok = 0, ko = 0;
+    for (var i = 0; i < sansRep.length; i++) {
+      try {
+        var r = await db.from('Inscriptions').update({ niveau: 'Standard — 200 m' }).eq('id', sansRep[i].id);
+        if (r.error) ko++; else ok++;
+      } catch(e) { ko++; }
+    }
+    fb.innerHTML = '<span style="color:#4caf50;font-weight:700;">✓ ' + ok + ' binôme(s) mis en Standard 200m' + (ko ? ' (' + ko + ' échec(s))' : '') + '</span>';
+    await loadData();
   }
 
   function getTrancheAge(d) {

@@ -69,9 +69,19 @@
     'xl':       { label: 'XL — 400 m',       emoji: '🟥' }
   };
 
+  // Deadline : lundi 22 juin 2026 23h59 heure Réunion (UTC+4) = lundi 19h59 UTC
+  const DEADLINE_MS = Date.UTC(2026, 5, 22, 19, 59, 59);
+  const isPastDeadline = () => Date.now() > DEADLINE_MS;
+
   async function load() {
     if (!id || isNaN(id)) {
       document.getElementById('content').innerHTML = '<div class="error">Lien invalide — identifiant manquant.</div>';
+      return;
+    }
+
+    // Délai dépassé → message de clôture, on ignore toute action
+    if (isPastDeadline()) {
+      await afficherCloture();
       return;
     }
 
@@ -83,6 +93,22 @@
 
     // Sinon → on affiche le formulaire
     await afficherFormulaire(null);
+  }
+
+  async function afficherCloture() {
+    const { data } = await db.from('Inscriptions').select('prenom,nom,co1_prenom,co1_nom,niveau').eq('id', id).single();
+    const who = data ? `<strong>${(data.prenom||'').trim()} ${(data.nom||'').trim()}</strong> + <strong>${(data.co1_prenom||'').trim()} ${(data.co1_nom||'').trim()}</strong>` : '';
+    const niveau = data && data.niveau ? data.niveau : 'Standard — 200 m (par défaut)';
+    document.getElementById('content').innerHTML = `
+      <div class="card">
+        <div class="error" style="background:#fff8ee;border-color:#FFA726;color:#1a1a1a;">
+          <div style="font-size:48px;margin-bottom:10px;">⛔</div>
+          <div style="font-size:18px;font-weight:800;color:#C0392B;margin-bottom:10px;">Choix clôturés</div>
+          <div style="font-size:14px;color:#555;line-height:1.6;font-weight:400;">${who}<br><br>Le délai pour modifier votre format est dépassé.<br>Format retenu : <strong style="color:#1B7B49;">${niveau}</strong></div>
+          <div style="font-size:13px;color:#888;margin-top:14px;font-weight:400;">Pour toute modification, contactez l'organisation par retour de mail.</div>
+        </div>
+      </div>
+    `;
   }
 
   async function enregistrer(c) {
