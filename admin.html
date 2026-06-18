@@ -281,18 +281,27 @@ if (d.co1_tshirt) tshirts += ' / ' + d.co1_tshirt;
 if (d.co2_tshirt) tshirts += ' / ' + d.co2_tshirt;
 if (d.co3_tshirt) tshirts += ' / ' + d.co3_tshirt;
 html += '<td>' + tshirts + '</td>';
-      var dobs = [d.date_naissance, d.co1_date_naissance, d.co2_date_naissance, d.co3_date_naissance].filter(Boolean);
-var ageMoy = '';
-if (dobs.length > 0) {
-  var ages = dobs.map(function(dob){ return new Date().getFullYear() - parseInt(dob.split('-')[0]); });
-  var moy = Math.round(ages.reduce(function(a,b){ return a+b; }, 0) / ages.length);
-  if (moy <= 24) ageMoy = '16-24 ans';
-  else if (moy <= 34) ageMoy = '25-34 ans';
-  else if (moy <= 44) ageMoy = '35-44 ans';
-  else if (moy <= 54) ageMoy = '45-54 ans';
-  else ageMoy = '55+ ans';
+      var ageCell = '';
+if (isParentEnfant(d)) {
+  // Pour Parent-Enfant : on affiche uniquement l'âge de l'enfant
+  if (d.co1_date_naissance) {
+    var ageEnf = new Date().getFullYear() - parseInt(d.co1_date_naissance.split('-')[0]);
+    ageCell = '👧 ' + ageEnf + ' ans';
+  }
+} else {
+  // Pour les autres : tranche d'âge moyenne du binôme/équipe
+  var dobs = [d.date_naissance, d.co1_date_naissance, d.co2_date_naissance, d.co3_date_naissance].filter(Boolean);
+  if (dobs.length > 0) {
+    var ages = dobs.map(function(dob){ return new Date().getFullYear() - parseInt(dob.split('-')[0]); });
+    var moy = Math.round(ages.reduce(function(a,b){ return a+b; }, 0) / ages.length);
+    if (moy <= 24) ageCell = '16-24 ans';
+    else if (moy <= 34) ageCell = '25-34 ans';
+    else if (moy <= 44) ageCell = '35-44 ans';
+    else if (moy <= 54) ageCell = '45-54 ans';
+    else ageCell = '55+ ans';
+  }
 }
-html += '<td style="font-size:12px;color:#FFEE00;">' + ageMoy + '</td>';
+html += '<td style="font-size:12px;color:#FFEE00;">' + ageCell + '</td>';
       html += '<td>' + (d.temps_estime||'—') + '</td>';
       html += '<td style="color:#FFEE00;font-weight:700;">' + (d.prix||'—') + ' €</td>';
       html += '<td>' + getStatut(d.statut_paiement) + '</td>';
