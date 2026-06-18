@@ -427,8 +427,18 @@ function isParentEnfant(d) {
   function renderParentEnfant() {
     var list = allData.filter(isParentEnfant);
 
+    // --- Stats Format choisi ---
+    var nbStandard = list.filter(function(d){return d.niveau && d.niveau.indexOf('Standard')!==-1;}).length;
+    var nbXL = list.filter(function(d){return d.niveau && d.niveau.indexOf('XL')!==-1;}).length;
+    var nbSansReponse = list.length - nbStandard - nbXL;
+    var statsHtml = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem;">';
+    statsHtml += '<div style="background:#1a1a1a;border:1px solid #FFA726;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:24px;font-weight:800;color:#FFA726;">' + nbStandard + '</div><div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">🟧 Standard 200m</div></div>';
+    statsHtml += '<div style="background:#1a1a1a;border:1px solid #C0392B;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:24px;font-weight:800;color:#C0392B;">' + nbXL + '</div><div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">🟥 XL 400m</div></div>';
+    statsHtml += '<div style="background:#1a1a1a;border:1px solid #666;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:24px;font-weight:800;color:#888;">' + nbSansReponse + '</div><div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">⏳ Sans réponse</div></div>';
+    statsHtml += '</div>';
+
     // --- Vagues du samedi 27 juin ---
-    var waveHtml = '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:16px;">⏱ Vagues — samedi 27 juin 2026</div>';
+    var waveHtml = statsHtml + '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:16px;">⏱ Vagues — samedi 27 juin 2026</div>';
     waveHtml += '<div style="font-size:12px;color:#888;margin-bottom:1rem;">Triées par âge enfant (plus âgés d\'abord) · 4 binômes par vague · départ toutes les 10 minutes dès 13h00</div>';
     var byWave = {};
     list.forEach(function(d) {
@@ -452,15 +462,19 @@ function isParentEnfant(d) {
         waveHtml += '<div style="font-weight:800;color:#FFEE00;font-size:15px;">Vague ' + v + '</div>';
         waveHtml += '<div style="font-size:20px;color:#fff;font-weight:800;">' + h + '</div>';
         waveHtml += '</div>';
-        waveHtml += '<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;"><thead><tr><th>Parent</th><th>Enfant</th><th>Âge</th><th>T-shirt enfant</th></tr></thead><tbody>';
+        waveHtml += '<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;"><thead><tr><th>Parent</th><th>Enfant</th><th>Âge</th><th>T-shirt</th><th>Format</th></tr></thead><tbody>';
         items.forEach(function(d) {
           var enfDob = d.co1_date_naissance;
           var age = enfDob ? (new Date().getFullYear() - parseInt(enfDob.split('-')[0])) + ' ans' : '—';
+          var fmt = '<span style="color:#666;font-size:11px;">⏳ en attente</span>';
+          if (d.niveau && d.niveau.indexOf('Standard') !== -1) fmt = '<span style="background:#FFA726;color:#0a0a0a;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:800;">🟧 Standard</span>';
+          else if (d.niveau && d.niveau.indexOf('XL') !== -1) fmt = '<span style="background:#C0392B;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:800;">🟥 XL</span>';
           waveHtml += '<tr>';
           waveHtml += '<td>' + (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong></td>';
           waveHtml += '<td>' + (d.co1_prenom||'').trim() + ' <strong style="color:#fff;">' + (d.co1_nom||'').trim() + '</strong></td>';
           waveHtml += '<td style="color:#FFEE00;font-weight:700;">' + age + '</td>';
           waveHtml += '<td style="font-size:12px;color:#aaa;">' + (d.co1_tshirt||'—') + '</td>';
+          waveHtml += '<td>' + fmt + '</td>';
           waveHtml += '</tr>';
         });
         waveHtml += '</tbody></table></div>';

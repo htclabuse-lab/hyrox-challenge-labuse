@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Choix du format — Parent-Enfant La Buse</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f5f5f5; font-family: sans-serif; color: #1a1a1a; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 640px; margin: 0 auto; }
+    .header { background: #fff; border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .logo { font-size: 22px; font-weight: 800; color: #1B7B49; margin-bottom: 6px; }
+    .logo span { color: #C0392B; }
+    .subtitle { font-size: 13px; color: #888; }
+    .card { background: #fff; border-radius: 16px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .title { font-size: 18px; font-weight: 800; margin-bottom: 1rem; color: #1B7B49; text-align: center; }
+    .info-box { background: #f0f8f3; border: 1px solid #1B7B49; border-radius: 10px; padding: 12px; margin-bottom: 1rem; font-size: 14px; line-height: 1.5; }
+    .info-box strong { color: #1B7B49; }
+    .format-card { border: 2px solid #ddd; border-radius: 12px; padding: 1.25rem; margin-bottom: 12px; background: #fafafa; }
+    .format-card.standard { border-color: #FFA726; }
+    .format-card.xl { border-color: #C0392B; }
+    .format-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+    .format-card.standard .format-title { color: #FFA726; }
+    .format-card.xl .format-title { color: #C0392B; }
+    .format-desc { font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 12px; }
+    .format-detail { background: #fff; border-radius: 8px; padding: 10px 12px; font-size: 13px; color: #666; margin-bottom: 12px; }
+    .btn { display: block; width: 100%; padding: 14px; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; font-family: sans-serif; color: #fff; letter-spacing: 0.5px; }
+    .btn-standard { background: #FFA726; }
+    .btn-standard:hover { background: #fb8c00; }
+    .btn-xl { background: #C0392B; }
+    .btn-xl:hover { background: #a93226; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .confirm { background: #e8f5e9; border: 2px solid #4caf50; border-radius: 12px; padding: 1.5rem; text-align: center; }
+    .confirm-icon { font-size: 56px; margin-bottom: 10px; }
+    .confirm-title { font-size: 20px; font-weight: 800; color: #2e7d32; margin-bottom: 8px; }
+    .confirm-text { font-size: 14px; color: #555; line-height: 1.5; margin-bottom: 1rem; }
+    .change-link { display: inline-block; background: transparent; color: #888; border: 1px solid #ccc; padding: 8px 18px; border-radius: 8px; font-size: 13px; cursor: pointer; font-family: sans-serif; }
+    .change-link:hover { background: #f5f5f5; }
+    .error { background: #fff0ee; border: 2px solid #C0392B; border-radius: 12px; padding: 1.25rem; color: #C0392B; text-align: center; font-weight: 600; }
+    .loader { text-align: center; padding: 2rem; color: #888; }
+    .who { background: #f5f5f5; border-radius: 10px; padding: 12px; margin-bottom: 1rem; text-align: center; font-size: 14px; color: #555; }
+    .who strong { color: #1a1a1a; font-weight: 800; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div class="logo">👨‍👧 Hyrox <span>Parent-Enfant</span></div>
+    <div class="subtitle">Samedi 27 juin 2026 — Crossfit La Buse</div>
+  </div>
+
+  <div id="content">
+    <div class="loader">Chargement…</div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const params = new URLSearchParams(window.location.search);
+  const id = parseInt(params.get('id'));
+  const choix = params.get('choix');
+
+  const FORMATS = {
+    'standard': { label: 'Standard — 200 m', emoji: '🟧' },
+    'xl':       { label: 'XL — 400 m',       emoji: '🟥' }
+  };
+
+  async function load() {
+    if (!id || isNaN(id)) {
+      document.getElementById('content').innerHTML = '<div class="error">Lien invalide — identifiant manquant.</div>';
+      return;
+    }
+
+    // Si choix dans l'URL → on enregistre direct
+    if (choix && FORMATS[choix]) {
+      await enregistrer(choix);
+      return;
+    }
+
+    // Sinon → on affiche le formulaire
+    await afficherFormulaire(null);
+  }
+
+  async function enregistrer(c) {
+    document.getElementById('content').innerHTML = '<div class="loader">Enregistrement de votre choix…</div>';
+    const formatLabel = FORMATS[c].label;
+    const { error } = await db.from('Inscriptions')
+      .update({ niveau: formatLabel })
+      .eq('id', id);
+    if (error) {
+      document.getElementById('content').innerHTML = '<div class="error">Erreur d\'enregistrement. Réessayez ou contactez l\'organisation.</div>';
+      return;
+    }
+    await afficherConfirmation(c);
+  }
+
+  async function afficherConfirmation(c) {
+    const { data } = await db.from('Inscriptions').select('prenom,nom,co1_prenom,co1_nom').eq('id', id).single();
+    const who = data ? `<strong>${(data.prenom||'').trim()} ${(data.nom||'').trim()}</strong> + <strong>${(data.co1_prenom||'').trim()} ${(data.co1_nom||'').trim()}</strong>` : '';
+    document.getElementById('content').innerHTML = `
+      <div class="card">
+        <div class="confirm">
+          <div class="confirm-icon">✅</div>
+          <div class="confirm-title">Choix enregistré !</div>
+          <div class="confirm-text">${who}<br>Format retenu : <strong style="color:#1B7B49;">${FORMATS[c].label}</strong></div>
+          <button type="button" class="change-link" onclick="afficherFormulaire('${c}')">Changer mon choix</button>
+        </div>
+      </div>
+      <div class="card" style="text-align:center;font-size:13px;color:#888;">
+        Merci ! Tu peux fermer cette page.<br>L'organisation enregistrera ta réponse automatiquement.
+      </div>
+    `;
+  }
+
+  async function afficherFormulaire(actuel) {
+    const { data, error } = await db.from('Inscriptions').select('prenom,nom,co1_prenom,co1_nom,niveau').eq('id', id).single();
+    if (error || !data) {
+      document.getElementById('content').innerHTML = '<div class="error">Inscription introuvable.</div>';
+      return;
+    }
+    const niveau = actuel ? FORMATS[actuel].label : data.niveau;
+    document.getElementById('content').innerHTML = `
+      <div class="card">
+        <div class="who">
+          <strong>${(data.prenom||'').trim()} ${(data.nom||'').trim()}</strong> + <strong>${(data.co1_prenom||'').trim()} ${(data.co1_nom||'').trim()}</strong>
+        </div>
+        <div class="title">Choisis ton format</div>
+        ${niveau ? '<div class="info-box">Choix actuel : <strong>'+niveau+'</strong>. Tu peux le modifier ci-dessous.</div>' : '<div class="info-box">Tu peux choisir entre les <strong>2 formats</strong> ci-dessous. Ton choix sera enregistré immédiatement.</div>'}
+
+        <div class="format-card standard">
+          <div class="format-title">🟧 Standard — 200 m</div>
+          <div class="format-desc">Le format de base : 7 stations adaptées + <strong>200 m de course</strong> entre chaque station.</div>
+          <div class="format-detail">⏱ Durée estimée : 15-20 min · 🏃 Distance course totale : ~1,4 km · 💪 Accessible à tous</div>
+          <button type="button" class="btn btn-standard" onclick="enregistrer('standard')">Choisir Standard</button>
+        </div>
+
+        <div class="format-card xl">
+          <div class="format-title">🟥 XL — 400 m</div>
+          <div class="format-desc">Pour ceux qui veulent <strong>plus de défi</strong> : 7 stations + <strong>400 m de course</strong> entre chaque station.</div>
+          <div class="format-detail">⏱ Durée estimée : 25-35 min · 🏃 Distance course totale : ~2,8 km · 💪 Pour duos plus à l'aise</div>
+          <button type="button" class="btn btn-xl" onclick="enregistrer('xl')">Choisir XL</button>
+        </div>
+      </div>
+      <div class="card" style="text-align:center;font-size:12px;color:#888;">
+        Question ? Réponds à l'email d'origine ou contacte l'organisation.
+      </div>
+    `;
+  }
+
+  load();
+</script>
+</body>
+</html>
