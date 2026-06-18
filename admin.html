@@ -479,10 +479,11 @@ function isParentEnfant(d) {
         waveHtml += '<div style="font-weight:800;color:#FFEE00;font-size:15px;">Vague ' + v + '</div>';
         waveHtml += '<div style="font-size:20px;color:#fff;font-weight:800;">' + h + '</div>';
         waveHtml += '</div>';
-        waveHtml += '<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;"><thead><tr><th>Parent</th><th>Enfant</th><th>Âge</th><th>T-shirt</th><th>Format</th></tr></thead><tbody>';
+        waveHtml += '<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;"><thead><tr><th>Parent</th><th>Enfant</th><th>Âge</th><th>T-shirt parent</th><th>T-shirt enfant</th><th>Format</th></tr></thead><tbody>';
         items.forEach(function(d) {
           var enfDob = d.co1_date_naissance;
           var age = enfDob ? (new Date().getFullYear() - parseInt(enfDob.split('-')[0])) + ' ans' : '—';
+          var tshirtParent = (d.tshirt_taille && d.tshirt_coupe) ? (d.tshirt_taille + ' ' + d.tshirt_coupe) : '—';
           var fmt = '<span style="color:#666;font-size:11px;">⏳ en attente</span>';
           if (d.niveau && d.niveau.indexOf('Standard') !== -1) fmt = '<span style="background:#FFA726;color:#0a0a0a;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:800;">🟧 Standard</span>';
           else if (d.niveau && d.niveau.indexOf('XL') !== -1) fmt = '<span style="background:#C0392B;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:800;">🟥 XL</span>';
@@ -490,6 +491,7 @@ function isParentEnfant(d) {
           waveHtml += '<td>' + (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong></td>';
           waveHtml += '<td>' + (d.co1_prenom||'').trim() + ' <strong style="color:#fff;">' + (d.co1_nom||'').trim() + '</strong></td>';
           waveHtml += '<td style="color:#FFEE00;font-weight:700;">' + age + '</td>';
+          waveHtml += '<td style="font-size:12px;color:#aaa;">' + tshirtParent + '</td>';
           waveHtml += '<td style="font-size:12px;color:#aaa;">' + (d.co1_tshirt||'—') + '</td>';
           waveHtml += '<td>' + fmt + '</td>';
           waveHtml += '</tr>';
