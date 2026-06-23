@@ -479,6 +479,12 @@ function isParentEnfant(d) {
         waveHtml += '<div style="font-weight:800;color:#FFEE00;font-size:15px;">Vague ' + v + '</div>';
         waveHtml += '<div style="font-size:20px;color:#fff;font-weight:800;">' + h + '</div>';
         waveHtml += '</div>';
+        // Tri intra-vague : plus âgé d'abord (DOB ascendant), null DOB en dernier
+        items.sort(function(a, b) {
+          var da = a.co1_date_naissance || '9999-99-99';
+          var db = b.co1_date_naissance || '9999-99-99';
+          return da < db ? -1 : da > db ? 1 : 0;
+        });
         waveHtml += '<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;"><thead><tr><th>Parent</th><th>Enfant</th><th>Âge</th><th>T-shirt parent</th><th>T-shirt enfant</th><th>Format</th></tr></thead><tbody>';
         items.forEach(function(d) {
           var enfDob = d.co1_date_naissance;
