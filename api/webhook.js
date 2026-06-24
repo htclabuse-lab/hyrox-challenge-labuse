@@ -105,7 +105,8 @@ export default async function handler(req, res) {
           from: 'Hyrox Challenge La Buse <noreply@htclabuse.fr>',
           to: inscription?.email || email,
           subject,
-          html
+          html,
+          reply_to: 'htclabuse@gmail.com'
         })
       });
 

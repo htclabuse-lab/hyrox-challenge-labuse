@@ -194,6 +194,7 @@ export default async function handler(req, res) {
     }
 
     const FROM = 'Hyrox Challenge La Buse <noreply@htclabuse.fr>';
+    const REPLY_TO = 'htclabuse@gmail.com';
 
     // ----- MODE 'custom' : envoi unique à un email arbitraire avec subject/html sur mesure -----
     if (mode === 'custom') {
@@ -207,7 +208,7 @@ export default async function handler(req, res) {
       const resp = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ from: FROM, to, subject, html }),
+        body: JSON.stringify({ from: FROM, to, subject, html, reply_to: REPLY_TO }),
       });
       const data = await resp.json().catch(() => ({}));
       if (!resp.ok) {
@@ -258,7 +259,7 @@ export default async function handler(req, res) {
       const failures = [];
       for (let i = 0; i < targets.length; i += 100) {
         const batch = targets.slice(i, i + 100);
-        const payload = batch.map(email => ({ from: FROM, to: email, subject, html }));
+        const payload = batch.map(email => ({ from: FROM, to: email, subject, html, reply_to: REPLY_TO }));
         const resp = await fetch('https://api.resend.com/emails/batch', {
           method: 'POST',
           headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
@@ -311,7 +312,7 @@ export default async function handler(req, res) {
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM, to: inscription.email, subject, html }),
+      body: JSON.stringify({ from: FROM, to: inscription.email, subject, html, reply_to: REPLY_TO }),
     });
 
     if (!resendResponse.ok) {
