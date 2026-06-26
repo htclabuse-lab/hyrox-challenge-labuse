@@ -71,6 +71,7 @@
   }
 
   let data = [];
+  let showStarted = false;
   async function load() {
     const { data: rows } = await db.from('Inscriptions')
       .select('id,prenom,nom,co1_prenom,co1_nom,vague,heure_depart,niveau,temps_estime,statut_paiement')
@@ -79,6 +80,7 @@
     data = rows || [];
     render();
   }
+  setInterval(load, 30000); // sync DB toutes les 30s
 
   function fmtHeure(iso) {
     const d = new Date(iso);
@@ -91,15 +93,32 @@
     return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
   }
 
+  function toggleStarted() {
+    showStarted = !showStarted;
+    render();
+  }
+
   function render() {
     const byVague = {};
     data.forEach(d => { if (d.vague) (byVague[d.vague] ||= []).push(d); });
     const vagues = Object.keys(byVague).map(Number).sort((a,b)=>a-b);
 
-    let html = '';
+    const nbStarted = vagues.filter(v => byVague[v].some(r => r.temps_estime && r.temps_estime.length > 10)).length;
+    const nbPending = vagues.length - nbStarted;
+
+    let html = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">`;
+    html += `<div style="background:#1a1a1a;border:1px solid #C0392B;border-radius:8px;padding:8px 14px;font-size:13px;"><strong style="color:#C0392B;">${nbPending}</strong> <span style="color:#888;">à démarrer</span></div>`;
+    html += `<div style="background:#1a1a1a;border:1px solid #4caf50;border-radius:8px;padding:8px 14px;font-size:13px;"><strong style="color:#4caf50;">${nbStarted}</strong> <span style="color:#888;">démarrées</span></div>`;
+    html += `<button onclick="toggleStarted()" style="background:${showStarted?'#C0392B':'#1a1a1a'};color:#fff;border:1px solid ${showStarted?'#C0392B':'#444'};padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;margin-left:auto;">${showStarted?'✓ Vagues démarrées affichées':'👁 Voir vagues démarrées'}</button>`;
+    html += `<button onclick="load()" style="background:#1a1a1a;color:#fff;border:1px solid #444;padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;">↻</button>`;
+    html += `</div>`;
+
+    let shown = 0;
     vagues.forEach(v => {
       const rows = byVague[v];
       const started = rows.find(r => r.temps_estime && r.temps_estime.length > 10);
+      if (started && !showStarted) return;
+      shown++;
       const startedAt = started ? new Date(started.temps_estime) : null;
       const heurePrevue = fmtHeure(rows[0].heure_depart);
       const binNames = rows.map(r => `${(r.prenom||'').trim()} ${(r.nom||'').trim()} + ${(r.co1_prenom||'').trim()}`).join(' · ');
@@ -116,6 +135,7 @@
       }
       html += '</div>';
     });
+    if (shown === 0) html += `<div style="text-align:center;color:#666;padding:2rem;font-size:14px;">${showStarted ? 'Aucune vague' : 'Toutes les vagues sont démarrées. Clique "Voir vagues démarrées" pour les revoir.'}</div>`;
     document.getElementById('app').innerHTML = html;
     tickChronos();
   }
