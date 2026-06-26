@@ -113,7 +113,7 @@
     const { data: rows } = await db.from('Inscriptions')
       .select('id,prenom,nom,co1_prenom,co1_nom,co1_date_naissance,vague,heure_depart,niveau,tshirt_coupe,tshirt_taille,co1_tshirt,nom_equipe,statut_paiement')
       .eq('categorie', 'Parent-Enfant')
-      .order('nom');
+      .order('vague').order('nom');
     data = rows || [];
     render();
   }
@@ -188,7 +188,6 @@
   }
 
   async function givePack(id) {
-    if (!confirm('Confirmer la remise du pack cadeau ?')) return;
     const now = new Date().toISOString();
     await db.from('Inscriptions').update({nom_equipe: now}).eq('id', id);
     await load();
