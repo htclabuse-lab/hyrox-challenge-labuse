@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HYROX KIDS — Pré-inscription</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 640px; margin: 0 auto; }
+    .hero { background: #0a0a0a; padding: 1.5rem 1rem; text-align: center; margin-bottom: 1rem; border-radius: 14px; border: 2px solid #FFEE00; }
+    .hero h1 { font-size: 38px; font-weight: 900; letter-spacing: 2px; line-height: 1; margin-bottom: 8px; }
+    .hero h1 span { color: #FFEE00; }
+    .hero .sub { font-size: 14px; color: #aaa; margin-bottom: 12px; }
+    .hero .slogan { color: #FFEE00; font-weight: 800; font-size: 14px; letter-spacing: 1.5px; margin-top: 8px; line-height: 1.4; }
+    .hero .date { background: #C0392B; color: #fff; display: inline-block; padding: 6px 14px; border-radius: 6px; font-weight: 800; margin-top: 12px; font-size: 14px; }
+    .info-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .info { background: #1a1a1a; border-radius: 12px; padding: 1rem; border-left: 4px solid #ff3399; }
+    .info.creneaux { border-left-color: #FFA726; }
+    .info.places { border-left-color: #C0392B; }
+    .info.prix { border-left-color: #FFEE00; }
+    .info h3 { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+    .info p { font-size: 14px; line-height: 1.6; }
+    .creneau-line { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot.pink { background: #ff3399; } .dot.cyan { background: #00d8ff; } .dot.orange { background: #FFA726; } .dot.green { background: #4ade80; }
+    .prix-big { font-size: 32px; font-weight: 900; color: #FFEE00; }
+    .prix-small { font-size: 14px; color: #aaa; }
+    .form-card { background: #1a1a1a; border-radius: 14px; padding: 1.5rem; border: 1px solid #333; }
+    .form-card h2 { font-size: 18px; color: #FFEE00; margin-bottom: 6px; }
+    .form-card .form-sub { font-size: 12px; color: #888; margin-bottom: 1rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 15px; }
+    .field input:focus { border-color: #FFEE00; outline: none; }
+    .section-divider { font-size: 12px; color: #FFEE00; text-transform: uppercase; letter-spacing: 1px; margin: 1rem 0 0.6rem; padding-top: 1rem; border-top: 1px solid #2a2a2a; font-weight: 700; }
+    .checkboxes label { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #333; border-radius: 8px; margin-bottom: 6px; cursor: pointer; font-size: 13px; }
+    .checkboxes label:has(input:checked) { border-color: #FFEE00; background: #1a1a0a; }
+    .checkboxes input { width: 20px; height: 20px; accent-color: #FFEE00; }
+    .btn-submit { width: 100%; padding: 16px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 1px; margin-top: 1rem; }
+    .btn-submit:hover { background: #e6d800; }
+    .btn-submit:disabled { background: #444; color: #888; cursor: wait; }
+    .success { background: #0a3a0a; border: 2px solid #4caf50; border-radius: 14px; padding: 2rem; text-align: center; }
+    .success-icon { font-size: 64px; margin-bottom: 12px; }
+    .success h2 { color: #4caf50; font-size: 22px; margin-bottom: 10px; }
+    .success p { color: #ccc; font-size: 14px; line-height: 1.6; }
+    .error { color: #C0392B; font-size: 13px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>HYROX <span>KIDS</span></h1>
+    <div class="sub">Crossfit La Buse — Saint-Paul, La Réunion</div>
+    <div class="slogan">BOUGE. DÉPASSE-TOI. AMUSE-TOI.</div>
+    <div class="date">Dès le 1ᵉʳ septembre 2026</div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info creneaux">
+      <h3>📅 Créneaux</h3>
+      <div class="creneau-line"><span class="dot pink"></span>Mercredi après-midi — 6 à 9 ans</div>
+      <div class="creneau-line"><span class="dot cyan"></span>Mercredi après-midi — 10 à 14 ans</div>
+      <div class="creneau-line"><span class="dot orange"></span>Samedi matin — 6 à 9 ans</div>
+      <div class="creneau-line"><span class="dot green"></span>Samedi matin — 10 à 14 ans</div>
+    </div>
+    <div class="info places">
+      <h3>⚠️ Places limitées</h3>
+      <p>12 enfants par groupe — <strong>24 places au total</strong></p>
+    </div>
+    <div class="info prix">
+      <h3>💰 Tarif</h3>
+      <p><span class="prix-big">39 €</span> <span class="prix-small">/ mois</span></p>
+    </div>
+  </div>
+
+  <div id="form-block" class="form-card">
+    <h2>📝 Pré-inscription</h2>
+    <p class="form-sub">Aucun engagement — on te recontacte pour finaliser.</p>
+
+    <div class="section-divider">👧 Enfant</div>
+    <div class="field"><label>Prénom de l'enfant *</label><input type="text" id="enfant_prenom" placeholder="Ex : Léa"></div>
+    <div class="field"><label>Nom de l'enfant *</label><input type="text" id="enfant_nom" placeholder="Ex : DURAND"></div>
+    <div class="field"><label>Date de naissance *</label><input type="date" id="enfant_dob"></div>
+
+    <div class="section-divider">👤 Responsable légal</div>
+    <div class="field"><label>Prénom *</label><input type="text" id="parent_prenom"></div>
+    <div class="field"><label>Nom *</label><input type="text" id="parent_nom"></div>
+    <div class="field"><label>Email *</label><input type="email" id="parent_email" placeholder="ex@email.com"></div>
+    <div class="field"><label>Téléphone *</label><input type="tel" id="parent_tel" placeholder="0692 …"></div>
+
+    <div class="section-divider">⏰ Créneaux préférés (au moins 1)</div>
+    <div class="checkboxes">
+      <label><input type="checkbox" value="Mercredi 6-9 ans"> Mercredi après-midi — 6 à 9 ans</label>
+      <label><input type="checkbox" value="Mercredi 10-14 ans"> Mercredi après-midi — 10 à 14 ans</label>
+      <label><input type="checkbox" value="Samedi 6-9 ans"> Samedi matin — 6 à 9 ans</label>
+      <label><input type="checkbox" value="Samedi 10-14 ans"> Samedi matin — 10 à 14 ans</label>
+    </div>
+
+    <button type="button" class="btn-submit" id="btn" onclick="submit()">Envoyer ma pré-inscription</button>
+    <div class="error" id="err"></div>
+  </div>
+
+  <div id="success-block" class="success" style="display:none;">
+    <div class="success-icon">🎉</div>
+    <h2>Pré-inscription enregistrée !</h2>
+    <p>Merci. On te recontactera <strong>avant fin août</strong> pour finaliser l'inscription de ton enfant.</p>
+    <p style="font-size:12px;color:#888;margin-top:14px;">L'équipe Hyrox La Buse 💪</p>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  async function submit() {
+    const f = {
+      enfant_prenom: val('enfant_prenom'),
+      enfant_nom: val('enfant_nom'),
+      enfant_dob: val('enfant_dob'),
+      parent_prenom: val('parent_prenom'),
+      parent_nom: val('parent_nom'),
+      parent_email: val('parent_email'),
+      parent_tel: val('parent_tel'),
+    };
+    const creneaux = Array.from(document.querySelectorAll('.checkboxes input:checked')).map(c => c.value);
+
+    if (!f.enfant_prenom || !f.enfant_nom || !f.enfant_dob || !f.parent_prenom || !f.parent_nom || !f.parent_email || !f.parent_tel) {
+      err('Tous les champs marqués * sont requis.');
+      return;
+    }
+    if (!f.parent_email.includes('@')) {
+      err('Email invalide.');
+      return;
+    }
+    if (creneaux.length === 0) {
+      err('Sélectionne au moins 1 créneau préféré.');
+      return;
+    }
+
+    document.getElementById('btn').disabled = true;
+    document.getElementById('btn').textContent = 'Envoi…';
+
+    const { error } = await db.from('Inscriptions').insert({
+      nom: f.parent_nom.toUpperCase(),
+      prenom: f.parent_prenom,
+      email: f.parent_email,
+      telephone: f.parent_tel,
+      categorie: 'Hyrox Kids Pré-inscription',
+      prix: 39,
+      statut_paiement: 'en_attente',
+      co1_nom: f.enfant_nom.toUpperCase(),
+      co1_prenom: f.enfant_prenom,
+      co1_date_naissance: f.enfant_dob,
+      nom_equipe: creneaux.join(', '),
+    });
+
+    if (error) {
+      err('Erreur : ' + error.message);
+      document.getElementById('btn').disabled = false;
+      document.getElementById('btn').textContent = 'Envoyer ma pré-inscription';
+      return;
+    }
+    document.getElementById('form-block').style.display = 'none';
+    document.getElementById('success-block').style.display = 'block';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  function val(id) { return document.getElementById(id).value.trim(); }
+  function err(msg) { document.getElementById('err').textContent = msg; }
+</script>
+</body>
+</html>
