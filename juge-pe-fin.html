@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>👨‍👧 Juge Parent-Enfant — Fin (wall balls)</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 800px; margin: 0 auto; }
+    .header { background: #C0392B; padding: 16px; border-radius: 12px; margin-bottom: 1rem; text-align: center; }
+    .header h1 { font-size: 20px; }
+    .header p { font-size: 13px; opacity: 0.9; margin-top: 4px; }
+    .login { background: #1a1a1a; border-radius: 12px; padding: 1.5rem; text-align: center; }
+    .login input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 16px; margin: 10px 0; }
+    .login button { width: 100%; padding: 12px; background: #C0392B; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; }
+    .filter { margin-bottom: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter button { background: #1a1a1a; color: #888; border: 1px solid #333; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+    .filter button.active { background: #C0392B; color: #fff; border-color: #C0392B; }
+    .vague-block { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+    .vague-block.active { border-color: #4caf50; }
+    .vague-block.done { opacity: 0.55; }
+    .vague-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .vague-title { font-size: 16px; font-weight: 800; color: #FFEE00; }
+    .vague-chrono { font-size: 22px; font-weight: 800; color: #4caf50; font-family: monospace; }
+    .vague-status-pending { font-size: 13px; color: #666; font-style: italic; }
+    .binome { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid #2a2a2a; gap: 10px; }
+    .binome-info { flex: 1; font-size: 14px; }
+    .binome-info b { color: #fff; }
+    .binome-info .sub { font-size: 11px; color: #888; }
+    .badge-format { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-right: 6px; font-weight: 800; letter-spacing: 1px; }
+    .badge-std { background: #FFA726; color: #0a0a0a; }
+    .badge-xl { background: #C0392B; color: #fff; }
+    .badge-abs { background: #666; color: #fff; }
+    .btn-fini { background: #4caf50; color: #fff; border: none; padding: 12px 14px; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer; min-width: 100px; }
+    .btn-fini:hover { background: #2e7d32; }
+    .btn-undo { background: transparent; color: #888; border: 1px solid #444; padding: 8px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+    .temps-fini { background: #0a3a0a; color: #4caf50; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-weight: 800; font-size: 16px; min-width: 100px; text-align: center; }
+    .row-abs { opacity: 0.4; text-decoration: line-through; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>👨‍👧 Juge Parent-Enfant — Arrivée 🏁</h1>
+    <p>Fin des wall balls — Crossfit La Buse</p>
+  </div>
+
+  <div id="login" class="login">
+    <div style="font-size:14px;color:#888;margin-bottom:10px;">Mot de passe juge</div>
+    <input type="password" id="pwd" placeholder="••••••••">
+    <button onclick="login()">Connexion</button>
+    <div id="login-error" style="color:#C0392B;font-size:13px;margin-top:8px;"></div>
+  </div>
+
+  <div id="app" style="display:none;">
+    <div class="filter">
+      <button class="active" data-filter="active" onclick="setFilter('active')">🟢 En cours</button>
+      <button data-filter="all" onclick="setFilter('all')">Tout voir</button>
+      <button data-filter="done" onclick="setFilter('done')">✅ Terminées</button>
+      <button style="margin-left:auto;" onclick="load()">↻ Rafraîchir</button>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const JUGE_PWD = 'Htcjuillet2026';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let data = [];
+  let filterMode = 'active';
+
+  function login() {
+    const p = document.getElementById('pwd').value.trim();
+    if (p !== JUGE_PWD) {
+      document.getElementById('login-error').textContent = '❌ Mot de passe incorrect';
+      return;
+    }
+    sessionStorage.setItem('pe_juge_auth', '1');
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    load();
+  }
+  if (sessionStorage.getItem('pe_juge_auth') === '1') {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    setTimeout(load, 0);
+  }
+
+  function setFilter(m) {
+    filterMode = m;
+    document.querySelectorAll('.filter button[data-filter]').forEach(b => b.classList.toggle('active', b.dataset.filter === m));
+    render();
+  }
+
+  async function load() {
+    const { data: rows } = await db.from('Inscriptions')
+      .select('id,prenom,nom,co1_prenom,co1_nom,vague,heure_depart,niveau,temps_estime,dossard,statut_paiement')
+      .eq('categorie', 'Parent-Enfant')
+      .order('vague');
+    data = rows || [];
+    render();
+  }
+
+  function fmtChrono(ms) {
+    const s = Math.floor(ms/1000);
+    const m = Math.floor(s/60);
+    const sec = s % 60;
+    return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+  }
+  function fmtHeure(iso) {
+    const d = new Date(iso);
+    return d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion'});
+  }
+  function isStarted(d) { return d.temps_estime && d.temps_estime.length > 10; }
+  function isAbsent(d) { return d.niveau && d.niveau.indexOf('ABSENT') !== -1; }
+
+  function render() {
+    const byVague = {};
+    data.forEach(d => { if (d.vague) (byVague[d.vague] ||= []).push(d); });
+    const vagues = Object.keys(byVague).map(Number).sort((a,b)=>a-b);
+    let html = '';
+    let shown = 0;
+    vagues.forEach(v => {
+      const rows = byVague[v];
+      const started = rows.some(r => isStarted(r));
+      const allFini = rows.every(r => isAbsent(r) || (r.dossard !== null && r.dossard !== undefined));
+      const heurePrevue = fmtHeure(rows[0].heure_depart);
+      let state = 'pending';
+      if (started && !allFini) state = 'active';
+      else if (started && allFini) state = 'done';
+
+      if (filterMode === 'active' && state !== 'active') return;
+      if (filterMode === 'done' && state !== 'done') return;
+      shown++;
+
+      const startISO = started ? rows.find(r => isStarted(r)).temps_estime : null;
+      const startMs = startISO ? new Date(startISO).getTime() : null;
+
+      html += `<div class="vague-block ${state === 'active' ? 'active' : state === 'done' ? 'done' : ''}">`;
+      html += `<div class="vague-head"><div class="vague-title">Vague ${v} <span style="font-size:11px;color:#666;font-weight:400;">prévu ${heurePrevue}</span></div>`;
+      if (startMs) html += `<div class="vague-chrono" data-start="${startMs}" id="vc-${v}">00:00</div>`;
+      else html += `<div class="vague-status-pending">⏳ Pas encore démarrée</div>`;
+      html += `</div>`;
+
+      rows.forEach(d => {
+        const abs = isAbsent(d);
+        const fini = d.dossard !== null && d.dossard !== undefined;
+        const fmtBadge = (d.niveau && d.niveau.indexOf('XL') !== -1) ? '<span class="badge-format badge-xl">XL</span>' : '<span class="badge-format badge-std">STD</span>';
+        const absBadge = abs ? '<span class="badge-format badge-abs">🚫 ABSENT</span>' : '';
+        html += `<div class="binome ${abs ? 'row-abs' : ''}">`;
+        html += `<div class="binome-info">${fmtBadge}${absBadge}<b>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</b><div class="sub">+ ${(d.co1_prenom||'').trim()} ${(d.co1_nom||'').trim()}</div></div>`;
+        if (abs) {
+          html += `<div style="font-size:11px;color:#666;">—</div>`;
+        } else if (fini) {
+          html += `<div class="temps-fini">${fmtChrono(d.dossard*1000)}</div>`;
+          html += `<button class="btn-undo" onclick="undo(${d.id})">↺</button>`;
+        } else if (startMs) {
+          html += `<button class="btn-fini" onclick="finish(${d.id}, ${startMs})">✅ Terminé</button>`;
+        } else {
+          html += `<div style="font-size:11px;color:#666;">en attente départ</div>`;
+        }
+        html += `</div>`;
+      });
+      html += `</div>`;
+    });
+    if (shown === 0) html = `<div style="text-align:center;color:#666;padding:2rem;font-size:14px;">Aucune vague dans ce filtre.</div>`;
+    document.getElementById('content').innerHTML = html;
+    tickChronos();
+  }
+
+  function tickChronos() {
+    document.querySelectorAll('[id^="vc-"]').forEach(el => {
+      const start = parseInt(el.dataset.start);
+      el.textContent = fmtChrono(Date.now() - start);
+    });
+  }
+  setInterval(tickChronos, 1000);
+  setInterval(load, 15000); // reload data every 15s to sync with starter device
+
+  async function finish(id, startMs) {
+    const elapsed = Math.round((Date.now() - startMs) / 1000);
+    const mm = Math.floor(elapsed/60), ss = elapsed % 60;
+    if (!confirm(`Confirmer arrivée — temps ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')} ?`)) return;
+    await db.from('Inscriptions').update({dossard: elapsed}).eq('id', id);
+    await load();
+  }
+
+  async function undo(id) {
+    if (!confirm('Annuler ce temps ?')) return;
+    await db.from('Inscriptions').update({dossard: null}).eq('id', id);
+    await load();
+  }
+</script>
+</body>
+</html>
