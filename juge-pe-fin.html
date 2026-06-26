@@ -150,6 +150,8 @@
       rows.forEach(d => {
         const abs = isAbsent(d);
         const fini = d.dossard !== null && d.dossard !== undefined;
+        // En mode "active", on masque les binômes terminés et absents
+        if (filterMode === 'active' && (fini || abs)) return;
         const fmtBadge = (d.niveau && d.niveau.indexOf('XL') !== -1) ? '<span class="badge-format badge-xl">XL</span>' : '<span class="badge-format badge-std">STD</span>';
         const absBadge = abs ? '<span class="badge-format badge-abs">🚫 ABSENT</span>' : '';
         html += `<div class="binome ${abs ? 'row-abs' : ''}">`;
