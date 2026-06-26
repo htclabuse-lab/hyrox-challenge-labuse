@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Codes — Pages juge Parent-Enfant</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fff; color: #1a1a1a; font-family: sans-serif; padding: 1.5rem; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    h1 { text-align: center; font-size: 22px; margin-bottom: 6px; color: #1B7B49; }
+    .subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 1.5rem; }
+    .pwd-banner { background: #FFEE00; color: #0a0a0a; padding: 16px; border-radius: 12px; text-align: center; margin-bottom: 1.5rem; font-size: 16px; }
+    .pwd-banner strong { font-size: 26px; letter-spacing: 4px; font-family: monospace; display: block; margin-top: 4px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .card { background: #fff; border: 2px solid #1a1a1a; border-radius: 14px; padding: 1.25rem; text-align: center; page-break-inside: avoid; }
+    .card.pack { border-color: #FFEE00; }
+    .card.depart { border-color: #1B7B49; }
+    .card.fin { border-color: #C0392B; }
+    .card-icon { font-size: 38px; margin-bottom: 6px; }
+    .card-title { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+    .card.pack .card-title { color: #b09600; }
+    .card.depart .card-title { color: #1B7B49; }
+    .card.fin .card-title { color: #C0392B; }
+    .card-desc { font-size: 12px; color: #666; margin-bottom: 14px; line-height: 1.4; min-height: 48px; }
+    .card img { display: block; width: 100%; max-width: 260px; height: auto; margin: 0 auto 12px; border: 1px solid #eee; }
+    .card-url { font-family: monospace; font-size: 10px; color: #888; word-break: break-all; padding: 6px 8px; background: #f5f5f5; border-radius: 6px; }
+    .footer { text-align: center; font-size: 12px; color: #888; margin-top: 1.5rem; line-height: 1.6; }
+    .print-btn { display: block; margin: 0 auto 1rem; background: #1B7B49; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    @media print {
+      .print-btn { display: none; }
+      body { padding: 0.5cm; }
+      .card { border-width: 3px; }
+    }
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <button class="print-btn" onclick="window.print()">🖨️ Imprimer cette page</button>
+  <h1>👨‍👧 Hyrox Parent-Enfant La Buse</h1>
+  <div class="subtitle">QR codes pour les juges — Samedi 27 juin 2026</div>
+
+  <div class="pwd-banner">
+    Mot de passe (commun aux 3 pages) :
+    <strong>labuse</strong>
+  </div>
+
+  <div class="grid">
+    <div class="card pack">
+      <div class="card-icon">🎁</div>
+      <div class="card-title">Check-in / Pack cadeau</div>
+      <div class="card-desc">Liste des binômes avec tailles t-shirts. Cliquer "Pack remis" pour chacun.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fjuge-pe-pack.html" alt="QR pack">
+      <div class="card-url">hyrox-challenge-labuse.vercel.app/juge-pe-pack.html</div>
+    </div>
+
+    <div class="card depart">
+      <div class="card-icon">🚦</div>
+      <div class="card-title">Top départ</div>
+      <div class="card-desc">Démarrer le chrono de chaque vague. Le bouton "TOP DÉPART" donne le signal.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fjuge-pe-depart.html" alt="QR départ">
+      <div class="card-url">hyrox-challenge-labuse.vercel.app/juge-pe-depart.html</div>
+    </div>
+
+    <div class="card fin">
+      <div class="card-icon">🏁</div>
+      <div class="card-title">Arrivée (fin wall balls)</div>
+      <div class="card-desc">Valider l'arrivée de chaque binôme. Envoie auto un mail bravo avec le temps.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fjuge-pe-fin.html" alt="QR fin">
+      <div class="card-url">hyrox-challenge-labuse.vercel.app/juge-pe-fin.html</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Imprime ce tableau et pose-le près de chaque poste juge.<br>
+    Chaque juge scanne le QR de son poste avec son téléphone, puis tape <strong>labuse</strong> pour se connecter.
+  </div>
+</div>
+</body>
+</html>
