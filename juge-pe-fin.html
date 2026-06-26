@@ -119,7 +119,22 @@
   function isStarted(d) { return d.temps_estime && d.temps_estime.length > 10; }
   function isAbsent(d) { return d.niveau && d.niveau.indexOf('ABSENT') !== -1; }
 
+  function buildNumMap(arr) {
+    const sorted = [...arr].sort((a,b) => {
+      const va = a.vague || 9999, vb = b.vague || 9999;
+      if (va !== vb) return va - vb;
+      const da = a.co1_date_naissance || '9999-99-99';
+      const db = b.co1_date_naissance || '9999-99-99';
+      if (da !== db) return da < db ? -1 : 1;
+      return a.id - b.id;
+    });
+    const m = {};
+    sorted.forEach((d, i) => { m[d.id] = i + 1; });
+    return m;
+  }
+
   function render() {
+    const numMap = buildNumMap(data);
     const byVague = {};
     data.forEach(d => { if (d.vague) (byVague[d.vague] ||= []).push(d); });
     const vagues = Object.keys(byVague).map(Number).sort((a,b)=>a-b);
@@ -155,7 +170,7 @@
         const fmtBadge = (d.niveau && d.niveau.indexOf('XL') !== -1) ? '<span class="badge-format badge-xl">XL</span>' : '<span class="badge-format badge-std">STD</span>';
         const absBadge = abs ? '<span class="badge-format badge-abs">🚫 ABSENT</span>' : '';
         html += `<div class="binome ${abs ? 'row-abs' : ''}">`;
-        html += `<div class="binome-info">${fmtBadge}${absBadge}<b>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</b><div class="sub">+ ${(d.co1_prenom||'').trim()} ${(d.co1_nom||'').trim()}</div></div>`;
+        html += `<div class="binome-info"><span style="background:#FFEE00;color:#0a0a0a;padding:3px 9px;border-radius:5px;font-weight:800;font-size:14px;font-family:monospace;margin-right:6px;">N°${numMap[d.id]}</span>${fmtBadge}${absBadge}<b>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</b><div class="sub">+ ${(d.co1_prenom||'').trim()} ${(d.co1_nom||'').trim()}</div></div>`;
         if (abs) {
           html += `<div style="font-size:11px;color:#666;">—</div>`;
         } else if (fini) {

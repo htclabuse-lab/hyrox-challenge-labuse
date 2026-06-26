@@ -127,7 +127,22 @@
   }
   function norm(s) { return (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 
+  function buildNumMap(arr) {
+    const sorted = [...arr].sort((a,b) => {
+      const va = a.vague || 9999, vb = b.vague || 9999;
+      if (va !== vb) return va - vb;
+      const da = a.co1_date_naissance || '9999-99-99';
+      const db = b.co1_date_naissance || '9999-99-99';
+      if (da !== db) return da < db ? -1 : 1;
+      return a.id - b.id;
+    });
+    const m = {};
+    sorted.forEach((d, i) => { m[d.id] = i + 1; });
+    return m;
+  }
+
   function render() {
+    const numMap = buildNumMap(data);
     const q = norm(document.getElementById('search').value.trim());
     const all = data.filter(d => {
       if (q) {
@@ -167,7 +182,7 @@
 
       html += `<div class="binome ${packed ? 'done' : ''}">`;
       html += `<div class="b-head">`;
-      html += `<div class="b-names"><strong>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</strong>${abs ? ' <span class="badge-abs">🚫 ABSENT</span>' : ''}${d.statut_paiement === 'en_attente' ? ' <span class="badge-attente">⏳ paiement attendu</span>' : ''}<span class="child">+ ${(d.co1_prenom||'').trim()} ${(d.co1_nom||'').trim()} (${enfAge})</span></div>`;
+      html += `<div class="b-names" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="background:#FFEE00;color:#0a0a0a;padding:4px 12px;border-radius:6px;font-weight:800;font-size:18px;font-family:monospace;flex-shrink:0;">N°${numMap[d.id]}</span><span><strong>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</strong>${abs ? ' <span class="badge-abs">🚫 ABSENT</span>' : ''}${d.statut_paiement === 'en_attente' ? ' <span class="badge-attente">⏳ paiement attendu</span>' : ''}<span class="child">+ ${(d.co1_prenom||'').trim()} ${(d.co1_nom||'').trim()} (${enfAge})</span></span></div>`;
       html += `<div class="b-meta"><span>V${d.vague} ${heurePrevue}</span><span>${fmt}</span></div>`;
       html += `</div>`;
 

@@ -438,6 +438,18 @@ function isParentEnfant(d) {
   function renderParentEnfant() {
     var list = allData.filter(isParentEnfant);
 
+    // --- Map numéros de passage (déterministe, partagé sur toutes les pages PE) ---
+    var sortedAll = list.slice().sort(function(a,b){
+      var va = a.vague || 9999, vb = b.vague || 9999;
+      if (va !== vb) return va - vb;
+      var da = a.co1_date_naissance || '9999-99-99';
+      var db = b.co1_date_naissance || '9999-99-99';
+      if (da !== db) return da < db ? -1 : 1;
+      return a.id - b.id;
+    });
+    var numMap = {};
+    sortedAll.forEach(function(d, i){ numMap[d.id] = i + 1; });
+
     // --- Stats Format choisi ---
     var nbStandard = list.filter(function(d){return d.niveau && d.niveau.indexOf('Standard')!==-1;}).length;
     var nbXL = list.filter(function(d){return d.niveau && d.niveau.indexOf('XL')!==-1;}).length;
@@ -494,9 +506,9 @@ function isParentEnfant(d) {
         items.sort(function(a, b) {
           var da = a.co1_date_naissance || '9999-99-99';
           var db = b.co1_date_naissance || '9999-99-99';
-          return da < db ? -1 : da > db ? 1 : 0;
+          return da < db ? -1 : da > db ? 1 : (a.id - b.id);
         });
-        waveHtml += '<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;"><thead><tr><th>Parent</th><th>Enfant</th><th>Âge</th><th>T-shirt parent</th><th>T-shirt enfant</th><th>Format</th><th>⏱ Temps final</th></tr></thead><tbody>';
+        waveHtml += '<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;"><thead><tr><th>N°</th><th>Parent</th><th>Enfant</th><th>Âge</th><th>T-shirt parent</th><th>T-shirt enfant</th><th>Format</th><th>⏱ Temps final</th></tr></thead><tbody>';
         items.forEach(function(d) {
           var enfDob = d.co1_date_naissance;
           var age = enfDob ? (new Date().getFullYear() - parseInt(enfDob.split('-')[0])) + ' ans' : '—';
@@ -508,6 +520,7 @@ function isParentEnfant(d) {
           if (isAbsent) fmt += ' <span style="background:#C0392B;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:800;letter-spacing:1px;">🚫 ABSENT</span>';
           var rowStyle = isAbsent ? ' style="opacity:0.5;text-decoration:line-through;"' : '';
           waveHtml += '<tr' + rowStyle + '>';
+          waveHtml += '<td><span style="background:#FFEE00;color:#0a0a0a;padding:3px 10px;border-radius:6px;font-weight:800;font-size:14px;font-family:monospace;">' + numMap[d.id] + '</span></td>';
           waveHtml += '<td>' + (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong></td>';
           waveHtml += '<td>' + (d.co1_prenom||'').trim() + ' <strong style="color:#fff;">' + (d.co1_nom||'').trim() + '</strong></td>';
           waveHtml += '<td style="color:#FFEE00;font-weight:700;">' + age + '</td>';

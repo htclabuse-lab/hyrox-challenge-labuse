@@ -98,7 +98,22 @@
     render();
   }
 
+  function buildNumMap(arr) {
+    const sorted = [...arr].sort((a,b) => {
+      const va = a.vague || 9999, vb = b.vague || 9999;
+      if (va !== vb) return va - vb;
+      const da = a.co1_date_naissance || '9999-99-99';
+      const db = b.co1_date_naissance || '9999-99-99';
+      if (da !== db) return da < db ? -1 : 1;
+      return a.id - b.id;
+    });
+    const m = {};
+    sorted.forEach((d, i) => { m[d.id] = i + 1; });
+    return m;
+  }
+
   function render() {
+    const numMap = buildNumMap(data);
     const byVague = {};
     data.forEach(d => { if (d.vague) (byVague[d.vague] ||= []).push(d); });
     const vagues = Object.keys(byVague).map(Number).sort((a,b)=>a-b);
@@ -121,7 +136,7 @@
       shown++;
       const startedAt = started ? new Date(started.temps_estime) : null;
       const heurePrevue = fmtHeure(rows[0].heure_depart);
-      const binNames = rows.map(r => `${(r.prenom||'').trim()} ${(r.nom||'').trim()} + ${(r.co1_prenom||'').trim()}`).join(' · ');
+      const binNames = rows.map(r => `<span style="background:#FFEE00;color:#0a0a0a;padding:1px 6px;border-radius:3px;font-weight:800;font-family:monospace;margin-right:4px;">N°${numMap[r.id]}</span>${(r.prenom||'').trim()} ${(r.nom||'').trim()} + ${(r.co1_prenom||'').trim()}`).join(' · ');
 
       html += `<div class="vague ${started ? 'started' : ''}">`;
       html += `<div class="vague-head"><div class="vague-name">Vague ${v}</div><div class="vague-heure">${heurePrevue} <span style="font-size:11px;color:#666;">prévu</span></div></div>`;
