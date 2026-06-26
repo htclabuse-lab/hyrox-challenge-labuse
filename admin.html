@@ -227,6 +227,8 @@
       document.getElementById('login-page').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
       loadData();
+      // Auto-refresh toutes les 30 sec (utile le jour J pour les temps en direct)
+      setInterval(loadData, 30000);
     } else {
       document.getElementById('login-error').textContent = '❌ Mot de passe incorrect';
     }
@@ -440,10 +442,19 @@ function isParentEnfant(d) {
     var nbStandard = list.filter(function(d){return d.niveau && d.niveau.indexOf('Standard')!==-1;}).length;
     var nbXL = list.filter(function(d){return d.niveau && d.niveau.indexOf('XL')!==-1;}).length;
     var nbSansReponse = list.length - nbStandard - nbXL;
+    var nbTermines = list.filter(function(d){return d.dossard !== null && d.dossard !== undefined && !(d.niveau && d.niveau.indexOf('ABSENT') !== -1);}).length;
+    var nbAbsents = list.filter(function(d){return d.niveau && d.niveau.indexOf('ABSENT') !== -1;}).length;
+    var nbEnCourse = list.length - nbTermines - nbAbsents;
     var statsHtml = '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem;">';
     statsHtml += '<div style="background:#1a1a1a;border:1px solid #FFA726;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:24px;font-weight:800;color:#FFA726;">' + nbStandard + '</div><div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">🟧 Standard 200m</div></div>';
     statsHtml += '<div style="background:#1a1a1a;border:1px solid #C0392B;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:24px;font-weight:800;color:#C0392B;">' + nbXL + '</div><div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">🟥 XL 400m</div></div>';
     statsHtml += '<div style="background:#1a1a1a;border:1px solid #666;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:24px;font-weight:800;color:#888;">' + nbSansReponse + '</div><div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">⏳ Sans réponse</div></div>';
+    statsHtml += '</div>';
+    // Stats course en temps réel
+    statsHtml += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem;">';
+    statsHtml += '<div style="background:#0a3a0a;border:1px solid #4caf50;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:24px;font-weight:800;color:#4caf50;">' + nbTermines + '</div><div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">✅ Terminés</div></div>';
+    statsHtml += '<div style="background:#1a1a1a;border:1px solid #FFEE00;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:24px;font-weight:800;color:#FFEE00;">' + nbEnCourse + '</div><div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">🏃 En course / à venir</div></div>';
+    statsHtml += '<div style="background:#1a1a1a;border:1px solid #666;border-radius:10px;padding:14px;text-align:center;"><div style="font-size:24px;font-weight:800;color:#888;">' + nbAbsents + '</div><div style="font-size:11px;color:#aaa;text-transform:uppercase;letter-spacing:1px;">🚫 Absents</div></div>';
     statsHtml += '</div>';
     if (nbSansReponse > 0) {
       statsHtml += '<div style="background:#1a1400;border:1px solid #FFEE00;border-radius:10px;padding:14px;margin-bottom:1rem;">';
@@ -485,7 +496,7 @@ function isParentEnfant(d) {
           var db = b.co1_date_naissance || '9999-99-99';
           return da < db ? -1 : da > db ? 1 : 0;
         });
-        waveHtml += '<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;"><thead><tr><th>Parent</th><th>Enfant</th><th>Âge</th><th>T-shirt parent</th><th>T-shirt enfant</th><th>Format</th></tr></thead><tbody>';
+        waveHtml += '<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;"><thead><tr><th>Parent</th><th>Enfant</th><th>Âge</th><th>T-shirt parent</th><th>T-shirt enfant</th><th>Format</th><th>⏱ Temps final</th></tr></thead><tbody>';
         items.forEach(function(d) {
           var enfDob = d.co1_date_naissance;
           var age = enfDob ? (new Date().getFullYear() - parseInt(enfDob.split('-')[0])) + ' ans' : '—';
@@ -503,6 +514,13 @@ function isParentEnfant(d) {
           waveHtml += '<td style="font-size:12px;color:#aaa;">' + tshirtParent + '</td>';
           waveHtml += '<td style="font-size:12px;color:#aaa;">' + (d.co1_tshirt||'—') + '</td>';
           waveHtml += '<td>' + fmt + '</td>';
+          var tempsFinal = '<span style="color:#666;font-size:11px;">—</span>';
+          if (isAbsent) tempsFinal = '<span style="color:#666;font-size:11px;">—</span>';
+          else if (d.dossard !== null && d.dossard !== undefined) {
+            var m = Math.floor(d.dossard/60), s = d.dossard % 60;
+            tempsFinal = '<span style="background:#0a3a0a;color:#4caf50;padding:3px 9px;border-radius:4px;font-family:monospace;font-weight:800;font-size:13px;">' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0') + '</span>';
+          }
+          waveHtml += '<td>' + tempsFinal + '</td>';
           waveHtml += '</tr>';
         });
         waveHtml += '</tbody></table></div>';

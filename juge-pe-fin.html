@@ -185,9 +185,59 @@
   async function finish(id, startMs) {
     const elapsed = Math.round((Date.now() - startMs) / 1000);
     const mm = Math.floor(elapsed/60), ss = elapsed % 60;
-    if (!confirm(`Confirmer arrivée — temps ${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')} ?`)) return;
+    const tempsStr = String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+    if (!confirm(`Confirmer arrivée — temps ${tempsStr} ?`)) return;
     await db.from('Inscriptions').update({dossard: elapsed}).eq('id', id);
+    // Envoi mail bravo en async (ne bloque pas l'UI)
+    sendBravoMail(id, tempsStr).catch(e => console.warn('Erreur mail bravo:', e));
     await load();
+  }
+
+  async function sendBravoMail(id, tempsStr) {
+    const { data: d } = await db.from('Inscriptions').select('*').eq('id', id).single();
+    if (!d || !d.email || !d.email.includes('@')) return;
+    const niveau = d.niveau || 'Standard — 200 m';
+    const formatLabel = niveau.indexOf('XL') !== -1 ? '🟥 XL — 400 m' : '🟧 Standard — 200 m';
+    const formatColor = niveau.indexOf('XL') !== -1 ? '#C0392B' : '#FFA726';
+    const prenom = (d.prenom || '').trim();
+    const nom = (d.nom || '').trim();
+    const co1Prenom = (d.co1_prenom || '').trim();
+    const co1Nom = (d.co1_nom || '').trim();
+    const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a;line-height:1.6;">
+<div style="background:#1B7B49;color:#fff;padding:24px;text-align:center;border-radius:12px 12px 0 0;">
+<div style="font-size:48px;margin-bottom:8px;">🎉</div>
+<h1 style="margin:0;font-size:24px;">BRAVO ${prenom} !</h1>
+<p style="margin:6px 0 0;font-size:14px;opacity:0.9;">Hyrox Parent-Enfant La Buse — 27 juin 2026</p>
+</div>
+<div style="background:#fff;padding:24px;border:1px solid #ddd;border-top:none;">
+<p style="margin-top:0;font-size:15px;">Tu viens de terminer le Hyrox Parent-Enfant avec ${co1Prenom} 🙌</p>
+
+<div style="background:#f0f8f3;border:3px solid #1B7B49;border-radius:12px;padding:20px;margin:18px 0;text-align:center;">
+<div style="font-size:13px;color:#888;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">⏱ Votre temps final</div>
+<div style="font-size:48px;font-weight:800;color:#1B7B49;font-family:monospace;">${tempsStr}</div>
+<div style="margin-top:10px;background:${formatColor};color:#fff;display:inline-block;padding:6px 14px;border-radius:6px;font-weight:800;font-size:13px;letter-spacing:1px;">${formatLabel}</div>
+</div>
+
+<p style="font-size:14px;">Merci d'avoir partagé ce moment avec ton enfant et d'avoir donné le meilleur de vous-mêmes ! 💪</p>
+<p style="font-size:14px;">On espère que vous avez passé un super moment.</p>
+<p style="font-size:13px;color:#888;">Les photos arriveront prochainement.</p>
+
+<hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+<p style="margin-bottom:0;font-size:14px;">À très vite ! 💪<br><strong>L'équipe Hyrox La Buse</strong></p>
+</div>
+<div style="text-align:center;padding:12px;font-size:11px;color:#999;">Hyrox Training Club La Buse — Crossfit La Buse, Saint-Paul, La Réunion</div>
+</div>`;
+    await fetch('https://hyrox-challenge-labuse.vercel.app/api/admin-send-confirmation-email', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        password: 'Htcjuillet2026',
+        mode: 'custom',
+        to: d.email,
+        subject: `🎉 BRAVO ${prenom} ! Ton temps Hyrox Parent-Enfant : ${tempsStr}`,
+        html: html
+      })
+    });
   }
 
   async function undo(id) {
