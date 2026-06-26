@@ -178,9 +178,9 @@
 
       if (packed) {
         const ts = new Date(d.nom_equipe);
-        html += `<div class="pack-done"><span>✅ Pack remis à ${fmtHeure(ts.toISOString())}</span><button class="btn-undo" onclick="undoPack(${d.id})">↺ Annuler</button></div>`;
+        html += `<div class="pack-done"><span>✅ Pack remis à ${fmtHeure(ts.toISOString())}<br><span style="font-size:11px;color:#aaa;font-weight:400;">🍬 Bonbons + 🥤 Compote + 🧲 Bon magnet + 👕 T-shirts</span></span><button class="btn-undo" onclick="undoPack(${d.id})">↺ Annuler</button></div>`;
       } else {
-        html += `<button class="btn-pack" onclick="givePack(${d.id})">✅ PACK CADEAU REMIS</button>`;
+        html += `<button class="btn-pack" onclick="givePack(${d.id})">✅ BONBONS + COMPOTE + BON MAGNET + T-SHIRTS REMIS</button>`;
       }
       html += `</div>`;
     });
