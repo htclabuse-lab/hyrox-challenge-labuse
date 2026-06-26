@@ -493,7 +493,10 @@ function isParentEnfant(d) {
           var fmt = '<span style="color:#666;font-size:11px;">⏳ en attente</span>';
           if (d.niveau && d.niveau.indexOf('Standard') !== -1) fmt = '<span style="background:#FFA726;color:#0a0a0a;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:800;">🟧 Standard</span>';
           else if (d.niveau && d.niveau.indexOf('XL') !== -1) fmt = '<span style="background:#C0392B;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:800;">🟥 XL</span>';
-          waveHtml += '<tr>';
+          var isAbsent = d.niveau && d.niveau.indexOf('ABSENT') !== -1;
+          if (isAbsent) fmt += ' <span style="background:#C0392B;color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:800;letter-spacing:1px;">🚫 ABSENT</span>';
+          var rowStyle = isAbsent ? ' style="opacity:0.5;text-decoration:line-through;"' : '';
+          waveHtml += '<tr' + rowStyle + '>';
           waveHtml += '<td>' + (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong></td>';
           waveHtml += '<td>' + (d.co1_prenom||'').trim() + ' <strong style="color:#fff;">' + (d.co1_nom||'').trim() + '</strong></td>';
           waveHtml += '<td style="color:#FFEE00;font-weight:700;">' + age + '</td>';
