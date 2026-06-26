@@ -99,12 +99,14 @@
   }
 
   function buildNumMap(arr) {
+    // N° = ordre vague croissante puis nom du parent (alphabétique, insensible à la casse)
     const sorted = [...arr].sort((a,b) => {
       const va = a.vague || 9999, vb = b.vague || 9999;
       if (va !== vb) return va - vb;
-      const da = a.co1_date_naissance || '9999-99-99';
-      const db = b.co1_date_naissance || '9999-99-99';
-      if (da !== db) return da < db ? -1 : 1;
+      const na = (a.nom || '').trim();
+      const nb = (b.nom || '').trim();
+      const cmp = na.localeCompare(nb, 'fr', {sensitivity: 'base'});
+      if (cmp !== 0) return cmp;
       return a.id - b.id;
     });
     const m = {};

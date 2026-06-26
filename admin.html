@@ -438,13 +438,14 @@ function isParentEnfant(d) {
   function renderParentEnfant() {
     var list = allData.filter(isParentEnfant);
 
-    // --- Map numéros de passage (déterministe, partagé sur toutes les pages PE) ---
+    // --- Map numéros de passage (basé sur ordre check-in : vague + nom alphabétique) ---
     var sortedAll = list.slice().sort(function(a,b){
       var va = a.vague || 9999, vb = b.vague || 9999;
       if (va !== vb) return va - vb;
-      var da = a.co1_date_naissance || '9999-99-99';
-      var db = b.co1_date_naissance || '9999-99-99';
-      if (da !== db) return da < db ? -1 : 1;
+      var na = (a.nom || '').trim();
+      var nb = (b.nom || '').trim();
+      var cmp = na.localeCompare(nb, 'fr', {sensitivity: 'base'});
+      if (cmp !== 0) return cmp;
       return a.id - b.id;
     });
     var numMap = {};
@@ -502,11 +503,13 @@ function isParentEnfant(d) {
         waveHtml += '<div style="font-weight:800;color:#FFEE00;font-size:15px;">Vague ' + v + '</div>';
         waveHtml += '<div style="font-size:20px;color:#fff;font-weight:800;">' + h + '</div>';
         waveHtml += '</div>';
-        // Tri intra-vague : plus âgé d'abord (DOB ascendant), null DOB en dernier
+        // Tri intra-vague : alphabétique nom du parent (= même ordre que page check-in)
         items.sort(function(a, b) {
-          var da = a.co1_date_naissance || '9999-99-99';
-          var db = b.co1_date_naissance || '9999-99-99';
-          return da < db ? -1 : da > db ? 1 : (a.id - b.id);
+          var na = (a.nom || '').trim();
+          var nb = (b.nom || '').trim();
+          var cmp = na.localeCompare(nb, 'fr', {sensitivity: 'base'});
+          if (cmp !== 0) return cmp;
+          return a.id - b.id;
         });
         waveHtml += '<div style="overflow-x:auto;"><table style="width:100%;font-size:13px;"><thead><tr><th>N°</th><th>Parent</th><th>Enfant</th><th>Âge</th><th>T-shirt parent</th><th>T-shirt enfant</th><th>Format</th><th>⏱ Temps final</th></tr></thead><tbody>';
         items.forEach(function(d) {
