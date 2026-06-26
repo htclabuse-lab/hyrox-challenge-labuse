@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>👨‍👧 Check-in — Pack cadeau Parent-Enfant</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 800px; margin: 0 auto; }
+    .header { background: #FFEE00; color: #0a0a0a; padding: 16px; border-radius: 12px; margin-bottom: 1rem; text-align: center; }
+    .header h1 { font-size: 20px; }
+    .header p { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+    .login { background: #1a1a1a; border-radius: 12px; padding: 1.5rem; text-align: center; }
+    .login input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 16px; margin: 10px 0; }
+    .login button { width: 100%; padding: 12px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; }
+    .toolbar { background: #1a1a1a; padding: 12px; border-radius: 12px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 16px; }
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-row button { flex: 1; min-width: 90px; background: #0a0a0a; color: #888; border: 1px solid #333; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+    .filter-row button.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; font-weight: 800; }
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+    .stat { background: #1a1a1a; border-radius: 10px; padding: 10px; text-align: center; }
+    .stat-n { font-size: 22px; font-weight: 800; }
+    .stat-n.done { color: #4caf50; }
+    .stat-n.pending { color: #FFA726; }
+    .stat-l { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .binome { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+    .binome.done { border-color: #4caf50; background: #0a1a0a; opacity: 0.85; }
+    .b-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px; }
+    .b-names { font-size: 15px; font-weight: 700; }
+    .b-names .child { font-size: 13px; color: #aaa; font-weight: 500; display: block; margin-top: 2px; }
+    .b-meta { font-size: 11px; color: #888; }
+    .b-meta span { background: #0a0a0a; padding: 2px 8px; border-radius: 4px; margin-right: 4px; }
+    .tshirts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+    .tshirt-card { background: #0a0a0a; border: 1px solid #333; border-radius: 8px; padding: 10px; text-align: center; }
+    .tshirt-card.parent { border-color: #1B7B49; }
+    .tshirt-card.enfant { border-color: #FFA726; }
+    .tshirt-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .tshirt-size { font-size: 22px; font-weight: 800; color: #fff; font-family: monospace; }
+    .tshirt-coupe { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .btn-pack { width: 100%; padding: 14px; background: #4caf50; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 1px; }
+    .btn-pack:hover { background: #2e7d32; }
+    .pack-done { background: #0a3a0a; color: #4caf50; padding: 10px; border-radius: 8px; text-align: center; font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .btn-undo { background: transparent; color: #888; border: 1px solid #444; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+    .badge-abs { background: #C0392B; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 800; letter-spacing: 1px; }
+    .badge-attente { background: #666; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+    .empty { text-align: center; color: #666; padding: 2rem; font-size: 14px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>👨‍👧 Check-in Pack Cadeau</h1>
+    <p>Parent-Enfant — Samedi 27 juin 2026</p>
+  </div>
+
+  <div id="login" class="login">
+    <div style="font-size:14px;color:#888;margin-bottom:10px;">Mot de passe juge</div>
+    <input type="password" id="pwd" placeholder="••••••••">
+    <button onclick="login()">Connexion</button>
+    <div id="login-error" style="color:#C0392B;font-size:13px;margin-top:8px;"></div>
+  </div>
+
+  <div id="app" style="display:none;">
+    <div class="toolbar">
+      <input type="text" id="search" class="search-input" placeholder="🔍 Chercher par nom de parent ou enfant…" oninput="render()">
+      <div class="filter-row">
+        <button class="active" data-filter="pending" onclick="setFilter('pending')">⏳ À remettre</button>
+        <button data-filter="done" onclick="setFilter('done')">✅ Déjà remis</button>
+        <button data-filter="all" onclick="setFilter('all')">Tout</button>
+      </div>
+    </div>
+    <div id="stats" class="stats"></div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const JUGE_PWD = 'Htcjuillet2026';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let data = [];
+  let filterMode = 'pending';
+
+  function login() {
+    const p = document.getElementById('pwd').value.trim();
+    if (p !== JUGE_PWD) {
+      document.getElementById('login-error').textContent = '❌ Mot de passe incorrect';
+      return;
+    }
+    sessionStorage.setItem('pe_juge_auth', '1');
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    load();
+  }
+  if (sessionStorage.getItem('pe_juge_auth') === '1') {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    setTimeout(load, 0);
+  }
+
+  function setFilter(m) {
+    filterMode = m;
+    document.querySelectorAll('.filter-row button').forEach(b => b.classList.toggle('active', b.dataset.filter === m));
+    render();
+  }
+
+  async function load() {
+    const { data: rows } = await db.from('Inscriptions')
+      .select('id,prenom,nom,co1_prenom,co1_nom,co1_date_naissance,vague,heure_depart,niveau,tshirt_coupe,tshirt_taille,co1_tshirt,nom_equipe,statut_paiement')
+      .eq('categorie', 'Parent-Enfant')
+      .order('nom');
+    data = rows || [];
+    render();
+  }
+  setInterval(load, 30000);
+
+  function isPacked(d) { return d.nom_equipe && d.nom_equipe.length > 10; }
+  function isAbsent(d) { return d.niveau && d.niveau.indexOf('ABSENT') !== -1; }
+  function fmtHeure(iso) {
+    const d = new Date(iso);
+    return d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion'});
+  }
+  function norm(s) { return (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
+  function render() {
+    const q = norm(document.getElementById('search').value.trim());
+    const all = data.filter(d => {
+      if (q) {
+        const hay = norm(`${d.prenom} ${d.nom} ${d.co1_prenom} ${d.co1_nom}`);
+        if (!hay.includes(q)) return false;
+      }
+      const packed = isPacked(d);
+      if (filterMode === 'pending' && packed) return false;
+      if (filterMode === 'done' && !packed) return false;
+      return true;
+    });
+
+    // Stats
+    const nbDone = data.filter(isPacked).length;
+    const nbPending = data.length - nbDone;
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="stat-n pending">${nbPending}</div><div class="stat-l">⏳ À remettre</div></div>
+      <div class="stat"><div class="stat-n done">${nbDone}</div><div class="stat-l">✅ Pack remis</div></div>
+    `;
+
+    if (all.length === 0) {
+      document.getElementById('content').innerHTML = `<div class="empty">${q ? 'Aucun résultat pour cette recherche.' : 'Personne dans ce filtre.'}</div>`;
+      return;
+    }
+
+    let html = '';
+    all.forEach(d => {
+      const packed = isPacked(d);
+      const abs = isAbsent(d);
+      const heurePrevue = d.heure_depart ? fmtHeure(d.heure_depart) : '?';
+      const enfDob = d.co1_date_naissance;
+      const enfAge = enfDob ? (2026 - parseInt(enfDob.split('-')[0])) + ' ans' : '?';
+      const parentT = (d.tshirt_taille && d.tshirt_coupe) ? `${d.tshirt_taille}` : '—';
+      const parentCoupe = d.tshirt_coupe || '';
+      const enfT = d.co1_tshirt || '—';
+      const fmt = (d.niveau && d.niveau.indexOf('XL') !== -1) ? '🟥 XL' : '🟧 Std';
+
+      html += `<div class="binome ${packed ? 'done' : ''}">`;
+      html += `<div class="b-head">`;
+      html += `<div class="b-names"><strong>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</strong>${abs ? ' <span class="badge-abs">🚫 ABSENT</span>' : ''}${d.statut_paiement === 'en_attente' ? ' <span class="badge-attente">⏳ paiement attendu</span>' : ''}<span class="child">+ ${(d.co1_prenom||'').trim()} ${(d.co1_nom||'').trim()} (${enfAge})</span></div>`;
+      html += `<div class="b-meta"><span>V${d.vague} ${heurePrevue}</span><span>${fmt}</span></div>`;
+      html += `</div>`;
+
+      html += `<div class="tshirts">`;
+      html += `<div class="tshirt-card parent"><div class="tshirt-label">👤 Parent</div><div class="tshirt-size">${parentT}</div><div class="tshirt-coupe">${parentCoupe}</div></div>`;
+      html += `<div class="tshirt-card enfant"><div class="tshirt-label">👧 Enfant</div><div class="tshirt-size">${enfT}</div><div class="tshirt-coupe">&nbsp;</div></div>`;
+      html += `</div>`;
+
+      if (packed) {
+        const ts = new Date(d.nom_equipe);
+        html += `<div class="pack-done"><span>✅ Pack remis à ${fmtHeure(ts.toISOString())}</span><button class="btn-undo" onclick="undoPack(${d.id})">↺ Annuler</button></div>`;
+      } else {
+        html += `<button class="btn-pack" onclick="givePack(${d.id})">✅ PACK CADEAU REMIS</button>`;
+      }
+      html += `</div>`;
+    });
+    document.getElementById('content').innerHTML = html;
+  }
+
+  async function givePack(id) {
+    if (!confirm('Confirmer la remise du pack cadeau ?')) return;
+    const now = new Date().toISOString();
+    await db.from('Inscriptions').update({nom_equipe: now}).eq('id', id);
+    await load();
+  }
+
+  async function undoPack(id) {
+    if (!confirm('Annuler la remise du pack ?')) return;
+    await db.from('Inscriptions').update({nom_equipe: ''}).eq('id', id);
+    await load();
+  }
+</script>
+</body>
+</html>
