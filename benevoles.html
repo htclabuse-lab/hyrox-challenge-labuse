@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🙌 Bénévoles — Hyrox Challenge La Buse</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 600px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #C0392B, #FFEE00); padding: 24px; border-radius: 14px; margin-bottom: 1rem; text-align: center; }
+    .header h1 { color: #0a0a0a; font-size: 24px; font-weight: 900; }
+    .header .sub { color: #0a0a0a; font-size: 14px; margin-top: 4px; font-weight: 600; }
+    .intro { background: #1a1a1a; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; font-size: 14px; line-height: 1.6; color: #ccc; }
+    .intro strong { color: #FFEE00; }
+    .card { background: #1a1a1a; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+    .section-title { font-size: 12px; color: #FFEE00; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; font-weight: 700; }
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 15px; }
+    .field input:focus { border-color: #FFEE00; outline: none; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .toggle-row { display: flex; gap: 8px; }
+    .toggle-btn { flex: 1; padding: 12px; border-radius: 8px; border: 1.5px solid #444; background: #0a0a0a; color: #888; font-size: 14px; cursor: pointer; font-family: sans-serif; font-weight: 600; }
+    .toggle-btn.selected { border-color: #FFEE00; background: #1a1a0a; color: #FFEE00; }
+    .size-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+    .size-btn { padding: 10px 4px; border-radius: 6px; border: 1.5px solid #444; background: #0a0a0a; color: #888; font-size: 13px; cursor: pointer; font-family: sans-serif; font-weight: 700; }
+    .size-btn.selected { border-color: #FFEE00; background: #1a1a0a; color: #FFEE00; }
+    .checkboxes label { display: block; padding: 14px; border: 1.5px solid #333; border-radius: 10px; margin-bottom: 8px; cursor: pointer; font-size: 14px; color: #ddd; }
+    .checkboxes label:has(input:checked) { border-color: #FFEE00; background: #1a1a0a; color: #FFEE00; }
+    .checkboxes input { margin-right: 10px; width: 18px; height: 18px; accent-color: #FFEE00; vertical-align: middle; }
+    .checkboxes .hint { display: block; font-size: 11px; color: #888; margin-top: 4px; margin-left: 28px; font-weight: 400; }
+    .meal-section { background: #1a1400; border: 1px solid #FFEE00; border-radius: 10px; padding: 14px; margin-top: 12px; display: none; }
+    .meal-section.visible { display: block; }
+    .meal-section .meal-title { font-size: 12px; color: #FFEE00; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; font-weight: 700; }
+    .meal-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .meal-btn { padding: 14px 6px; border-radius: 8px; border: 1.5px solid #444; background: #0a0a0a; color: #888; font-size: 12px; cursor: pointer; font-family: sans-serif; font-weight: 700; text-align: center; }
+    .meal-btn .emoji { display: block; font-size: 24px; margin-bottom: 4px; }
+    .meal-btn.selected { border-color: #FFEE00; background: #1a1a0a; color: #FFEE00; }
+    .btn-submit { width: 100%; padding: 16px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 1px; margin-top: 1rem; }
+    .btn-submit:hover { background: #e6d800; }
+    .btn-submit:disabled { background: #444; color: #888; cursor: wait; }
+    .error { color: #C0392B; font-size: 13px; margin-top: 10px; text-align: center; font-weight: 600; }
+    .success { background: linear-gradient(135deg, #1B7B49, #4caf50); border-radius: 14px; padding: 2rem; text-align: center; color: #fff; }
+    .success-icon { font-size: 64px; margin-bottom: 12px; }
+    .success h2 { font-size: 22px; margin-bottom: 10px; }
+    .success p { font-size: 14px; line-height: 1.6; opacity: 0.95; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>🙌 Devenir bénévole</h1>
+    <div class="sub">Hyrox Challenge La Buse — Dimanche 12 juillet 2026</div>
+  </div>
+
+  <div class="intro">
+    Tu veux nous donner un <strong>coup de main</strong> pour l'organisation ? 💪<br>
+    Remplis ce formulaire et on te recontacte pour caler les détails (mission, planning précis…). Pour ceux qui restent la journée, <strong>le repas est offert</strong> ! 🍽
+  </div>
+
+  <div id="form-block">
+    <div class="card">
+      <div class="section-title">👤 Tes infos</div>
+      <div class="grid2">
+        <div class="field"><label>Prénom *</label><input type="text" id="prenom" placeholder="Léa"></div>
+        <div class="field"><label>Nom *</label><input type="text" id="nom" placeholder="DURAND"></div>
+      </div>
+      <div class="field"><label>Email *</label><input type="email" id="email" placeholder="ex@email.com"></div>
+      <div class="field"><label>Téléphone *</label><input type="tel" id="tel" placeholder="0692 …"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">👕 Ton t-shirt bénévole</div>
+      <div class="field">
+        <label>Coupe</label>
+        <div class="toggle-row">
+          <button type="button" class="toggle-btn" data-coupe="Femme" onclick="setCoupe('Femme')">👩 Femme</button>
+          <button type="button" class="toggle-btn" data-coupe="Homme" onclick="setCoupe('Homme')">👨 Homme</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Taille</label>
+        <div class="size-grid">
+          <button type="button" class="size-btn" data-taille="XS" onclick="setTaille('XS')">XS</button>
+          <button type="button" class="size-btn" data-taille="S" onclick="setTaille('S')">S</button>
+          <button type="button" class="size-btn" data-taille="M" onclick="setTaille('M')">M</button>
+          <button type="button" class="size-btn" data-taille="L" onclick="setTaille('L')">L</button>
+          <button type="button" class="size-btn" data-taille="XL" onclick="setTaille('XL')">XL</button>
+          <button type="button" class="size-btn" data-taille="XXL" onclick="setTaille('XXL')">XXL</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">📅 Tes disponibilités</div>
+      <div style="font-size:12px;color:#888;margin-bottom:10px;">Coche toutes les plages où tu peux nous aider :</div>
+      <div class="checkboxes">
+        <label>
+          <input type="checkbox" value="veille" onchange="updateMeal()">🛠️ <strong>Veille</strong> — mise en place
+          <span class="hint">Samedi 11 juillet</span>
+        </label>
+        <label>
+          <input type="checkbox" value="matin" onchange="updateMeal()">🌅 <strong>Matin</strong> du dimanche 12
+          <span class="hint">7h30 – 13h</span>
+        </label>
+        <label>
+          <input type="checkbox" value="aprem" onchange="updateMeal()">🌇 <strong>Après-midi</strong> du dimanche 12
+          <span class="hint">13h – 18h</span>
+        </label>
+        <label>
+          <input type="checkbox" value="journee" onchange="updateMeal()">☀️ <strong>Journée entière</strong> du dimanche 12
+          <span class="hint">7h30 – 18h · <strong style="color:#FFEE00;">🍽 repas offert</strong></span>
+        </label>
+      </div>
+      <div class="meal-section" id="meal-section">
+        <div class="meal-title">🍽 Ton choix de repas</div>
+        <div class="meal-grid">
+          <button type="button" class="meal-btn" data-meal="poisson" onclick="setMeal('poisson')"><span class="emoji">🐟</span>Poisson</button>
+          <button type="button" class="meal-btn" data-meal="poulet" onclick="setMeal('poulet')"><span class="emoji">🍗</span>Poulet</button>
+          <button type="button" class="meal-btn" data-meal="vege" onclick="setMeal('vege')"><span class="emoji">🥗</span>Végé</button>
+        </div>
+      </div>
+    </div>
+
+    <button type="button" class="btn-submit" id="btn" onclick="submit()">🙌 Je m'inscris bénévole</button>
+    <div class="error" id="err"></div>
+  </div>
+
+  <div id="success-block" class="success" style="display:none;">
+    <div class="success-icon">🎉</div>
+    <h2>Inscription enregistrée !</h2>
+    <p>Merci beaucoup pour ton aide 💛<br>On te recontacte rapidement pour caler les détails.</p>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let state = { coupe: '', taille: '', meal: '' };
+
+  function setCoupe(c) {
+    state.coupe = c;
+    document.querySelectorAll('[data-coupe]').forEach(b => b.classList.toggle('selected', b.dataset.coupe === c));
+  }
+  function setTaille(t) {
+    state.taille = t;
+    document.querySelectorAll('[data-taille]').forEach(b => b.classList.toggle('selected', b.dataset.taille === t));
+  }
+  function setMeal(m) {
+    state.meal = m;
+    document.querySelectorAll('[data-meal]').forEach(b => b.classList.toggle('selected', b.dataset.meal === m));
+  }
+
+  function getDispos() {
+    return Array.from(document.querySelectorAll('.checkboxes input:checked')).map(c => c.value);
+  }
+
+  function updateMeal() {
+    const dispos = getDispos();
+    // Repas offert si "journée" OU si à la fois matin + après-midi
+    const eligible = dispos.includes('journee') || (dispos.includes('matin') && dispos.includes('aprem'));
+    document.getElementById('meal-section').classList.toggle('visible', eligible);
+    if (!eligible) {
+      state.meal = '';
+      document.querySelectorAll('[data-meal]').forEach(b => b.classList.remove('selected'));
+    }
+  }
+
+  function val(id) { return document.getElementById(id).value.trim(); }
+  function err(msg) { document.getElementById('err').textContent = msg; }
+
+  async function submit() {
+    const prenom = val('prenom');
+    const nom = val('nom');
+    const email = val('email');
+    const tel = val('tel');
+    const dispos = getDispos();
+
+    if (!prenom || !nom || !email || !tel) return err('Tous les champs marqués * sont requis.');
+    if (!email.includes('@')) return err('Email invalide.');
+    if (!state.coupe || !state.taille) return err('Choisis la coupe et la taille du t-shirt.');
+    if (dispos.length === 0) return err('Coche au moins une disponibilité.');
+    const eligible = dispos.includes('journee') || (dispos.includes('matin') && dispos.includes('aprem'));
+    if (eligible && !state.meal) return err('Choisis ton repas (poisson, poulet ou végé).');
+
+    document.getElementById('btn').disabled = true;
+    document.getElementById('btn').textContent = 'Envoi…';
+
+    const { error } = await db.from('Benevoles').insert({
+      nom: nom.toUpperCase(),
+      prenom: prenom,
+      email: email,
+      telephone: tel,
+      tshirt_coupe: state.coupe,
+      tshirt_taille: state.taille,
+      disponibilites: dispos.join(','),
+      repas: state.meal || null,
+    });
+
+    if (error) {
+      err('Erreur : ' + error.message);
+      document.getElementById('btn').disabled = false;
+      document.getElementById('btn').textContent = '🙌 Je m\'inscris bénévole';
+      return;
+    }
+    document.getElementById('form-block').style.display = 'none';
+    document.getElementById('success-block').style.display = 'block';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+</script>
+</body>
+</html>
