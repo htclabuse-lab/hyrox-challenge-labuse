@@ -83,6 +83,7 @@
       <button type="button" class="main-tab" onclick="showMainTab('inventaire', this)">🏆 Trophées & Patchs</button>
       <button type="button" class="main-tab" onclick="showMainTab('parent-enfant', this)">👨‍👧 Parent-Enfant</button>
       <button type="button" class="main-tab" onclick="showMainTab('benevoles', this)">🙌 Bénévoles</button>
+      <button type="button" class="main-tab" onclick="showMainTab('kids', this)">🧒 Pré-inscriptions Kids</button>
     </div>
 
     <!-- ONGLET ORDRE D'INSCRIPTION -->
@@ -155,6 +156,11 @@
     <!-- ONGLET BÉNÉVOLES -->
     <div class="tab-content" id="tab-benevoles">
       <div id="benevoles-content"></div>
+    </div>
+
+    <!-- ONGLET PRÉ-INSCRIPTIONS KIDS -->
+    <div class="tab-content" id="tab-kids">
+      <div id="kids-content"></div>
     </div>
 
   </div>
@@ -246,10 +252,14 @@
     document.getElementById('pwd').value = '';
   }
 
+  var allKids = [];
   async function loadData() {
     var { data, error } = await db.from('Inscriptions').select('*').order('created_at', { ascending: false });
     if (error) { console.error(error); return; }
-    allData = data || [];
+    var all = data || [];
+    // Sépare les pré-inscriptions Hyrox Kids des autres inscriptions
+    allKids = all.filter(function(d){ return d.categorie === 'Hyrox Kids Pré-inscription'; });
+    allData = all.filter(function(d){ return d.categorie !== 'Hyrox Kids Pré-inscription'; });
     renderStats();
     renderInscription();
     renderCategories();
@@ -257,7 +267,57 @@
     renderTshirts();
     renderInventaire();
     renderParentEnfant();
+    renderKids();
     loadBenevoles();
+  }
+
+  function renderKids() {
+    var list = allKids;
+    var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + list.length + '</strong> pré-inscription(s) au cours Hyrox Kids — démarrage 1er septembre 2026</div>';
+
+    // Stats par créneau (stocké dans nom_equipe en CSV)
+    var CRENEAUX = ['Mercredi 6-9 ans','Mercredi 10-14 ans','Samedi 6-9 ans','Samedi 10-14 ans'];
+    var nbByCreneau = {};
+    CRENEAUX.forEach(function(c){ nbByCreneau[c] = 0; });
+    list.forEach(function(d) {
+      (d.nom_equipe||'').split(',').map(function(s){return s.trim();}).forEach(function(c) {
+        if (nbByCreneau[c] !== undefined) nbByCreneau[c]++;
+      });
+    });
+
+    html += '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:15px;">📅 Préférences de créneau</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:1rem;">';
+    CRENEAUX.forEach(function(c) {
+      html += '<div style="background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#FFEE00;">' + nbByCreneau[c] + '</div><div style="font-size:11px;color:#888;margin-top:2px;">' + c + '</div></div>';
+    });
+    html += '</div>';
+
+    html += '<div style="font-weight:800;color:#FFEE00;margin:1rem 0 0.5rem;font-size:15px;">📋 Liste détaillée</div>';
+    if (list.length === 0) {
+      html += '<div style="color:#666;padding:2rem;text-align:center;background:#1a1a1a;border-radius:10px;">Aucune pré-inscription pour le moment</div>';
+    } else {
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Enfant</th><th>Âge</th><th>Responsable légal</th><th>Email</th><th>Téléphone</th><th>Créneaux préférés</th><th>Date</th></tr></thead><tbody>';
+      list.forEach(function(d, i) {
+        var date = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
+        var enfDob = d.co1_date_naissance;
+        var age = enfDob ? (new Date().getFullYear() - parseInt(enfDob.split('-')[0])) + ' ans' : '—';
+        var creneauxBadges = (d.nom_equipe||'').split(',').filter(Boolean).map(function(c) {
+          return '<span style="background:#0d1400;color:#FFEE00;padding:2px 6px;border-radius:4px;font-size:11px;margin-right:3px;display:inline-block;margin-bottom:2px;">' + c.trim() + '</span>';
+        }).join('');
+        html += '<tr>';
+        html += '<td style="color:#666;">' + (i+1) + '</td>';
+        html += '<td><strong style="color:#fff;">' + (d.co1_prenom||'').trim() + ' ' + (d.co1_nom||'').trim() + '</strong><br><span style="font-size:11px;color:#888;">' + (enfDob||'—') + '</span></td>';
+        html += '<td style="color:#FFEE00;font-weight:700;">' + age + '</td>';
+        html += '<td>' + (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong></td>';
+        html += '<td style="font-size:12px;">' + (d.email||'—') + '</td>';
+        html += '<td style="font-size:12px;">' + (d.telephone||'—') + '</td>';
+        html += '<td>' + (creneauxBadges||'—') + '</td>';
+        html += '<td style="font-size:12px;">' + date + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+    document.getElementById('kids-content').innerHTML = html;
   }
 
   var allBenevoles = [];
