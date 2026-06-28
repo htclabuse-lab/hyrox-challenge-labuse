@@ -317,6 +317,13 @@
           <span class="format-tag">73 binômes</span>
         </div>
         <p style="color:#ccc;font-size:14px;line-height:1.5;margin:0 0 12px;">Première édition Parent-Enfant : 7 stations adaptées + 200 m (ou 400 m XL) de course entre chaque. Un grand merci à tous les binômes qui ont partagé ce moment ! 🙌</p>
+        <div class="actions-grid">
+          <button type="button" class="action-btn" onclick="toggleSection('photos-pe',this)">📸 Photos</button>
+        </div>
+        <div class="sub-section" id="photos-pe">
+          <div class="sub-title">📸 Photos — 27 juin 2026</div>
+          <p style="font-size:13px;color:#888;">Photos à venir prochainement.</p>
+        </div>
       </div>
     </div>
 
@@ -446,7 +453,7 @@ function showTab(tab) {
 }
 
 function toggleSection(id, btn) {
-  var sections = ['lb-passe', 'planning-passe', 'photos-passe', 'planning-avenir', 'rulebook-avenir', 'lb-avenir', 'photos-avenir'];
+  var sections = ['lb-passe', 'planning-passe', 'photos-passe', 'photos-pe', 'planning-avenir', 'rulebook-avenir', 'lb-avenir', 'photos-avenir'];
   sections.forEach(function(s) {
     var el = document.getElementById(s);
     if (el && s !== id) {
