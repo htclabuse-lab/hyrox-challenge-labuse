@@ -82,6 +82,7 @@
       <button type="button" class="main-tab" onclick="showMainTab('tshirts', this)">👕 T-shirts</button>
       <button type="button" class="main-tab" onclick="showMainTab('inventaire', this)">🏆 Trophées & Patchs</button>
       <button type="button" class="main-tab" onclick="showMainTab('parent-enfant', this)">👨‍👧 Parent-Enfant</button>
+      <button type="button" class="main-tab" onclick="showMainTab('benevoles', this)">🙌 Bénévoles</button>
     </div>
 
     <!-- ONGLET ORDRE D'INSCRIPTION -->
@@ -149,6 +150,11 @@
     <div class="tab-content" id="tab-parent-enfant">
       <div id="pe-list"></div>
       <div id="pe-tshirts"></div>
+    </div>
+
+    <!-- ONGLET BÉNÉVOLES -->
+    <div class="tab-content" id="tab-benevoles">
+      <div id="benevoles-content"></div>
     </div>
 
   </div>
@@ -251,6 +257,100 @@
     renderTshirts();
     renderInventaire();
     renderParentEnfant();
+    loadBenevoles();
+  }
+
+  var allBenevoles = [];
+  async function loadBenevoles() {
+    var r = await db.from('Benevoles').select('*').order('created_at', {ascending: true});
+    allBenevoles = r.data || [];
+    renderBenevoles();
+  }
+
+  function renderBenevoles() {
+    var list = allBenevoles;
+    var DISPO_LABELS = {veille:'🛠️ Veille (sam 11/07)', matin:'🌅 Matin (7h30-13h)', aprem:'🌇 Après-midi (13h-18h)', journee:'☀️ Journée (7h30-18h)'};
+    var REPAS_LABELS = {poisson:'🐟 Poisson', poulet:'🍗 Poulet', vege:'🥗 Végé'};
+
+    // Stats
+    var nbTotal = list.length;
+    var nbByDispo = {veille:0, matin:0, aprem:0, journee:0};
+    var nbByRepas = {poisson:0, poulet:0, vege:0};
+    list.forEach(function(b) {
+      (b.disponibilites||'').split(',').forEach(function(d){ if (nbByDispo[d] !== undefined) nbByDispo[d]++; });
+      if (b.repas && nbByRepas[b.repas] !== undefined) nbByRepas[b.repas]++;
+    });
+    // T-shirts
+    var tshirts = {};
+    list.forEach(function(b) {
+      if (b.tshirt_taille && b.tshirt_coupe) {
+        var key = b.tshirt_taille + ' ' + b.tshirt_coupe;
+        tshirts[key] = (tshirts[key]||0) + 1;
+      }
+    });
+
+    var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + nbTotal + '</strong> bénévole(s) inscrit(s) pour le 12 juillet 2026</div>';
+
+    // Stats card
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:1rem;">';
+    Object.keys(DISPO_LABELS).forEach(function(k) {
+      html += '<div style="background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#FFEE00;">' + nbByDispo[k] + '</div><div style="font-size:11px;color:#888;margin-top:2px;">' + DISPO_LABELS[k] + '</div></div>';
+    });
+    html += '</div>';
+
+    // Repas
+    var totalRepas = nbByRepas.poisson + nbByRepas.poulet + nbByRepas.vege;
+    if (totalRepas > 0) {
+      html += '<div style="font-weight:800;color:#FFEE00;margin:1rem 0 0.5rem;font-size:15px;">🍽 Repas commandés (' + totalRepas + ')</div>';
+      html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem;">';
+      Object.keys(REPAS_LABELS).forEach(function(k) {
+        html += '<div style="background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#FFEE00;">' + nbByRepas[k] + '</div><div style="font-size:11px;color:#888;margin-top:2px;">' + REPAS_LABELS[k] + '</div></div>';
+      });
+      html += '</div>';
+    }
+
+    // T-shirts
+    if (Object.keys(tshirts).length > 0) {
+      html += '<div style="font-weight:800;color:#FFEE00;margin:1rem 0 0.5rem;font-size:15px;">👕 T-shirts</div>';
+      var order = ['XS','S','M','L','XL','XXL'];
+      var femme = Object.keys(tshirts).filter(function(k){return k.includes('Femme');}).sort(function(a,b){return order.indexOf(a.split(' ')[0])-order.indexOf(b.split(' ')[0]);});
+      var homme = Object.keys(tshirts).filter(function(k){return k.includes('Homme');}).sort(function(a,b){return order.indexOf(a.split(' ')[0])-order.indexOf(b.split(' ')[0]);});
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">';
+      html += '<div style="background:#1a1a1a;border-radius:10px;padding:12px;"><div style="font-size:12px;color:#888;margin-bottom:8px;">👩 Femme</div>';
+      femme.forEach(function(k){ html += '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>' + k + '</span><strong style="color:#FFEE00;">' + tshirts[k] + '</strong></div>'; });
+      html += '</div>';
+      html += '<div style="background:#1a1a1a;border-radius:10px;padding:12px;"><div style="font-size:12px;color:#888;margin-bottom:8px;">👨 Homme</div>';
+      homme.forEach(function(k){ html += '<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;"><span>' + k + '</span><strong style="color:#FFEE00;">' + tshirts[k] + '</strong></div>'; });
+      html += '</div></div>';
+    }
+
+    // Liste détaillée
+    html += '<div style="font-weight:800;color:#FFEE00;margin:1rem 0 0.5rem;font-size:15px;">📋 Liste détaillée</div>';
+    if (list.length === 0) {
+      html += '<div style="color:#666;padding:2rem;text-align:center;background:#1a1a1a;border-radius:10px;">Aucun bénévole inscrit pour le moment</div>';
+    } else {
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Prénom</th><th>Nom</th><th>Email</th><th>Téléphone</th><th>T-shirt</th><th>Disponibilités</th><th>Repas</th><th>Date</th></tr></thead><tbody>';
+      list.forEach(function(b, i) {
+        var date = b.created_at ? new Date(b.created_at).toLocaleDateString('fr-FR') : '—';
+        var ts = (b.tshirt_taille && b.tshirt_coupe) ? (b.tshirt_taille + ' ' + b.tshirt_coupe) : '—';
+        var dispoBadges = (b.disponibilites||'').split(',').filter(Boolean).map(function(d){ return '<span style="background:#0d1400;color:#FFEE00;padding:2px 6px;border-radius:4px;font-size:11px;margin-right:3px;">' + (DISPO_LABELS[d]||d) + '</span>'; }).join('');
+        var repasBadge = b.repas ? '<span style="background:#1a1400;color:#FFEE00;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">' + (REPAS_LABELS[b.repas]||b.repas) + '</span>' : '<span style="color:#666;">—</span>';
+        html += '<tr>';
+        html += '<td style="color:#666;">' + (i+1) + '</td>';
+        html += '<td>' + (b.prenom||'—') + '</td>';
+        html += '<td><strong style="color:#fff;">' + (b.nom||'—') + '</strong></td>';
+        html += '<td style="font-size:12px;">' + (b.email||'—') + '</td>';
+        html += '<td style="font-size:12px;">' + (b.telephone||'—') + '</td>';
+        html += '<td>' + ts + '</td>';
+        html += '<td>' + (dispoBadges||'—') + '</td>';
+        html += '<td>' + repasBadge + '</td>';
+        html += '<td style="font-size:12px;">' + date + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+
+    document.getElementById('benevoles-content').innerHTML = html;
   }
 
   function renderStats() {
