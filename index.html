@@ -459,6 +459,24 @@ function showTab(tab) {
   window.scrollTo(0, 0);
 }
 
+// Deep-link via URL hash (#passes, #avenir, #epreuves, #accueil)
+(function() {
+  var hash = (window.location.hash || '').replace('#', '');
+  if (hash && ['accueil','epreuves','avenir','passes'].indexOf(hash) !== -1) {
+    showTab(hash);
+    // Auto-déplie la section photos PE si on arrive sur #passes
+    if (hash === 'passes') {
+      setTimeout(function() {
+        var photosPe = document.getElementById('photos-pe');
+        if (photosPe) {
+          photosPe.style.display = 'block';
+          photosPe.scrollIntoView({behavior: 'smooth', block: 'center'});
+        }
+      }, 200);
+    }
+  }
+})();
+
 function toggleSection(id, btn) {
   var sections = ['lb-passe', 'planning-passe', 'photos-passe', 'photos-pe', 'planning-avenir', 'rulebook-avenir', 'lb-avenir', 'photos-avenir'];
   sections.forEach(function(s) {
