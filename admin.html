@@ -554,27 +554,50 @@ function shortTemps(t) {
   }
 
   function renderPassage() {
-    var groups = getGroups();
-    var flat = [];
-    CAT_ORDER.forEach(function(key) {
-      if (groups[key] && groups[key].length > 0) {
-        flat = flat.concat(groups[key]);
-      }
+    // Nouvelle version : utilise les vagues + heure_depart stockées en DB (patch du 12 juillet)
+    // Filtre : uniquement Hyrox Challenge (pas Parent-Enfant, pas Kids, pas Bénévole)
+    var hcData = allData.filter(function(d) {
+      if (!d.vague || !d.heure_depart) return false;
+      if (isParentEnfant(d)) return false;
+      var c = (d.categorie||'').toLowerCase();
+      if (c.indexOf('bénévole') !== -1 || c.indexOf('kids') !== -1) return false;
+      // Uniquement les vagues du 12 juillet 2026
+      if (d.heure_depart.indexOf('2026-07-12') === -1) return false;
+      return true;
     });
+    if (hcData.length === 0) {
+      document.getElementById('passage-content').innerHTML = '<div style="color:#666;padding:2rem;text-align:center;">Aucune vague assignée pour le 12 juillet</div>';
+      return;
+    }
+    // Groupe par vague
+    var byVague = {};
+    hcData.forEach(function(d){ if (!byVague[d.vague]) byVague[d.vague] = []; byVague[d.vague].push(d); });
+    var vagueNums = Object.keys(byVague).map(Number).sort(function(a,b){return a-b;});
 
     var html = '';
-    var vagueNum = 1;
     var athleteNum = 1;
-    for (var i = 0; i < flat.length; i += 4) {
-      var groupe = flat.slice(i, i + 4);
+    var prevWeightGroup = null;
+    vagueNums.forEach(function(v) {
+      var groupe = byVague[v];
+      // Trie intra-vague : par ordre alphabetique nom pour cohérence
+      groupe.sort(function(a,b){ return (a.nom||'').localeCompare(b.nom||''); });
+      var hr = new Date(groupe[0].heure_depart).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', timeZone:'Indian/Reunion'});
       var catsInVague = [];
+      var weightGroup = 'H';
       groupe.forEach(function(d) {
         var key = getCatKey(d.categorie);
         if (catsInVague.indexOf(key) === -1) catsInVague.push(key);
+        if (key.indexOf('femme') !== -1) weightGroup = 'F';
       });
+      // Alerte changement de poids
+      if (prevWeightGroup !== null && weightGroup !== prevWeightGroup) {
+        html += '<div style="background:linear-gradient(90deg,#C0392B,#FFEE00);color:#0a0a0a;padding:14px;border-radius:12px;margin:14px 0;text-align:center;font-weight:900;font-size:14px;letter-spacing:1px;">🔴 CHANGEMENT DE POIDS ' + prevWeightGroup + ' → ' + weightGroup + ' — 11 min pour changer le setup 🔴</div>';
+      }
+      prevWeightGroup = weightGroup;
       var catsLabel = catsInVague.map(getCatLabel).join(' + ');
+      var wgLabel = weightGroup === 'H' ? '👨 Poids H' : '👩 Poids F';
       html += '<div class="vague-block" style="margin-bottom:8px;">';
-      html += '<div class="vague-header"><div class="vague-title">Vague ' + vagueNum + '</div><div class="vague-info">' + groupe.length + ' ath. — ' + catsLabel + '</div></div>';
+      html += '<div class="vague-header"><div class="vague-title">Vague ' + v + ' — ' + hr + '</div><div class="vague-info">' + groupe.length + ' ath. — ' + catsLabel + ' — ' + wgLabel + '</div></div>';
       groupe.forEach(function(d) {
         var key = getCatKey(d.categorie);
         var equipe = d.nom_equipe ? ' <span style="color:#888;font-weight:400;">— ' + d.nom_equipe + '</span>' : '';
@@ -589,8 +612,7 @@ function shortTemps(t) {
         athleteNum++;
       });
       html += '</div>';
-      vagueNum++;
-    }
+    });
 
     document.getElementById('passage-content').innerHTML = html || '<div style="color:#666;padding:2rem;text-align:center;">Aucun inscrit</div>';
   }
