@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Hyrox Challenge La Buse — 12 juillet 2026</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 960px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #C0392B, #FFEE00); padding: 20px; border-radius: 12px; margin-bottom: 1rem; text-align: center; color: #0a0a0a; }
+    .header h1 { font-size: 24px; font-weight: 900; letter-spacing: 1px; }
+    .header p { font-size: 13px; margin-top: 4px; font-weight: 600; }
+    .header .live-dot { display: inline-block; width: 10px; height: 10px; background: #C0392B; border-radius: 50%; margin-right: 6px; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+    .filters { background: #1a1a1a; border-radius: 12px; padding: 12px; margin-bottom: 14px; }
+    .filter-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+    .filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btns button { background: #0a0a0a; color: #888; border: 1px solid #333; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+    .filter-btns button.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; font-weight: 800; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+    .stat { background: #1a1a1a; border-radius: 10px; padding: 12px; text-align: center; }
+    .stat-n { font-size: 28px; font-weight: 800; font-family: monospace; }
+    .stat-l { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+    .stat-n.total { color: #FFEE00; }
+    .stat-n.done { color: #4caf50; }
+    .stat-n.running { color: #FFA726; }
+    .group { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+    .group-head { background: #0d0d0d; padding: 12px 16px; font-weight: 800; color: #FFEE00; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .group-head .count { font-size: 12px; color: #888; font-weight: 500; }
+    .athlete { padding: 10px 16px; border-bottom: 1px solid #2a2a2a; display: flex; align-items: center; gap: 12px; }
+    .athlete:last-child { border-bottom: none; }
+    .athlete.done { }
+    .athlete.running { background: #0a0a15; }
+    .rank { width: 40px; text-align: center; font-weight: 900; font-size: 18px; font-family: monospace; flex-shrink: 0; }
+    .rank.gold { color: #FFD700; font-size: 24px; }
+    .rank.silver { color: #C0C0C0; font-size: 22px; }
+    .rank.bronze { color: #CD7F32; font-size: 22px; }
+    .rank.other { color: #666; }
+    .rank.running { color: #FFA726; font-size: 14px; }
+    .info { flex: 1; min-width: 0; }
+    .info .name { color: #fff; font-weight: 700; font-size: 14px; }
+    .info .team { color: #888; font-size: 12px; margin-top: 2px; }
+    .info .dossard { display: inline-block; background: #FFEE00; color: #0a0a0a; padding: 1px 6px; border-radius: 3px; font-family: monospace; font-weight: 800; font-size: 11px; margin-right: 6px; }
+    .time-box { font-family: monospace; font-weight: 800; font-size: 18px; color: #4caf50; padding: 4px 10px; background: #0a3a0a; border-radius: 6px; flex-shrink: 0; }
+    .station-badge { background: #FFA726; color: #0a0a0a; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+    .pending-badge { background: #333; color: #888; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+    .last-refresh { text-align: center; color: #666; font-size: 11px; margin-top: 1rem; }
+    .empty { text-align: center; color: #666; padding: 2rem; font-size: 14px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1><span class="live-dot"></span>LIVE — Hyrox Challenge La Buse</h1>
+    <p>Dimanche 12 juillet 2026 · Crossfit La Buse, Saint-Paul</p>
+  </div>
+
+  <div class="filters">
+    <div class="filter-label">Catégorie</div>
+    <div class="filter-btns" id="cat-filters"></div>
+    <div class="filter-label" style="margin-top:12px;">Tranche d'âge</div>
+    <div class="filter-btns" id="age-filters">
+      <button class="active" data-age="all" onclick="setAgeFilter('all')">Toutes</button>
+      <button data-age="16-24" onclick="setAgeFilter('16-24')">16-24 ans</button>
+      <button data-age="25-34" onclick="setAgeFilter('25-34')">25-34 ans</button>
+      <button data-age="35-44" onclick="setAgeFilter('35-44')">35-44 ans</button>
+      <button data-age="45-54" onclick="setAgeFilter('45-54')">45-54 ans</button>
+      <button data-age="55+" onclick="setAgeFilter('55+')">55+ ans</button>
+    </div>
+  </div>
+
+  <div id="stats" class="stats"></div>
+  <div id="content"></div>
+  <div class="last-refresh" id="refresh-info">Chargement…</div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  const CATS = [
+    { key: 'all', label: 'Toutes' },
+    { key: 'Solo Homme RX', label: 'Solo H RX' },
+    { key: 'Solo Homme Scaled', label: 'Solo H SC' },
+    { key: 'Solo Femme RX', label: 'Solo F RX' },
+    { key: 'Solo Femme Scaled', label: 'Solo F SC' },
+    { key: 'Duo Homme RX', label: 'Duo H RX' },
+    { key: 'Duo Homme Scaled', label: 'Duo H SC' },
+    { key: 'Duo Femme RX', label: 'Duo F RX' },
+    { key: 'Duo Femme Scaled', label: 'Duo F SC' },
+    { key: 'Duo Mixte RX', label: 'Duo Mx RX' },
+    { key: 'Duo Mixte Scaled', label: 'Duo Mx SC' },
+  ];
+
+  let catFilter = 'all';
+  let ageFilter = 'all';
+  let inscriptions = [];
+  let pointages = [];
+
+  const catFiltersEl = document.getElementById('cat-filters');
+  CATS.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.textContent = c.label;
+    b.dataset.cat = c.key;
+    if (i === 0) b.classList.add('active');
+    b.onclick = () => setCatFilter(c.key);
+    catFiltersEl.appendChild(b);
+  });
+
+  function setCatFilter(k) {
+    catFilter = k;
+    document.querySelectorAll('#cat-filters button').forEach(b => b.classList.toggle('active', b.dataset.cat === k));
+    render();
+  }
+  function setAgeFilter(k) {
+    ageFilter = k;
+    document.querySelectorAll('#age-filters button').forEach(b => b.classList.toggle('active', b.dataset.age === k));
+    render();
+  }
+
+  function fmtTime(s) {
+    if (s == null || s < 0) return '—';
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    if (h > 0) return `${h}h${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  }
+
+  function getTranche(d) {
+    // Moyenne d'âge du binôme/équipe
+    const dobs = [d.date_naissance, d.co1_date_naissance, d.co2_date_naissance, d.co3_date_naissance].filter(Boolean);
+    if (dobs.length === 0) return '?';
+    const ages = dobs.map(dob => new Date().getFullYear() - parseInt(dob.split('-')[0]));
+    const moy = Math.round(ages.reduce((a,b)=>a+b,0) / ages.length);
+    if (moy <= 24) return '16-24';
+    if (moy <= 34) return '25-34';
+    if (moy <= 44) return '35-44';
+    if (moy <= 54) return '45-54';
+    return '55+';
+  }
+
+  function getMaxStation(inscrId) {
+    let max = 0;
+    for (const p of pointages) {
+      if (p.inscription_id === inscrId && p.station > max) max = p.station;
+    }
+    return max;
+  }
+
+  async function load() {
+    const [insR, pR] = await Promise.all([
+      db.from('Inscriptions')
+        .select('id,prenom,nom,date_naissance,categorie,nom_equipe,co1_prenom,co1_nom,co1_date_naissance,co2_prenom,co2_nom,co2_date_naissance,co3_prenom,co3_nom,co3_date_naissance,dossard,vague,heure_depart,heure_debut_reelle,temps_final_s')
+        .neq('categorie', 'Parent-Enfant')
+        .neq('categorie', 'Hyrox Kids Pré-inscription')
+        .neq('categorie', 'Bénévole')
+        .eq('statut_paiement', 'paye')
+        .gte('heure_depart', '2026-07-12')
+        .lt('heure_depart', '2026-07-13')
+        .order('dossard'),
+      db.from('Pointages')
+        .select('inscription_id,station,timestamp_pointage')
+        .order('timestamp_pointage', { ascending: true })
+    ]);
+    inscriptions = insR.data || [];
+    pointages = pR.data || [];
+    render();
+    document.getElementById('refresh-info').textContent = 'Dernière mise à jour : ' + new Date().toLocaleTimeString('fr-FR') + ' · rafraîchissement auto toutes les 20 s';
+  }
+  setInterval(load, 20000);
+  load();
+
+  function render() {
+    // Filtre catégorie + tranche
+    let list = inscriptions.slice();
+    if (catFilter !== 'all') list = list.filter(d => d.categorie === catFilter);
+    if (ageFilter !== 'all') list = list.filter(d => getTranche(d) === ageFilter);
+
+    // Stats
+    const total = list.length;
+    const done = list.filter(d => d.temps_final_s != null).length;
+    const running = list.filter(d => d.temps_final_s == null && d.heure_debut_reelle != null && getMaxStation(d.id) > 0 && getMaxStation(d.id) < 8).length;
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="stat-n total">${total}</div><div class="stat-l">Total</div></div>
+      <div class="stat"><div class="stat-n done">${done}</div><div class="stat-l">Terminés</div></div>
+      <div class="stat"><div class="stat-n running">${running}</div><div class="stat-l">En course</div></div>
+    `;
+
+    // Group by (catégorie, tranche)
+    const groups = {};
+    for (const d of list) {
+      const tr = getTranche(d);
+      const key = `${d.categorie} · ${tr} ans`;
+      if (!groups[key]) groups[key] = { cat: d.categorie, tranche: tr, items: [] };
+      groups[key].items.push(d);
+    }
+
+    // Sort groups by category order then tranche
+    const catOrder = CATS.map(c => c.key);
+    const trancheOrder = ['16-24','25-34','35-44','45-54','55+','?'];
+    const sortedKeys = Object.keys(groups).sort((a, b) => {
+      const ga = groups[a], gb = groups[b];
+      const ci = catOrder.indexOf(ga.cat) - catOrder.indexOf(gb.cat);
+      if (ci !== 0) return ci;
+      return trancheOrder.indexOf(ga.tranche) - trancheOrder.indexOf(gb.tranche);
+    });
+
+    let html = '';
+    if (sortedKeys.length === 0) {
+      html = '<div class="empty">Aucun athlète dans ce filtre</div>';
+    }
+    sortedKeys.forEach(k => {
+      const g = groups[k];
+      const items = g.items;
+      // Split finished vs running vs pending
+      const finished = items.filter(d => d.temps_final_s != null).sort((a,b) => a.temps_final_s - b.temps_final_s);
+      const running = items.filter(d => d.temps_final_s == null && d.heure_debut_reelle != null && getMaxStation(d.id) > 0 && getMaxStation(d.id) < 8);
+      const pending = items.filter(d => !finished.includes(d) && !running.includes(d));
+
+      const nbDone = finished.length;
+      html += `<div class="group">`;
+      html += `<div class="group-head"><span>🏆 ${k}</span><span class="count">${nbDone} terminé${nbDone>1?'s':''} / ${items.length}</span></div>`;
+
+      // Finished (podium)
+      finished.forEach((d, idx) => {
+        const rank = idx + 1;
+        const rankClass = rank === 1 ? 'gold' : rank === 2 ? 'silver' : rank === 3 ? 'bronze' : 'other';
+        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
+        html += `<div class="athlete done">`;
+        html += `<div class="rank ${rankClass}">${medal}</div>`;
+        html += `<div class="info"><div class="name"><span class="dossard">${d.dossard}</span>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}</div>`;
+        html += `<div class="time-box">${fmtTime(d.temps_final_s)}</div>`;
+        html += `</div>`;
+      });
+
+      // Running
+      running.forEach(d => {
+        const st = getMaxStation(d.id);
+        html += `<div class="athlete running">`;
+        html += `<div class="rank running">🏃</div>`;
+        html += `<div class="info"><div class="name"><span class="dossard">${d.dossard}</span>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}</div>`;
+        html += `<div class="station-badge">Station ${st}</div>`;
+        html += `</div>`;
+      });
+
+      // Pending (not started or not yet at station 1)
+      pending.forEach(d => {
+        html += `<div class="athlete">`;
+        html += `<div class="rank other">–</div>`;
+        html += `<div class="info"><div class="name"><span class="dossard">${d.dossard}</span>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}</div>`;
+        html += `<div class="pending-badge">V${d.vague} · ${new Date(d.heure_depart).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', timeZone:'Indian/Reunion'})}</div>`;
+        html += `</div>`;
+      });
+
+      html += `</div>`;
+    });
+    document.getElementById('content').innerHTML = html;
+  }
+</script>
+</body>
+</html>
