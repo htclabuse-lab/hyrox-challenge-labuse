@@ -21,11 +21,12 @@ export default async function handler(req, res) {
 
     const heureDepart = new Date().toISOString();
 
+    // Écrit dans heure_debut_reelle (nouvelle colonne) pour ne pas écraser l'heure prévue (heure_depart)
     const { data, error } = await supabase
       .from('Inscriptions')
-      .update({ heure_depart: heureDepart })
+      .update({ heure_debut_reelle: heureDepart })
       .eq('vague', vague)
-      .is('heure_depart', null)
+      .is('heure_debut_reelle', null)
       .select('id');
 
     if (error) {
@@ -36,10 +37,10 @@ export default async function handler(req, res) {
     const athletes_updated = data ? data.length : 0;
 
     if (athletes_updated === 0) {
-      return res.status(409).json({ error: 'Vague déjà démarrée ou aucun athlète en attente sur cette vague' });
+      return res.status(409).json({ error: 'Vague déjà démarrée ou aucun athlète sur cette vague' });
     }
 
-    return res.status(200).json({ success: true, athletes_updated, heure_depart: heureDepart });
+    return res.status(200).json({ success: true, athletes_updated, heure_debut_reelle: heureDepart });
   } catch (err) {
     console.error('Erreur juge-demarrer-vague:', err);
     return res.status(500).json({ error: 'Erreur serveur' });

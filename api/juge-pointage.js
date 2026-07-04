@@ -61,7 +61,26 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Erreur base de données' });
     }
 
-    return res.status(200).json({ success: true, pointage: data });
+    // Si c'est la station 8 → déclenche juge-finish (calcul temps + mail bravo)
+    let finish = null;
+    if (station === 8) {
+      try {
+        const proto = req.headers['x-forwarded-proto'] || 'https';
+        const host = req.headers['x-forwarded-host'] || req.headers.host;
+        const finishUrl = `${proto}://${host}/api/juge-finish`;
+        const r = await fetch(finishUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password, inscription_id }),
+        });
+        finish = await r.json().catch(() => ({}));
+      } catch (e) {
+        console.error('Erreur trigger juge-finish:', e);
+        finish = { error: 'trigger_failed' };
+      }
+    }
+
+    return res.status(200).json({ success: true, pointage: data, finish });
   } catch (err) {
     console.error('Erreur juge-pointage:', err);
     return res.status(500).json({ error: 'Erreur serveur' });
