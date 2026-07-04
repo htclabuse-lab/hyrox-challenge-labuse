@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Codes Public — Hyrox Challenge La Buse</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fff; color: #1a1a1a; font-family: sans-serif; padding: 1.5rem; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    .hero { background: linear-gradient(135deg, #C0392B, #FFEE00); padding: 24px; border-radius: 14px; text-align: center; color: #0a0a0a; margin-bottom: 1.5rem; }
+    .hero h1 { font-size: 26px; font-weight: 900; letter-spacing: 1px; }
+    .hero p { font-size: 14px; margin-top: 6px; font-weight: 600; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 1.5rem; }
+    .card { background: #fff; border: 3px solid #1a1a1a; border-radius: 14px; padding: 1.25rem; text-align: center; page-break-inside: avoid; }
+    .card.live { border-color: #C0392B; background: linear-gradient(180deg, #fff, #fff5ee); }
+    .card.site { border-color: #FFEE00; background: linear-gradient(180deg, #fff, #fffbe6); }
+    .card.essai { border-color: #1B7B49; background: linear-gradient(180deg, #fff, #f0f8f3); }
+    .card-icon { font-size: 42px; margin-bottom: 6px; }
+    .card-title { font-size: 17px; font-weight: 900; margin-bottom: 6px; letter-spacing: 0.5px; }
+    .card.live .card-title { color: #C0392B; }
+    .card.site .card-title { color: #b09600; }
+    .card.essai .card-title { color: #1B7B49; }
+    .card-desc { font-size: 13px; color: #555; margin-bottom: 14px; line-height: 1.5; min-height: 60px; }
+    .card img { display: block; width: 100%; max-width: 220px; height: auto; margin: 0 auto 10px; border: 1px solid #eee; }
+    .card-cta { font-weight: 800; font-size: 13px; padding: 8px 12px; border-radius: 6px; display: inline-block; }
+    .card.live .card-cta { background: #C0392B; color: #fff; }
+    .card.site .card-cta { background: #FFEE00; color: #0a0a0a; }
+    .card.essai .card-cta { background: #1B7B49; color: #fff; }
+    .footer { text-align: center; font-size: 13px; color: #555; line-height: 1.7; margin-top: 1rem; padding: 1rem; background: #f5f5f5; border-radius: 10px; }
+    .footer strong { color: #C0392B; }
+    .print-btn { display: block; margin: 0 auto 1rem; background: #1B7B49; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    @media print {
+      .print-btn { display: none; }
+      body { padding: 0.5cm; }
+      .card { border-width: 3px; }
+    }
+    @media (max-width: 750px) { .grid { grid-template-columns: 1fr; } .card-desc { min-height: auto; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <button class="print-btn" onclick="window.print()">🖨️ Imprimer</button>
+
+  <div class="hero">
+    <h1>🏁 Hyrox Challenge La Buse</h1>
+    <p>Merci d'être avec nous ! Scanne pour retrouver tes résultats, découvrir la salle et t'inscrire à un cours d'essai 💪</p>
+  </div>
+
+  <div class="grid">
+    <div class="card live">
+      <div class="card-icon">📱</div>
+      <div class="card-title">Live des courses</div>
+      <div class="card-desc">Suis tes potes en direct : classements, temps, position sur le parcours.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Flive.html" alt="QR Live">
+      <div class="card-cta">📱 Live</div>
+    </div>
+
+    <div class="card site">
+      <div class="card-icon">🏆</div>
+      <div class="card-title">Tes résultats</div>
+      <div class="card-desc">Retrouve tes résultats et ceux des anciennes courses sur notre site.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fresultats.html" alt="QR Résultats">
+      <div class="card-cta">🏆 Résultats</div>
+    </div>
+
+    <div class="card essai">
+      <div class="card-icon">💪</div>
+      <div class="card-title">Séance d'essai</div>
+      <div class="card-desc">RÉSERVE TA SÉANCE D'ESSAI AU HYROX TRAINING CLUB LA BUSE — première séance offerte !</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fwodz.app%2Fform%2Fcontact%2Fcrossfit-la-buse-tester-crossfit-la-buse-2" alt="QR Séance d'essai">
+      <div class="card-cta">💪 Réserve</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <strong>Crossfit La Buse — Saint-Paul, La Réunion</strong><br>
+    Ces QR codes sont aussi à retrouver sur les écrans de l'événement 📱
+  </div>
+</div>
+</body>
+</html>

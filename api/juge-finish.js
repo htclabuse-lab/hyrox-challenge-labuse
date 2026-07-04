@@ -178,7 +178,28 @@ ${penaltiesLine}
 <table style="width:100%;border-collapse:collapse;">${segmentsHtml}</table>
 </div>
 
-<p style="font-size:14px;">Le classement final avec ton rang sera dispo sur notre site dans quelques heures.</p>
+<div style="background:#f0f8f3;border:2px solid #1B7B49;border-radius:12px;padding:16px;margin:20px 0;">
+<div style="font-size:13px;color:#1B7B49;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center;">📱 À découvrir</div>
+<table cellpadding="0" cellspacing="0" border="0" style="width:100%;">
+<tr><td style="padding:6px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="background:#C0392B;border-radius:8px;"><a href="https://hyrox-challenge-labuse.vercel.app/live.html" style="display:inline-block;padding:12px 20px;color:#fff;text-decoration:none;font-weight:800;font-size:14px;">🏆 Voir le classement live</a></td></tr></table></td></tr>
+<tr><td style="padding:6px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="background:#FFEE00;border-radius:8px;"><a href="https://hyrox-challenge-labuse.vercel.app/resultats.html" style="display:inline-block;padding:12px 20px;color:#0a0a0a;text-decoration:none;font-weight:800;font-size:14px;">📊 Retrouver mes résultats</a></td></tr></table></td></tr>
+</table>
+</div>
+
+<div style="background:#1a1a1a;color:#fff;border-radius:12px;padding:20px;margin:18px 0;text-align:center;">
+<div style="font-size:12px;color:#FFEE00;text-transform:uppercase;letter-spacing:2px;font-weight:800;margin-bottom:6px;">✨ Tu as aimé ? ✨</div>
+<div style="font-size:18px;font-weight:900;margin-bottom:12px;">Continue avec le HYROX Training Club La Buse !</div>
+<p style="font-size:13px;color:#ccc;line-height:1.6;margin-bottom:14px;">Réserve ta <strong style="color:#FFEE00;">séance d'essai gratuite</strong> et découvre notre salle et nos coachs.</p>
+<table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="background:#1B7B49;border-radius:8px;">
+<a href="https://wodz.app/form/contact/crossfit-la-buse-tester-crossfit-la-buse-2" style="display:inline-block;padding:14px 26px;color:#fff;text-decoration:none;font-weight:800;font-size:15px;">💪 Réserve ta séance d'essai</a>
+</td></tr></table>
+<div style="border-top:1px solid #333;margin:16px 0;"></div>
+<div style="font-size:13px;color:#ccc;line-height:1.6;margin-bottom:12px;">Tu as un enfant qui veut s'y mettre ?<br>Nos <strong style="color:#FFEE00;">cours Hyrox Kids</strong> démarrent le 1<sup>er</sup> septembre.</div>
+<table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="background:#FFA726;border-radius:8px;">
+<a href="https://hyrox-challenge-labuse.vercel.app/kids-preinscription.html" style="display:inline-block;padding:12px 22px;color:#0a0a0a;text-decoration:none;font-weight:800;font-size:14px;">🧒 Pré-inscrire mon enfant</a>
+</td></tr></table>
+</div>
+
 <p style="font-size:15px;font-weight:700;color:#C0392B;margin:20px 0 0;">Chapeau ! 🎉</p>
 <p style="margin-bottom:0;font-size:14px;">Repose-toi bien 💪<br><strong>L'équipe Hyrox La Buse</strong></p>
 </div>
