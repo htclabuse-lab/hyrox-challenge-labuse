@@ -60,7 +60,12 @@
   <div class="filters">
     <div class="filter-label">Catégorie</div>
     <div class="filter-btns" id="cat-filters"></div>
-    <div class="filter-label" style="margin-top:12px;">Tranche d'âge</div>
+    <div class="filter-label" style="margin-top:12px;">Groupement</div>
+    <div class="filter-btns" id="group-filters">
+      <button class="active" data-group="cat-age" onclick="setGroupMode('cat-age')">Catégorie × Âge</button>
+      <button data-group="cat" onclick="setGroupMode('cat')">Catégorie seule</button>
+    </div>
+    <div class="filter-label" style="margin-top:12px;" id="age-filter-label">Tranche d'âge</div>
     <div class="filter-btns" id="age-filters">
       <button class="active" data-age="all" onclick="setAgeFilter('all')">Toutes</button>
       <button data-age="16-24" onclick="setAgeFilter('16-24')">16-24 ans</button>
@@ -97,6 +102,7 @@
 
   let catFilter = 'all';
   let ageFilter = 'all';
+  let groupMode = 'cat-age';
   let inscriptions = [];
   let pointages = [];
 
@@ -118,6 +124,16 @@
   function setAgeFilter(k) {
     ageFilter = k;
     document.querySelectorAll('#age-filters button').forEach(b => b.classList.toggle('active', b.dataset.age === k));
+    render();
+  }
+  function setGroupMode(m) {
+    groupMode = m;
+    document.querySelectorAll('#group-filters button').forEach(b => b.classList.toggle('active', b.dataset.group === m));
+    // Cache le filtre tranche d'âge quand on ne groupe que par catégorie
+    const showAge = (m === 'cat-age');
+    document.getElementById('age-filters').style.display = showAge ? '' : 'none';
+    document.getElementById('age-filter-label').style.display = showAge ? '' : 'none';
+    if (!showAge) { ageFilter = 'all'; document.querySelectorAll('#age-filters button').forEach(b => b.classList.toggle('active', b.dataset.age === 'all')); }
     render();
   }
 
@@ -190,22 +206,22 @@
       <div class="stat"><div class="stat-n running">${running}</div><div class="stat-l">En course</div></div>
     `;
 
-    // Group by (catégorie, tranche)
+    // Group : selon groupMode (cat seule ou cat × tranche)
     const groups = {};
     for (const d of list) {
       const tr = getTranche(d);
-      const key = `${d.categorie} · ${tr} ans`;
+      const key = groupMode === 'cat' ? d.categorie : `${d.categorie} · ${tr} ans`;
       if (!groups[key]) groups[key] = { cat: d.categorie, tranche: tr, items: [] };
       groups[key].items.push(d);
     }
 
-    // Sort groups by category order then tranche
     const catOrder = CATS.map(c => c.key);
     const trancheOrder = ['16-24','25-34','35-44','45-54','55+','?'];
     const sortedKeys = Object.keys(groups).sort((a, b) => {
       const ga = groups[a], gb = groups[b];
       const ci = catOrder.indexOf(ga.cat) - catOrder.indexOf(gb.cat);
       if (ci !== 0) return ci;
+      if (groupMode === 'cat') return 0;
       return trancheOrder.indexOf(ga.tranche) - trancheOrder.indexOf(gb.tranche);
     });
 
