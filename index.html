@@ -500,9 +500,18 @@ async function loadVagues() {
     var vagues = Object.keys(byV).map(Number).sort(function(a,b){return a-b;});
     if (vagues.length === 0) { target.innerHTML = 'Aucune vague'; return; }
     var html = '';
+    var prevMainCat = null;
     vagues.forEach(function(v){
       var rows = byV[v];
       var heure = new Date(rows[0].heure_depart).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Indian/Reunion'});
+      // Catégorie majoritaire de la vague
+      var counts = {};
+      rows.forEach(function(r){ counts[r.categorie] = (counts[r.categorie]||0)+1; });
+      var mainCat = Object.keys(counts).sort(function(a,b){return counts[b]-counts[a];})[0];
+      if (mainCat !== prevMainCat) {
+        html += '<div style="background:linear-gradient(90deg,#C0392B,#FFEE00);color:#0a0a0a;padding:10px 14px;border-radius:8px;margin:14px 0 8px;font-weight:900;font-size:14px;letter-spacing:1px;text-align:center;">🏁 ' + mainCat + '</div>';
+        prevMainCat = mainCat;
+      }
       html += '<div style="background:#0d1400;border:1px solid #FFEE00;border-radius:8px;padding:10px 12px;margin-bottom:10px;">';
       html += '<div style="font-weight:800;color:#FFEE00;font-size:14px;margin-bottom:6px;">Vague ' + v + ' · <span style="color:#fff;">' + heure + '</span> <span style="font-size:11px;color:#888;font-weight:400;">· ' + rows.length + ' athlète' + (rows.length>1?'s':'') + '</span></div>';
       rows.forEach(function(d){
