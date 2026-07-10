@@ -857,8 +857,11 @@ function isParentEnfant(d) {
       var catKey = getCatKey(d.categorie);
       if (!catKey || CAT_ORDER.indexOf(catKey) === -1) return;
       var age = getTrancheAge(d);
-      if (!trophees[catKey]) trophees[catKey] = {};
-      trophees[catKey][age] = (trophees[catKey][age] || 0) + 1;
+      // Exception : trophée duo scaled hommes 16-24 déjà acheté — ne pas recompter
+      if (!(catKey === 'duo scaled hommes' && age === '16-24 ans')) {
+        if (!trophees[catKey]) trophees[catKey] = {};
+        trophees[catKey][age] = (trophees[catKey][age] || 0) + 1;
+      }
       var grp = getPatchGroup(catKey);
       if (grp) patchs[grp] = (patchs[grp] || 0) + getNbParticipants(d);
     });

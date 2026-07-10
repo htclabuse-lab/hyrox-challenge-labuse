@@ -184,8 +184,11 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const grp = getPatchGroup(catKey);
     if (grp) patchs[grp] = (patchs[grp] || 0) + getNbParticipants(d);
     const age = getTrancheAge(d);
-    if (!trophees[catKey]) trophees[catKey] = {};
-    trophees[catKey][age] = (trophees[catKey][age] || 0) + 1;
+    // Exception : trophée duo scaled hommes 16-24 déjà acheté — ne pas recompter
+    if (!(catKey === 'duo scaled hommes' && age === '16-24 ans')) {
+      if (!trophees[catKey]) trophees[catKey] = {};
+      trophees[catKey][age] = (trophees[catKey][age] || 0) + 1;
+    }
   });
 
   // Migration : nettoie les anciennes valeurs (compatibilité ancienne version stock + latent)
