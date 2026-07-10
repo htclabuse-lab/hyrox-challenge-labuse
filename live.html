@@ -147,6 +147,8 @@
   }
 
   function getTranche(d) {
+    // Override manuel : Les titis (id 244) forcés en 25-34 (trophée déjà acheté)
+    if (d.id === 244) return '25-34';
     // Moyenne d'âge du binôme/équipe
     const dobs = [d.date_naissance, d.co1_date_naissance, d.co2_date_naissance, d.co3_date_naissance].filter(Boolean);
     if (dobs.length === 0) return '?';

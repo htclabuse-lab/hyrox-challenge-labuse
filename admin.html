@@ -815,6 +815,8 @@ function isParentEnfant(d) {
   }
 
   function getTrancheAge(d) {
+    // Override manuel : Les titis (id 244) forcés en 25-34 ans (trophée déjà acheté)
+    if (d.id === 244) return '25-34 ans';
     var dobs = [d.date_naissance, d.co1_date_naissance, d.co2_date_naissance, d.co3_date_naissance].filter(Boolean);
     if (dobs.length === 0) return '— inconnu';
     var ages = dobs.map(function(dob){ return new Date().getFullYear() - parseInt(dob.split('-')[0]); });
@@ -857,11 +859,8 @@ function isParentEnfant(d) {
       var catKey = getCatKey(d.categorie);
       if (!catKey || CAT_ORDER.indexOf(catKey) === -1) return;
       var age = getTrancheAge(d);
-      // Exception : trophée duo scaled hommes 16-24 déjà acheté — ne pas recompter
-      if (!(catKey === 'duo scaled hommes' && age === '16-24 ans')) {
-        if (!trophees[catKey]) trophees[catKey] = {};
-        trophees[catKey][age] = (trophees[catKey][age] || 0) + 1;
-      }
+      if (!trophees[catKey]) trophees[catKey] = {};
+      trophees[catKey][age] = (trophees[catKey][age] || 0) + 1;
       var grp = getPatchGroup(catKey);
       if (grp) patchs[grp] = (patchs[grp] || 0) + getNbParticipants(d);
     });
