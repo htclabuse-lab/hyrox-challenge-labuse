@@ -60,8 +60,7 @@
     <div class="toolbar">
       <input type="text" id="search" class="search-input" placeholder="🔍 Chercher par nom, prénom…" oninput="render()">
       <div class="filter-row">
-        <button class="active" data-filter="all" onclick="setFilter('all')">Tout</button>
-        <button data-filter="pending" onclick="setFilter('pending')">⏳ À faire</button>
+        <button class="active" data-filter="pending" onclick="setFilter('pending')">⏳ À faire</button>
         <button data-filter="done" onclick="setFilter('done')">✅ Fini</button>
       </div>
     </div>
@@ -77,7 +76,7 @@
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   let data = [];
-  let filterMode = 'all';
+  let filterMode = 'pending';
 
   function login() {
     const p = document.getElementById('pwd').value.trim();
@@ -100,10 +99,12 @@
   }
 
   async function load() {
-    const { data: rows } = await db.from('Benevoles')
-      .select('*')
-      .order('nom');
-    data = rows || [];
+    const { data: rows } = await db.from('Benevoles').select('*');
+    data = (rows || []).sort((a, b) => {
+      const n = (a.nom || '').localeCompare((b.nom || ''), 'fr', { sensitivity: 'base' });
+      if (n !== 0) return n;
+      return (a.prenom || '').localeCompare((b.prenom || ''), 'fr', { sensitivity: 'base' });
+    });
     render();
   }
   setInterval(load, 30000);
