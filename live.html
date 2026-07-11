@@ -199,10 +199,11 @@
   load();
 
   function computePodiums(all) {
-    // Podium par catégorie = heure_depart max + 2h
+    // Podium par catégorie = heure_depart max + 2h (vagues normales ≤ 41 uniquement, hors tests)
     const map = {};
     for (const d of all) {
       if (!d.heure_depart) continue;
+      if (d.vague && d.vague > 41) continue;
       const cur = map[d.categorie];
       if (!cur || d.heure_depart > cur) map[d.categorie] = d.heure_depart;
     }
