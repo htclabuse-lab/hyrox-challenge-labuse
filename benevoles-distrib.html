@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distribution Bénévoles — Hyrox Challenge La Buse</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #1B7B49, #FFEE00); color: #0a0a0a; padding: 16px; border-radius: 12px; margin-bottom: 1rem; text-align: center; }
+    .header h1 { font-size: 20px; }
+    .header p { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+    .login { background: #1a1a1a; border-radius: 12px; padding: 1.5rem; text-align: center; }
+    .login input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 16px; margin: 10px 0; }
+    .login button { width: 100%; padding: 12px; background: #1B7B49; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; }
+    .toolbar { background: #1a1a1a; padding: 12px; border-radius: 12px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 16px; }
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-row button { flex: 1; min-width: 90px; background: #0a0a0a; color: #888; border: 1px solid #333; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+    .filter-row button.active { background: #1B7B49; color: #fff; border-color: #1B7B49; font-weight: 800; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+    .stat { background: #1a1a1a; border-radius: 10px; padding: 10px; text-align: center; }
+    .stat-n { font-size: 20px; font-weight: 800; color: #1B7B49; }
+    .stat-l { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+    .benevole { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+    .benevole.done { border-color: #1B7B49; background: #0a1a0a; opacity: 0.85; }
+    .b-head { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+    .b-info { flex: 1; min-width: 200px; }
+    .b-info b { color: #fff; font-size: 15px; }
+    .b-info .sub { font-size: 12px; color: #888; margin-top: 2px; }
+    .b-info .dispo { display: inline-block; background: #333; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-top: 4px; }
+    .b-tshirt { background: #FFEE00; color: #0a0a0a; padding: 6px 10px; border-radius: 6px; font-weight: 800; font-family: monospace; font-size: 14px; flex-shrink: 0; }
+    .b-repas-choice { font-size: 12px; color: #FFA726; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; font-weight: 700; }
+    .actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .btn-action { padding: 12px 8px; background: transparent; color: #888; border: 2px solid #333; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; text-align: center; transition: all 0.15s; }
+    .btn-action.done { background: #0a3a0a; color: #4caf50; border-color: #4caf50; }
+    .btn-action.disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-action .ic { display: block; font-size: 18px; margin-bottom: 2px; }
+    .btn-action .tm { display: block; font-size: 10px; color: #4caf50; margin-top: 3px; font-weight: 500; }
+    .empty { text-align: center; color: #666; padding: 2rem; font-size: 14px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>🎁 Distribution Bénévoles</h1>
+    <p>Hyrox Challenge La Buse — Dimanche 12 juillet 2026</p>
+  </div>
+
+  <div id="login" class="login">
+    <div style="font-size:14px;color:#888;margin-bottom:10px;">Mot de passe</div>
+    <input type="password" id="pwd" placeholder="••••••••">
+    <button onclick="login()">Connexion</button>
+    <div id="login-error" style="color:#C0392B;font-size:13px;margin-top:8px;"></div>
+  </div>
+
+  <div id="app" style="display:none;">
+    <div class="toolbar">
+      <input type="text" id="search" class="search-input" placeholder="🔍 Chercher par nom, prénom…" oninput="render()">
+      <div class="filter-row">
+        <button class="active" data-filter="all" onclick="setFilter('all')">Tout</button>
+        <button data-filter="pending" onclick="setFilter('pending')">⏳ À faire</button>
+        <button data-filter="done" onclick="setFilter('done')">✅ Fini</button>
+      </div>
+    </div>
+    <div id="stats" class="stats"></div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const PWD = 'labuse';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let data = [];
+  let filterMode = 'all';
+
+  function login() {
+    const p = document.getElementById('pwd').value.trim();
+    if (p !== PWD) { document.getElementById('login-error').textContent = '❌ Mot de passe incorrect'; return; }
+    sessionStorage.setItem('hc_auth', '1');
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    load();
+  }
+  if (sessionStorage.getItem('hc_auth') === '1') {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    setTimeout(load, 0);
+  }
+
+  function setFilter(m) {
+    filterMode = m;
+    document.querySelectorAll('.filter-row button').forEach(b => b.classList.toggle('active', b.dataset.filter === m));
+    render();
+  }
+
+  async function load() {
+    const { data: rows } = await db.from('Benevoles')
+      .select('*')
+      .order('nom');
+    data = rows || [];
+    render();
+  }
+  setInterval(load, 30000);
+
+  function fmtHeure(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion' });
+  }
+  function norm(s) { return (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+
+  // Total items à distribuer par bénévole (le repas ne compte que s'il a été choisi)
+  function totalItems(b) {
+    return 3 + (b.repas ? 1 : 0); // tshirt + boisson + bon_conso (+ repas si choisi)
+  }
+  function itemsDone(b) {
+    let n = 0;
+    if (b.tshirt_distribue_at) n++;
+    if (b.boisson_distribuee_at) n++;
+    if (b.bon_conso_distribue_at) n++;
+    if (b.repas && b.repas_distribue_at) n++;
+    return n;
+  }
+  function isAllDone(b) {
+    return itemsDone(b) === totalItems(b);
+  }
+
+  const REPAS_LABEL = { 'poulet': '🍗 Poulet', 'poisson': '🐟 Poisson', 'vege': '🥗 Végé' };
+  const DISPO_LABEL = {
+    'veille,journee': 'Samedi + Dim journée',
+    'veille,aprem': 'Samedi + Dim aprem',
+    'veille,matin': 'Samedi + Dim matin',
+    'journee': 'Dim journée',
+    'matin': 'Dim matin',
+    'aprem': 'Dim aprem'
+  };
+
+  function render() {
+    const q = norm(document.getElementById('search').value.trim());
+    const all = data.filter(b => {
+      if (q) {
+        const hay = norm(`${b.prenom} ${b.nom} ${b.email}`);
+        if (!hay.includes(q)) return false;
+      }
+      const done = isAllDone(b);
+      if (filterMode === 'pending' && done) return false;
+      if (filterMode === 'done' && !done) return false;
+      return true;
+    });
+
+    // Stats
+    const nbTshirt = data.filter(b => b.tshirt_distribue_at).length;
+    const nbRepas = data.filter(b => b.repas_distribue_at).length;
+    const nbBoisson = data.filter(b => b.boisson_distribuee_at).length;
+    const nbBonConso = data.filter(b => b.bon_conso_distribue_at).length;
+    const nbRepasChoisis = data.filter(b => b.repas).length;
+
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="stat-n">${nbTshirt}/${data.length}</div><div class="stat-l">🎽 T-shirt</div></div>
+      <div class="stat"><div class="stat-n">${nbRepas}/${nbRepasChoisis}</div><div class="stat-l">🍗 Repas</div></div>
+      <div class="stat"><div class="stat-n">${nbBoisson}/${data.length}</div><div class="stat-l">🥤 Boisson</div></div>
+      <div class="stat"><div class="stat-n">${nbBonConso}/${data.length}</div><div class="stat-l">🎟 Bon conso</div></div>
+    `;
+
+    if (all.length === 0) {
+      document.getElementById('content').innerHTML = `<div class="empty">${q ? 'Aucun résultat.' : 'Aucun bénévole dans ce filtre.'}</div>`;
+      return;
+    }
+
+    let html = '';
+    all.forEach(b => {
+      const done = isAllDone(b);
+      const tshirt = (b.tshirt_taille && b.tshirt_coupe) ? `${b.tshirt_taille} ${b.tshirt_coupe}` : '—';
+      const repasLabel = b.repas ? (REPAS_LABEL[b.repas] || b.repas) : null;
+      const dispoLabel = DISPO_LABEL[b.disponibilites] || b.disponibilites || '';
+
+      html += `<div class="benevole ${done ? 'done' : ''}">`;
+      html += `<div class="b-head">`;
+      html += `<div class="b-info">`;
+      html += `<b>${(b.prenom || '').trim()} ${(b.nom || '').trim()}</b>`;
+      if (b.telephone) html += `<div class="sub">📞 ${b.telephone}</div>`;
+      html += `<div class="dispo">${dispoLabel}</div>`;
+      if (repasLabel) html += `<div class="b-repas-choice">Choix : ${repasLabel}</div>`;
+      html += `</div>`;
+      html += `<div class="b-tshirt">🎽 ${tshirt}</div>`;
+      html += `</div>`;
+
+      html += `<div class="actions">`;
+      // T-shirt
+      html += `<button class="btn-action ${b.tshirt_distribue_at ? 'done' : ''}" onclick="toggle(${b.id}, 'tshirt_distribue_at', ${!b.tshirt_distribue_at})">`;
+      html += `<span class="ic">🎽</span>T-SHIRT`;
+      if (b.tshirt_distribue_at) html += `<span class="tm">${fmtHeure(b.tshirt_distribue_at)}</span>`;
+      html += `</button>`;
+      // Repas — désactivé si pas de choix
+      if (b.repas) {
+        html += `<button class="btn-action ${b.repas_distribue_at ? 'done' : ''}" onclick="toggle(${b.id}, 'repas_distribue_at', ${!b.repas_distribue_at})">`;
+        html += `<span class="ic">🍗</span>REPAS`;
+        if (b.repas_distribue_at) html += `<span class="tm">${fmtHeure(b.repas_distribue_at)}</span>`;
+        html += `</button>`;
+      } else {
+        html += `<button class="btn-action disabled" disabled><span class="ic">🍗</span>PAS DE REPAS</button>`;
+      }
+      // Boisson
+      html += `<button class="btn-action ${b.boisson_distribuee_at ? 'done' : ''}" onclick="toggle(${b.id}, 'boisson_distribuee_at', ${!b.boisson_distribuee_at})">`;
+      html += `<span class="ic">🥤</span>BOISSON`;
+      if (b.boisson_distribuee_at) html += `<span class="tm">${fmtHeure(b.boisson_distribuee_at)}</span>`;
+      html += `</button>`;
+      // Bon consommation
+      html += `<button class="btn-action ${b.bon_conso_distribue_at ? 'done' : ''}" onclick="toggle(${b.id}, 'bon_conso_distribue_at', ${!b.bon_conso_distribue_at})">`;
+      html += `<span class="ic">🎟</span>BON CONSO`;
+      if (b.bon_conso_distribue_at) html += `<span class="tm">${fmtHeure(b.bon_conso_distribue_at)}</span>`;
+      html += `</button>`;
+      html += `</div>`;
+
+      html += `</div>`;
+    });
+    document.getElementById('content').innerHTML = html;
+  }
+
+  async function toggle(id, field, setActive) {
+    const value = setActive ? new Date().toISOString() : null;
+    if (!setActive && !confirm('Annuler la distribution ?')) return;
+    const upd = {};
+    upd[field] = value;
+    await db.from('Benevoles').update(upd).eq('id', id);
+    await load();
+  }
+</script>
+</body>
+</html>

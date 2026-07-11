@@ -12,18 +12,20 @@
     .subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 1.5rem; }
     .pwd-banner { background: #FFEE00; color: #0a0a0a; padding: 14px; border-radius: 10px; text-align: center; margin-bottom: 1.5rem; font-size: 14px; }
     .pwd-banner strong { font-size: 22px; letter-spacing: 3px; font-family: monospace; display: block; margin-top: 4px; }
-    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
     .card { background: #fff; border: 2px solid #1a1a1a; border-radius: 14px; padding: 1rem; text-align: center; page-break-inside: avoid; }
     .card.accueil { border-color: #FFEE00; }
     .card.vagues { border-color: #1B7B49; }
     .card.juges { border-color: #C0392B; }
     .card.live { border-color: #FFA726; }
+    .card.benev { border-color: #9C27B0; }
     .card-icon { font-size: 32px; margin-bottom: 4px; }
     .card-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
     .card.accueil .card-title { color: #b09600; }
     .card.vagues .card-title { color: #1B7B49; }
     .card.juges .card-title { color: #C0392B; }
     .card.live .card-title { color: #FFA726; }
+    .card.benev .card-title { color: #9C27B0; }
     .card-desc { font-size: 11px; color: #666; margin-bottom: 10px; line-height: 1.4; min-height: 40px; }
     .card img { display: block; width: 100%; max-width: 240px; height: auto; margin: 0 auto 8px; border: 1px solid #eee; }
     .card-url { font-family: monospace; font-size: 9px; color: #888; word-break: break-all; padding: 4px 6px; background: #f5f5f5; border-radius: 4px; }
@@ -80,6 +82,14 @@
       <div class="card-desc">Suivi live des résultats. Mail bravo auto envoyé quand station 8 pointée.</div>
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Flive.html" alt="QR live">
       <div class="card-url">…/live.html</div>
+    </div>
+
+    <div class="card benev">
+      <div class="card-icon">🎁</div>
+      <div class="card-title">Distribution bénévoles</div>
+      <div class="card-desc">Cocher t-shirt, repas, boisson et bon conso remis à chaque bénévole.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fbenevoles-distrib.html" alt="QR bénévoles">
+      <div class="card-url">…/benevoles-distrib.html</div>
     </div>
   </div>
 
