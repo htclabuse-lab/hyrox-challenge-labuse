@@ -18,7 +18,12 @@ export default async function handler(req, res) {
     const { data, error } = await supabase
       .from('Inscriptions')
       .select('vague, heure_debut_reelle')
-      .not('vague', 'is', null);
+      .not('vague', 'is', null)
+      .neq('categorie', 'Parent-Enfant')
+      .neq('categorie', 'Hyrox Kids Pré-inscription')
+      .neq('categorie', 'Bénévole')
+      .gte('heure_depart', '2026-07-12')
+      .lt('heure_depart', '2026-07-13');
 
     if (error) {
       console.error('Erreur Supabase juge-vagues:', error);

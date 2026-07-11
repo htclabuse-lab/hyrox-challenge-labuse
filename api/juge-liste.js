@@ -19,8 +19,13 @@ export default async function handler(req, res) {
 
     const { data, error } = await supabase
       .from('Inscriptions')
-      .select('id, dossard, nom, prenom, categorie, nom_equipe, vague, heure_depart, statut_paiement, temps_estime')
+      .select('id, dossard, nom, prenom, categorie, nom_equipe, vague, heure_depart, heure_debut_reelle, statut_paiement, temps_estime, absent, abandon')
       .not('dossard', 'is', null)
+      .neq('categorie', 'Parent-Enfant')
+      .neq('categorie', 'Hyrox Kids Pré-inscription')
+      .neq('categorie', 'Bénévole')
+      .gte('heure_depart', '2026-07-12')
+      .lt('heure_depart', '2026-07-13')
       .order('dossard', { ascending: true });
 
     if (error) {
