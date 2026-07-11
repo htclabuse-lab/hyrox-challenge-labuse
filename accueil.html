@@ -20,14 +20,27 @@
     .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .filter-row button { flex: 1; min-width: 90px; background: #0a0a0a; color: #888; border: 1px solid #333; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
     .filter-row button.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; font-weight: 800; }
-    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
     .stat { background: #1a1a1a; border-radius: 10px; padding: 10px; text-align: center; }
     .stat-n { font-size: 22px; font-weight: 800; }
     .stat-n.done { color: #4caf50; }
     .stat-n.pending { color: #FFA726; }
+    .stat-n.absent { color: #888; }
+    .stat-n.abandon { color: #C0392B; }
     .stat-l { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
     .athlete { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
     .athlete.done { border-color: #4caf50; background: #0a1a0a; opacity: 0.85; }
+    .athlete.absent { border-color: #666; background: #151515; opacity: 0.7; }
+    .athlete.abandon { border-color: #C0392B; background: #1a0a0a; }
+    .status-badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+    .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
+    .badge-absent { background: #444; color: #fff; }
+    .badge-abandon { background: #C0392B; color: #fff; }
+    .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .btn-absent { padding: 10px; background: transparent; color: #888; border: 1px solid #444; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .btn-absent.active { background: #444; color: #fff; border-color: #666; }
+    .btn-abandon { padding: 10px; background: transparent; color: #C0392B; border: 1px solid #4a1a1a; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .btn-abandon.active { background: #C0392B; color: #fff; border-color: #C0392B; }
     .a-head { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
     .dossard { background: #FFEE00; color: #0a0a0a; padding: 8px 16px; border-radius: 8px; font-weight: 900; font-size: 26px; font-family: monospace; min-width: 70px; text-align: center; flex-shrink: 0; }
     .a-info { flex: 1; min-width: 200px; }
@@ -69,6 +82,8 @@
       <div class="filter-row">
         <button class="active" data-filter="pending" onclick="setFilter('pending')">⏳ À remettre</button>
         <button data-filter="done" onclick="setFilter('done')">✅ Pack remis</button>
+        <button data-filter="absent" onclick="setFilter('absent')">⚫ Absents</button>
+        <button data-filter="abandon" onclick="setFilter('abandon')">🚫 Abandons</button>
         <button data-filter="all" onclick="setFilter('all')">Tout</button>
       </div>
     </div>
@@ -108,7 +123,7 @@
 
   async function load() {
     const { data: rows } = await db.from('Inscriptions')
-      .select('id,prenom,nom,email,telephone,categorie,nom_equipe,tshirt_coupe,tshirt_taille,co1_prenom,co1_nom,co1_tshirt,co2_prenom,co2_nom,co2_tshirt,co3_prenom,co3_nom,co3_tshirt,dossard,vague,heure_depart,pack_remis_at,statut_paiement')
+      .select('id,prenom,nom,email,telephone,categorie,nom_equipe,tshirt_coupe,tshirt_taille,co1_prenom,co1_nom,co1_tshirt,co2_prenom,co2_nom,co2_tshirt,co3_prenom,co3_nom,co3_tshirt,dossard,vague,heure_depart,pack_remis_at,absent,abandon,statut_paiement')
       .neq('categorie', 'Parent-Enfant')
       .neq('categorie', 'Hyrox Kids Pré-inscription')
       .neq('categorie', 'Bénévole')
@@ -136,16 +151,22 @@
         if (!hay.includes(q)) return false;
       }
       const packed = isPacked(d);
-      if (filterMode === 'pending' && packed) return false;
+      if (filterMode === 'pending' && (packed || d.absent)) return false;
       if (filterMode === 'done' && !packed) return false;
+      if (filterMode === 'absent' && !d.absent) return false;
+      if (filterMode === 'abandon' && !d.abandon) return false;
       return true;
     });
 
     const nbDone = data.filter(isPacked).length;
-    const nbPending = data.length - nbDone;
+    const nbAbsent = data.filter(d => d.absent).length;
+    const nbAbandon = data.filter(d => d.abandon).length;
+    const nbPending = data.filter(d => !isPacked(d) && !d.absent).length;
     document.getElementById('stats').innerHTML = `
       <div class="stat"><div class="stat-n pending">${nbPending}</div><div class="stat-l">⏳ À remettre</div></div>
       <div class="stat"><div class="stat-n done">${nbDone}</div><div class="stat-l">✅ Pack remis</div></div>
+      <div class="stat"><div class="stat-n absent">${nbAbsent}</div><div class="stat-l">⚫ Absents</div></div>
+      <div class="stat"><div class="stat-n abandon">${nbAbandon}</div><div class="stat-l">🚫 Abandons</div></div>
     `;
 
     if (all.length === 0) {
@@ -161,12 +182,24 @@
       const captT = (d.tshirt_taille && d.tshirt_coupe) ? `${d.tshirt_taille}` : '—';
       const captCoupe = d.tshirt_coupe || '';
 
-      html += `<div class="athlete ${packed ? 'done' : ''}">`;
+      let cls = '';
+      if (d.abandon) cls = 'abandon';
+      else if (d.absent) cls = 'absent';
+      else if (packed) cls = 'done';
+
+      html += `<div class="athlete ${cls}">`;
       html += `<div class="a-head">`;
       html += `<div class="dossard">#${d.dossard}</div>`;
       html += `<div class="a-info"><b>${(d.prenom || '').trim()} ${(d.nom || '').trim()}</b><div class="sub">${d.email || ''} · ${d.telephone || ''}</div><div class="cat">${d.categorie}</div></div>`;
       html += `<div class="a-meta">V${d.vague}<br><strong>${fmtHeure(d.heure_depart)}</strong></div>`;
       html += `</div>`;
+
+      if (d.absent || d.abandon) {
+        html += `<div class="status-badges">`;
+        if (d.absent) html += `<span class="status-badge badge-absent">⚫ ABSENT</span>`;
+        if (d.abandon) html += `<span class="status-badge badge-abandon">🚫 ABANDON</span>`;
+        html += `</div>`;
+      }
 
       if (d.nom_equipe) html += `<div class="team">🏷 ${d.nom_equipe}</div>`;
 
@@ -186,6 +219,12 @@
       } else {
         html += `<button class="btn-pack" onclick="givePack(${d.id})">✅ PACK REMIS</button>`;
       }
+
+      // Absent + Abandon toggle buttons (indépendants du pack)
+      html += `<div class="action-row">`;
+      html += `<button class="btn-absent ${d.absent ? 'active' : ''}" onclick="toggleAbsent(${d.id}, ${!d.absent})">${d.absent ? '↺ Annuler absent' : '⚫ Marquer absent'}</button>`;
+      html += `<button class="btn-abandon ${d.abandon ? 'active' : ''}" onclick="toggleAbandon(${d.id}, ${!d.abandon})">${d.abandon ? '↺ Annuler abandon' : '🚫 Marquer abandon'}</button>`;
+      html += `</div>`;
       html += `</div>`;
     });
     document.getElementById('content').innerHTML = html;
@@ -199,6 +238,16 @@
   async function undoPack(id) {
     if (!confirm('Annuler la remise du pack ?')) return;
     await db.from('Inscriptions').update({ pack_remis_at: null }).eq('id', id);
+    await load();
+  }
+  async function toggleAbsent(id, next) {
+    if (next && !confirm('Marquer cette personne comme absente ?')) return;
+    await db.from('Inscriptions').update({ absent: next }).eq('id', id);
+    await load();
+  }
+  async function toggleAbandon(id, next) {
+    if (next && !confirm('Marquer cette personne comme abandon ?')) return;
+    await db.from('Inscriptions').update({ abandon: next }).eq('id', id);
     await load();
   }
 </script>

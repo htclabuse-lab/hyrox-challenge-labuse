@@ -33,6 +33,11 @@
     .athlete:last-child { border-bottom: none; }
     .athlete.done { }
     .athlete.running { background: #0a0a15; }
+    .athlete.absent { opacity: 0.55; background: #151515; }
+    .athlete.abandon { background: #1a0a0a; }
+    .athlete.abandon .info .name { text-decoration: line-through; color: #C0392B; }
+    .absent-badge { background: #444; color: #ddd; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; letter-spacing: 1px; flex-shrink: 0; }
+    .abandon-badge { background: #C0392B; color: #fff; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; letter-spacing: 1px; flex-shrink: 0; }
     .rank { width: 40px; text-align: center; font-weight: 900; font-size: 18px; font-family: monospace; flex-shrink: 0; }
     .rank.gold { color: #FFD700; font-size: 24px; }
     .rank.silver { color: #C0C0C0; font-size: 22px; }
@@ -172,7 +177,7 @@
   async function load() {
     const [insR, pR] = await Promise.all([
       db.from('Inscriptions')
-        .select('id,prenom,nom,date_naissance,categorie,nom_equipe,co1_prenom,co1_nom,co1_date_naissance,co2_prenom,co2_nom,co2_date_naissance,co3_prenom,co3_nom,co3_date_naissance,dossard,vague,heure_depart,heure_debut_reelle,temps_final_s')
+        .select('id,prenom,nom,date_naissance,categorie,nom_equipe,co1_prenom,co1_nom,co1_date_naissance,co2_prenom,co2_nom,co2_date_naissance,co3_prenom,co3_nom,co3_date_naissance,dossard,vague,heure_depart,heure_debut_reelle,temps_final_s,absent,abandon')
         .neq('categorie', 'Parent-Enfant')
         .neq('categorie', 'Hyrox Kids Pré-inscription')
         .neq('categorie', 'Bénévole')
@@ -234,14 +239,19 @@
     sortedKeys.forEach(k => {
       const g = groups[k];
       const items = g.items;
-      // Split finished vs running vs pending
-      const finished = items.filter(d => d.temps_final_s != null).sort((a,b) => a.temps_final_s - b.temps_final_s);
-      const running = items.filter(d => d.temps_final_s == null && d.heure_debut_reelle != null && getMaxStation(d.id) > 0 && getMaxStation(d.id) < 8);
-      const pending = items.filter(d => !finished.includes(d) && !running.includes(d));
+      // Split finished vs running vs pending / absent / abandon
+      // Priorité : abandon > absent > terminé > en course > à venir
+      const abandoned = items.filter(d => d.abandon);
+      const absents = items.filter(d => d.absent && !d.abandon);
+      const active = items.filter(d => !d.abandon && !d.absent);
+      const finished = active.filter(d => d.temps_final_s != null).sort((a,b) => a.temps_final_s - b.temps_final_s);
+      const running = active.filter(d => d.temps_final_s == null && d.heure_debut_reelle != null && getMaxStation(d.id) > 0 && getMaxStation(d.id) < 8);
+      const pending = active.filter(d => !finished.includes(d) && !running.includes(d));
 
       const nbDone = finished.length;
+      const totalRacing = items.length - absents.length; // exclut absents du total "attendus"
       html += `<div class="group">`;
-      html += `<div class="group-head"><span>🏆 ${k}</span><span class="count">${nbDone} terminé${nbDone>1?'s':''} / ${items.length}</span></div>`;
+      html += `<div class="group-head"><span>🏆 ${k}</span><span class="count">${nbDone} terminé${nbDone>1?'s':''} / ${totalRacing}${absents.length ? ' · ' + absents.length + ' absent' + (absents.length>1?'s':'') : ''}${abandoned.length ? ' · ' + abandoned.length + ' abandon' + (abandoned.length>1?'s':'') : ''}</span></div>`;
 
       // Finished (podium)
       finished.forEach((d, idx) => {
@@ -271,6 +281,24 @@
         html += `<div class="rank other">–</div>`;
         html += `<div class="info"><div class="name"><span class="dossard">${d.dossard}</span>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}</div>`;
         html += `<div class="pending-badge">V${d.vague} · ${new Date(d.heure_depart).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', timeZone:'Indian/Reunion'})}</div>`;
+        html += `</div>`;
+      });
+
+      // Abandons
+      abandoned.forEach(d => {
+        html += `<div class="athlete abandon">`;
+        html += `<div class="rank other">🚫</div>`;
+        html += `<div class="info"><div class="name"><span class="dossard">${d.dossard}</span>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}</div>`;
+        html += `<div class="abandon-badge">ABANDON</div>`;
+        html += `</div>`;
+      });
+
+      // Absents
+      absents.forEach(d => {
+        html += `<div class="athlete absent">`;
+        html += `<div class="rank other">⚫</div>`;
+        html += `<div class="info"><div class="name"><span class="dossard">${d.dossard}</span>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}</div>`;
+        html += `<div class="absent-badge">ABSENT</div>`;
         html += `</div>`;
       });
 
