@@ -12,7 +12,7 @@
     .subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 1.5rem; }
     .pwd-banner { background: #FFEE00; color: #0a0a0a; padding: 14px; border-radius: 10px; text-align: center; margin-bottom: 1.5rem; font-size: 14px; }
     .pwd-banner strong { font-size: 22px; letter-spacing: 3px; font-family: monospace; display: block; margin-top: 4px; }
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
     .card { background: #fff; border: 2px solid #1a1a1a; border-radius: 14px; padding: 1rem; text-align: center; page-break-inside: avoid; }
     .card.accueil { border-color: #FFEE00; }
     .card.depart { border-color: #1B7B49; }
@@ -58,18 +58,10 @@
       <div class="card-url">…/accueil.html</div>
     </div>
 
-    <div class="card depart">
-      <div class="card-icon">🚦</div>
-      <div class="card-title">Vague — Départ</div>
-      <div class="card-desc">Starter : lance chaque vague avec le bouton "TOP DÉPART".</div>
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fjuge.html" alt="QR départ">
-      <div class="card-url">…/juge.html</div>
-    </div>
-
     <div class="card juges">
       <div class="card-icon">📍</div>
-      <div class="card-title">Juges de stations</div>
-      <div class="card-desc">Pointe chaque athlète à sa station (1 à 8) + pénalités.</div>
+      <div class="card-title">Juges — Départ + Stations</div>
+      <div class="card-desc">Lance les vagues (TOP DÉPART) + pointe chaque athlète à sa station (1 à 8) + pénalités.</div>
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fjuge.html" alt="QR juges">
       <div class="card-url">…/juge.html</div>
     </div>
