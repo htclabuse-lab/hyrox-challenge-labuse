@@ -20,7 +20,8 @@
     .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .filter-row button { flex: 1; min-width: 90px; background: #0a0a0a; color: #888; border: 1px solid #333; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
     .filter-row button.active { background: #1B7B49; color: #fff; border-color: #1B7B49; font-weight: 800; }
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+    .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 14px; }
+    @media (max-width: 600px) { .stats { grid-template-columns: repeat(3, 1fr); } }
     .stat { background: #1a1a1a; border-radius: 10px; padding: 10px; text-align: center; }
     .stat-n { font-size: 20px; font-weight: 800; color: #1B7B49; }
     .stat-l { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
@@ -120,7 +121,7 @@
     return b.disponibilites && b.disponibilites.split(',').includes('journee');
   }
   function totalItems(b) {
-    return 3 + (hasJournee(b) ? 1 : 0); // tshirt + boisson + bon_conso (+ repas si journée)
+    return 3 + (hasJournee(b) ? 2 : 0); // tshirt + boisson + bon_conso (+ repas + chèque si journée)
   }
   function itemsDone(b) {
     let n = 0;
@@ -128,6 +129,7 @@
     if (b.boisson_distribuee_at) n++;
     if (b.bon_conso_distribue_at) n++;
     if (hasJournee(b) && b.repas_distribue_at) n++;
+    if (hasJournee(b) && b.cheque_intersport_at) n++;
     return n;
   }
   function isAllDone(b) {
@@ -162,13 +164,15 @@
     const nbRepas = data.filter(b => b.repas_distribue_at).length;
     const nbBoisson = data.filter(b => b.boisson_distribuee_at).length;
     const nbBonConso = data.filter(b => b.bon_conso_distribue_at).length;
+    const nbCheque = data.filter(b => b.cheque_intersport_at).length;
     const nbJournee = data.filter(hasJournee).length;
 
     document.getElementById('stats').innerHTML = `
       <div class="stat"><div class="stat-n">${nbTshirt}/${data.length}</div><div class="stat-l">🎽 T-shirt</div></div>
-      <div class="stat"><div class="stat-n">${nbRepas}/${nbJournee}</div><div class="stat-l">🍗 Repas</div></div>
       <div class="stat"><div class="stat-n">${nbBoisson}/${data.length}</div><div class="stat-l">🥤 Boisson</div></div>
       <div class="stat"><div class="stat-n">${nbBonConso}/${data.length}</div><div class="stat-l">🎟 Bon conso</div></div>
+      <div class="stat"><div class="stat-n">${nbRepas}/${nbJournee}</div><div class="stat-l">🍗 Repas</div></div>
+      <div class="stat"><div class="stat-n">${nbCheque}/${nbJournee}</div><div class="stat-l">🎁 Chèque</div></div>
     `;
 
     if (all.length === 0) {
@@ -219,6 +223,13 @@
       html += `<span class="ic">🎟</span>BON CONSO`;
       if (b.bon_conso_distribue_at) html += `<span class="tm">${fmtHeure(b.bon_conso_distribue_at)}</span>`;
       html += `</button>`;
+      // Chèque Intersport — uniquement pour les bénévoles avec dispo "journee"
+      if (hasJournee(b)) {
+        html += `<button class="btn-action ${b.cheque_intersport_at ? 'done' : ''}" onclick="toggle(${b.id}, 'cheque_intersport_at', ${!b.cheque_intersport_at})">`;
+        html += `<span class="ic">🎁</span>CHÈQUE`;
+        if (b.cheque_intersport_at) html += `<span class="tm">${fmtHeure(b.cheque_intersport_at)}</span>`;
+        html += `</button>`;
+      }
       html += `</div>`;
 
       html += `</div>`;
