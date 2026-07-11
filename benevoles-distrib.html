@@ -114,16 +114,19 @@
   }
   function norm(s) { return (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 
-  // Total items à distribuer par bénévole (le repas ne compte que s'il a été choisi)
+  // Repas uniquement pour les bénévoles qui ont pris la journée
+  function hasJournee(b) {
+    return b.disponibilites && b.disponibilites.split(',').includes('journee');
+  }
   function totalItems(b) {
-    return 3 + (b.repas ? 1 : 0); // tshirt + boisson + bon_conso (+ repas si choisi)
+    return 3 + (hasJournee(b) ? 1 : 0); // tshirt + boisson + bon_conso (+ repas si journée)
   }
   function itemsDone(b) {
     let n = 0;
     if (b.tshirt_distribue_at) n++;
     if (b.boisson_distribuee_at) n++;
     if (b.bon_conso_distribue_at) n++;
-    if (b.repas && b.repas_distribue_at) n++;
+    if (hasJournee(b) && b.repas_distribue_at) n++;
     return n;
   }
   function isAllDone(b) {
@@ -158,11 +161,11 @@
     const nbRepas = data.filter(b => b.repas_distribue_at).length;
     const nbBoisson = data.filter(b => b.boisson_distribuee_at).length;
     const nbBonConso = data.filter(b => b.bon_conso_distribue_at).length;
-    const nbRepasChoisis = data.filter(b => b.repas).length;
+    const nbJournee = data.filter(hasJournee).length;
 
     document.getElementById('stats').innerHTML = `
       <div class="stat"><div class="stat-n">${nbTshirt}/${data.length}</div><div class="stat-l">🎽 T-shirt</div></div>
-      <div class="stat"><div class="stat-n">${nbRepas}/${nbRepasChoisis}</div><div class="stat-l">🍗 Repas</div></div>
+      <div class="stat"><div class="stat-n">${nbRepas}/${nbJournee}</div><div class="stat-l">🍗 Repas</div></div>
       <div class="stat"><div class="stat-n">${nbBoisson}/${data.length}</div><div class="stat-l">🥤 Boisson</div></div>
       <div class="stat"><div class="stat-n">${nbBonConso}/${data.length}</div><div class="stat-l">🎟 Bon conso</div></div>
     `;
@@ -185,7 +188,7 @@
       html += `<b>${(b.prenom || '').trim()} ${(b.nom || '').trim()}</b>`;
       if (b.telephone) html += `<div class="sub">📞 ${b.telephone}</div>`;
       html += `<div class="dispo">${dispoLabel}</div>`;
-      if (repasLabel) html += `<div class="b-repas-choice">Choix : ${repasLabel}</div>`;
+      if (repasLabel && hasJournee(b)) html += `<div class="b-repas-choice">Choix : ${repasLabel}</div>`;
       html += `</div>`;
       html += `<div class="b-tshirt">🎽 ${tshirt}</div>`;
       html += `</div>`;
@@ -196,8 +199,8 @@
       html += `<span class="ic">🎽</span>T-SHIRT`;
       if (b.tshirt_distribue_at) html += `<span class="tm">${fmtHeure(b.tshirt_distribue_at)}</span>`;
       html += `</button>`;
-      // Repas — désactivé si pas de choix
-      if (b.repas) {
+      // Repas — uniquement pour les bénévoles avec dispo "journee"
+      if (hasJournee(b)) {
         html += `<button class="btn-action ${b.repas_distribue_at ? 'done' : ''}" onclick="toggle(${b.id}, 'repas_distribue_at', ${!b.repas_distribue_at})">`;
         html += `<span class="ic">🍗</span>REPAS`;
         if (b.repas_distribue_at) html += `<span class="tm">${fmtHeure(b.repas_distribue_at)}</span>`;
