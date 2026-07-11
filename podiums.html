@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Horaires podiums — Hyrox Challenge La Buse</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fff; color: #1a1a1a; font-family: sans-serif; padding: 1rem; }
+    .wrap { max-width: 800px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #C0392B, #FFEE00); padding: 24px 16px; border-radius: 14px; text-align: center; margin-bottom: 1rem; color: #0a0a0a; }
+    .header h1 { font-size: 26px; letter-spacing: 1px; }
+    .header p { font-size: 14px; font-weight: 700; margin-top: 6px; }
+    .header .note { font-size: 12px; margin-top: 10px; font-weight: 500; opacity: 0.9; }
+    .toolbar { display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem; }
+    .btn-print { padding: 10px 22px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; background: #1B7B49; color: #fff; }
+    .podium-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    @media (max-width: 640px) { .podium-list { grid-template-columns: 1fr; } }
+    .podium-card { background: #fffef0; border: 3px solid #FFA726; border-radius: 12px; padding: 16px; text-align: center; page-break-inside: avoid; }
+    .podium-card .cat { font-size: 14px; font-weight: 800; color: #C0392B; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .podium-card .time { font-size: 42px; font-weight: 900; color: #FFA726; font-family: monospace; line-height: 1; }
+    .podium-card .last { font-size: 11px; color: #888; margin-top: 8px; }
+    #loading { text-align: center; padding: 2rem; color: #888; }
+    .footer { text-align: center; color: #999; font-size: 12px; margin-top: 1.5rem; line-height: 1.6; }
+    .footer strong { color: #C0392B; }
+    @media print {
+      body { padding: 0.5cm; }
+      .toolbar { display: none; }
+      .header { background: #FFEE00; }
+      .podium-card { border-width: 2px; background: #fff; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>🏆 HORAIRES DES PODIUMS</h1>
+    <p>Hyrox Challenge La Buse #2 — Dimanche 12 juillet 2026</p>
+    <div class="note">Chaque podium a lieu ~2h après le départ de la dernière vague de sa catégorie</div>
+  </div>
+  <div class="toolbar">
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
+  </div>
+  <div id="loading">Chargement des podiums…</div>
+  <div id="content" class="podium-list"></div>
+  <div class="footer">
+    <strong>Crossfit La Buse — Saint-Paul, La Réunion</strong><br>
+    Horaires indicatifs — susceptibles d'évoluer selon le déroulé de la course
+  </div>
+</div>
+
+<script>
+(async function() {
+  var target = document.getElementById('content');
+  var loading = document.getElementById('loading');
+
+  var CAT_ORDER = [
+    'Solo Homme Scaled','Solo Femme Scaled','Solo Homme RX','Solo Femme RX',
+    'Duo Homme Scaled','Duo Femme Scaled','Duo Mixte Scaled',
+    'Duo Homme RX','Duo Femme RX','Duo Mixte RX','Relais'
+  ];
+
+  try {
+    var db = supabase.createClient('https://mzyfnmjzlosranptwucr.supabase.co', 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC');
+    var { data, error } = await db.from('Inscriptions')
+      .select('categorie,heure_depart,vague')
+      .neq('categorie', 'Parent-Enfant')
+      .neq('categorie', 'Hyrox Kids Pré-inscription')
+      .neq('categorie', 'Bénévole')
+      .eq('statut_paiement', 'paye')
+      .gte('heure_depart', '2026-07-12')
+      .lt('heure_depart', '2026-07-13')
+      .lte('vague', 41);
+    if (error) throw error;
+
+    var map = {};
+    (data || []).forEach(function(d) {
+      if (!d.heure_depart) return;
+      if (d.vague && d.vague > 41) return;
+      var cur = map[d.categorie];
+      if (!cur || d.heure_depart > cur) map[d.categorie] = d.heure_depart;
+    });
+
+    function fmtH(iso, addH) {
+      var t = new Date(iso).getTime() + (addH || 0) * 3600 * 1000;
+      return new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion' }).replace(':', 'h');
+    }
+
+    var cats = Object.keys(map).sort(function(a,b) {
+      var ia = CAT_ORDER.indexOf(a), ib = CAT_ORDER.indexOf(b);
+      if (ia < 0) ia = 99; if (ib < 0) ib = 99;
+      return ia - ib;
+    });
+
+    if (cats.length === 0) { loading.textContent = 'Aucune catégorie trouvée'; return; }
+    var html = '';
+    cats.forEach(function(cat) {
+      var lastDep = fmtH(map[cat], 0);
+      var podium = fmtH(map[cat], 2);
+      html += '<div class="podium-card">';
+      html += '<div class="cat">' + cat + '</div>';
+      html += '<div class="time">' + podium + '</div>';
+      html += '<div class="last">Dernière vague : ' + lastDep + '</div>';
+      html += '</div>';
+    });
+    loading.style.display = 'none';
+    target.innerHTML = html;
+  } catch(e) {
+    loading.textContent = 'Erreur : ' + (e.message || e);
+  }
+})();
+</script>
+</body>
+</html>
