@@ -12,16 +12,16 @@
     .subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 1.5rem; }
     .pwd-banner { background: #FFEE00; color: #0a0a0a; padding: 14px; border-radius: 10px; text-align: center; margin-bottom: 1.5rem; font-size: 14px; }
     .pwd-banner strong { font-size: 22px; letter-spacing: 3px; font-family: monospace; display: block; margin-top: 4px; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
     .card { background: #fff; border: 2px solid #1a1a1a; border-radius: 14px; padding: 1rem; text-align: center; page-break-inside: avoid; }
     .card.accueil { border-color: #FFEE00; }
-    .card.depart { border-color: #1B7B49; }
+    .card.vagues { border-color: #1B7B49; }
     .card.juges { border-color: #C0392B; }
     .card.live { border-color: #FFA726; }
     .card-icon { font-size: 32px; margin-bottom: 4px; }
     .card-title { font-size: 15px; font-weight: 800; margin-bottom: 4px; }
     .card.accueil .card-title { color: #b09600; }
-    .card.depart .card-title { color: #1B7B49; }
+    .card.vagues .card-title { color: #1B7B49; }
     .card.juges .card-title { color: #C0392B; }
     .card.live .card-title { color: #FFA726; }
     .card-desc { font-size: 11px; color: #666; margin-bottom: 10px; line-height: 1.4; min-height: 40px; }
@@ -53,9 +53,17 @@
     <div class="card accueil">
       <div class="card-icon">🎁</div>
       <div class="card-title">Accueil / Check-in</div>
-      <div class="card-desc">Cocher le pack cadeau + t-shirts remis, chercher par nom / dossard.</div>
+      <div class="card-desc">Cocher pack, t-shirts, absent, abandon. Chercher par nom / dossard.</div>
       <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Faccueil.html" alt="QR accueil">
       <div class="card-url">…/accueil.html</div>
+    </div>
+
+    <div class="card vagues">
+      <div class="card-icon">📋</div>
+      <div class="card-title">Vagues de départ</div>
+      <div class="card-desc">Planning complet des 41 vagues avec dossards + noms + horaires. Imprimable.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fvagues.html" alt="QR vagues">
+      <div class="card-url">…/vagues.html</div>
     </div>
 
     <div class="card juges">

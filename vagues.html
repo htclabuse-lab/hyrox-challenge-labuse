@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vagues — Hyrox Challenge La Buse</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fff; color: #1a1a1a; font-family: sans-serif; padding: 1rem; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #C0392B, #FFEE00); padding: 16px; border-radius: 12px; text-align: center; margin-bottom: 1rem; color: #0a0a0a; }
+    .header h1 { font-size: 22px; letter-spacing: 1px; }
+    .header p { font-size: 13px; font-weight: 600; margin-top: 4px; }
+    .toolbar { display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem; }
+    .toolbar button { padding: 10px 18px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .btn-print { background: #1B7B49; color: #fff; }
+    .cat-banner { background: linear-gradient(90deg, #C0392B, #FFEE00); color: #0a0a0a; padding: 8px 14px; border-radius: 8px; margin: 18px 0 8px; font-weight: 900; font-size: 14px; letter-spacing: 1px; text-align: center; page-break-inside: avoid; }
+    .vague { border: 2px solid #FFEE00; border-radius: 8px; padding: 8px 12px; margin-bottom: 10px; background: #fffef0; page-break-inside: avoid; }
+    .vague-head { font-weight: 800; color: #b09600; font-size: 15px; margin-bottom: 4px; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+    .vague-head .heure { color: #1a1a1a; }
+    .vague-head .count { color: #888; font-size: 11px; font-weight: 400; }
+    .athlete-row { font-size: 12px; padding: 3px 0; line-height: 1.5; display: flex; gap: 8px; align-items: baseline; }
+    .dossard { background: #FFEE00; color: #0a0a0a; padding: 1px 6px; border-radius: 3px; font-family: monospace; font-weight: 800; font-size: 11px; flex-shrink: 0; }
+    .name { font-weight: 500; }
+    .name strong { font-weight: 800; }
+    .cat { color: #666; font-size: 11px; }
+    .team { color: #888; font-size: 11px; font-style: italic; }
+    .footer { text-align: center; color: #999; font-size: 11px; margin-top: 1.5rem; }
+    #loading { text-align: center; padding: 2rem; color: #888; }
+    @media print {
+      body { padding: 0.5cm; }
+      .toolbar { display: none; }
+      .header { background: #FFEE00; }
+      .vague { border-color: #FFEE00; background: #fff; }
+      .cat-banner { background: #FFEE00; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>🏁 Vagues de départ</h1>
+    <p>Hyrox Challenge La Buse #2 — Dimanche 12 juillet 2026</p>
+  </div>
+  <div class="toolbar">
+    <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
+  </div>
+  <div id="loading">Chargement des vagues…</div>
+  <div id="content"></div>
+  <div class="footer">Crossfit La Buse — Saint-Paul, La Réunion · Départs par vagues toutes les 11 min</div>
+</div>
+
+<script>
+(async function() {
+  var target = document.getElementById('content');
+  var loading = document.getElementById('loading');
+  try {
+    var db = supabase.createClient('https://mzyfnmjzlosranptwucr.supabase.co', 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC');
+    var { data, error } = await db.from('Inscriptions')
+      .select('prenom,nom,categorie,nom_equipe,dossard,vague,heure_depart')
+      .neq('categorie', 'Parent-Enfant')
+      .neq('categorie', 'Hyrox Kids Pré-inscription')
+      .neq('categorie', 'Bénévole')
+      .eq('statut_paiement', 'paye')
+      .gte('heure_depart', '2026-07-12')
+      .lt('heure_depart', '2026-07-13')
+      .lte('vague', 41)
+      .order('vague').order('dossard');
+    if (error) throw error;
+    var byV = {};
+    (data||[]).forEach(function(d){ if(!byV[d.vague]) byV[d.vague]=[]; byV[d.vague].push(d); });
+    var vagues = Object.keys(byV).map(Number).sort(function(a,b){return a-b;});
+    if (vagues.length === 0) { loading.textContent = 'Aucune vague'; return; }
+    var html = '';
+    var prevMainCat = null;
+    vagues.forEach(function(v){
+      var rows = byV[v];
+      var heure = new Date(rows[0].heure_depart).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Indian/Reunion'});
+      var counts = {};
+      rows.forEach(function(r){ counts[r.categorie] = (counts[r.categorie]||0)+1; });
+      var mainCat = Object.keys(counts).sort(function(a,b){return counts[b]-counts[a];})[0];
+      if (mainCat !== prevMainCat) {
+        html += '<div class="cat-banner">🏁 ' + mainCat + '</div>';
+        prevMainCat = mainCat;
+      }
+      html += '<div class="vague">';
+      html += '<div class="vague-head">Vague ' + v + ' · <span class="heure">' + heure + '</span> <span class="count">· ' + rows.length + ' athlète' + (rows.length>1?'s':'') + '</span></div>';
+      rows.forEach(function(d){
+        html += '<div class="athlete-row">';
+        html += '<span class="dossard">#' + d.dossard + '</span>';
+        html += '<span class="name">' + (d.prenom||'').trim() + ' <strong>' + (d.nom||'').trim() + '</strong></span>';
+        html += '<span class="cat">— ' + d.categorie + '</span>';
+        if (d.nom_equipe) html += '<span class="team">· ' + d.nom_equipe + '</span>';
+        html += '</div>';
+      });
+      html += '</div>';
+    });
+    loading.style.display = 'none';
+    target.innerHTML = html;
+  } catch(e) {
+    loading.textContent = 'Erreur de chargement : ' + (e.message||e);
+  }
+})();
+</script>
+</body>
+</html>
