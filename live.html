@@ -27,8 +27,9 @@
     .stat-n.done { color: #4caf50; }
     .stat-n.running { color: #FFA726; }
     .group { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
-    .group-head { background: #0d0d0d; padding: 12px 16px; font-weight: 800; color: #FFEE00; font-size: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .group-head { background: #0d0d0d; padding: 12px 16px; font-weight: 800; color: #FFEE00; font-size: 15px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
     .group-head .count { font-size: 12px; color: #888; font-weight: 500; }
+    .podium-time { display: inline-block; background: #FFA726; color: #0a0a0a; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.5px; margin-left: 10px; }
     .athlete { padding: 10px 16px; border-bottom: 1px solid #2a2a2a; display: flex; align-items: center; gap: 12px; }
     .athlete:last-child { border-bottom: none; }
     .athlete.done { }
@@ -197,7 +198,24 @@
   setInterval(load, 20000);
   load();
 
+  function computePodiums(all) {
+    // Podium par catégorie = heure_depart max + 2h
+    const map = {};
+    for (const d of all) {
+      if (!d.heure_depart) continue;
+      const cur = map[d.categorie];
+      if (!cur || d.heure_depart > cur) map[d.categorie] = d.heure_depart;
+    }
+    const podiums = {};
+    for (const cat in map) {
+      const t = new Date(map[cat]).getTime() + 2 * 3600 * 1000;
+      podiums[cat] = new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion' });
+    }
+    return podiums;
+  }
+
   function render() {
+    const podiums = computePodiums(inscriptions);
     // Filtre catégorie + tranche
     let list = inscriptions.slice();
     if (catFilter !== 'all') list = list.filter(d => d.categorie === catFilter);
@@ -250,8 +268,9 @@
 
       const nbDone = finished.length;
       const totalRacing = items.length - absents.length; // exclut absents du total "attendus"
+      const podium = podiums[g.cat];
       html += `<div class="group">`;
-      html += `<div class="group-head"><span>🏆 ${k}</span><span class="count">${nbDone} terminé${nbDone>1?'s':''} / ${totalRacing}${absents.length ? ' · ' + absents.length + ' absent' + (absents.length>1?'s':'') : ''}${abandoned.length ? ' · ' + abandoned.length + ' abandon' + (abandoned.length>1?'s':'') : ''}</span></div>`;
+      html += `<div class="group-head"><span>🏆 ${k}${podium ? ' <span class="podium-time">🏆 Podium ~ ' + podium + '</span>' : ''}</span><span class="count">${nbDone} terminé${nbDone>1?'s':''} / ${totalRacing}${absents.length ? ' · ' + absents.length + ' absent' + (absents.length>1?'s':'') : ''}${abandoned.length ? ' · ' + abandoned.length + ' abandon' + (abandoned.length>1?'s':'') : ''}</span></div>`;
 
       // Finished (podium)
       finished.forEach((d, idx) => {
