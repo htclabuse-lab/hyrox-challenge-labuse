@@ -60,6 +60,8 @@
     .pack-done { background: #0a3a0a; color: #4caf50; padding: 10px; border-radius: 8px; text-align: center; font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .btn-undo { background: transparent; color: #888; border: 1px solid #444; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; }
     .empty { text-align: center; color: #666; padding: 2rem; font-size: 14px; }
+    .cat-banner { background: linear-gradient(90deg, #C0392B, #FFEE00); color: #0a0a0a; padding: 10px 14px; border-radius: 10px; margin: 18px 0 10px; font-weight: 900; font-size: 14px; letter-spacing: 1px; text-align: center; text-transform: uppercase; }
+    .cat-banner:first-child { margin-top: 0; }
   </style>
 </head>
 <body>
@@ -175,7 +177,12 @@
     }
 
     let html = '';
+    let prevCat = null;
     all.forEach(d => {
+      if (d.categorie !== prevCat) {
+        html += `<div class="cat-banner">🏁 ${d.categorie}</div>`;
+        prevCat = d.categorie;
+      }
       const packed = isPacked(d);
       const isDuo = /duo/i.test(d.categorie);
       const isRelais = /relais/i.test(d.categorie);
