@@ -297,6 +297,7 @@ async function refreshRoleCounts() {
   for (let s = 1; s <= 8; s++) {
     let n = 0;
     for (const i of ins) {
+      if (i.absent || i.abandon) continue;
       if (ptMap[s] && ptMap[s].has(i.id)) continue;
       if (s === 1) { if (i.heure_debut_reelle) n++; }
       else { if (ptMap[s - 1] && ptMap[s - 1].has(i.id)) n++; }
@@ -400,6 +401,7 @@ function getEligibleDossards() {
   const S = state.role.station;
   const map = getPointageMap();
   return state.inscriptions.filter(i => {
+    if (i.absent || i.abandon) return false;
     if (map[S] && map[S].has(i.id)) return false;
     if (S === 1) return !!i.heure_debut_reelle;
     return map[S - 1] && map[S - 1].has(i.id);
