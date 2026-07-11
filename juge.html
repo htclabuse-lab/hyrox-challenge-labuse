@@ -298,7 +298,7 @@ async function refreshRoleCounts() {
     let n = 0;
     for (const i of ins) {
       if (ptMap[s] && ptMap[s].has(i.id)) continue;
-      if (s === 1) { if (i.heure_depart) n++; }
+      if (s === 1) { if (i.heure_debut_reelle) n++; }
       else { if (ptMap[s - 1] && ptMap[s - 1].has(i.id)) n++; }
     }
     counts[s] = n;
@@ -401,7 +401,7 @@ function getEligibleDossards() {
   const map = getPointageMap();
   return state.inscriptions.filter(i => {
     if (map[S] && map[S].has(i.id)) return false;
-    if (S === 1) return !!i.heure_depart;
+    if (S === 1) return !!i.heure_debut_reelle;
     return map[S - 1] && map[S - 1].has(i.id);
   });
 }
@@ -458,8 +458,8 @@ function tickSheetElapsed() {
   if (!id) return;
   const ath = state.inscriptions.find(i => i.id === id);
   const el = $('sheet-elapsed');
-  if (!ath || !ath.heure_depart) { el.textContent = ''; return; }
-  const elapsed = Math.floor((Date.now() - new Date(ath.heure_depart).getTime()) / 1000);
+  if (!ath || !ath.heure_debut_reelle) { el.textContent = ''; return; }
+  const elapsed = Math.floor((Date.now() - new Date(ath.heure_debut_reelle).getTime()) / 1000);
   el.textContent = `⏱ Sur la course depuis ${formatHMS(elapsed)}`;
 }
 
@@ -549,8 +549,8 @@ $('sheet-point').addEventListener('click', async () => {
   const ath = state.inscriptions.find(i => i.id === id);
   const label = ath ? (ath.nom_equipe || ath.prenom || '') : '';
 
-  if (state.role.station === 8 && ath && ath.heure_depart) {
-    const brutSec = Math.floor((new Date(data.pointage.timestamp_pointage).getTime() - new Date(ath.heure_depart).getTime()) / 1000);
+  if (state.role.station === 8 && ath && ath.heure_debut_reelle) {
+    const brutSec = Math.floor((new Date(data.pointage.timestamp_pointage).getTime() - new Date(ath.heure_debut_reelle).getTime()) / 1000);
     const myPointages = state.allPointages.filter(p => p.inscription_id === id);
     const totalPen30 = myPointages.reduce((s, p) => s + (p.penalite_30s || 0), 0);
     const totalPen5 = myPointages.reduce((s, p) => s + (p.penalite_5min || 0), 0);
@@ -562,8 +562,8 @@ $('sheet-point').addEventListener('click', async () => {
     });
   } else {
     let elapsedText = '';
-    if (ath && ath.heure_depart) {
-      const elapsedSec = Math.floor((new Date(data.pointage.timestamp_pointage).getTime() - new Date(ath.heure_depart).getTime()) / 1000);
+    if (ath && ath.heure_debut_reelle) {
+      const elapsedSec = Math.floor((new Date(data.pointage.timestamp_pointage).getTime() - new Date(ath.heure_debut_reelle).getTime()) / 1000);
       elapsedText = ` · ${formatHMS(elapsedSec)} de course`;
     }
     showUndoBanner(`✓ Dossard ${ath ? ath.dossard : '?'} — ${label} pointé${elapsedText}`);
