@@ -17,7 +17,7 @@ export default async function handler(req, res) {
 
     const { data, error } = await supabase
       .from('Inscriptions')
-      .select('vague, heure_depart')
+      .select('vague, heure_debut_reelle')
       .not('vague', 'is', null);
 
     if (error) {
@@ -30,9 +30,9 @@ export default async function handler(req, res) {
       const v = row.vague;
       if (!map[v]) map[v] = { count: 0, heure_depart: null };
       map[v].count++;
-      if (row.heure_depart) {
-        if (!map[v].heure_depart || row.heure_depart < map[v].heure_depart) {
-          map[v].heure_depart = row.heure_depart;
+      if (row.heure_debut_reelle) {
+        if (!map[v].heure_depart || row.heure_debut_reelle < map[v].heure_depart) {
+          map[v].heure_depart = row.heure_debut_reelle;
         }
       }
     }
