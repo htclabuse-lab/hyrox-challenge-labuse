@@ -61,6 +61,8 @@
     .vague-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
     .vague-card .label { font-size: 18px; font-weight: 800; color: #FFEE00; margin-bottom: 4px; }
     .vague-card .vague-heure { display: inline-block; background: #FFEE00; color: #0a0a0a; padding: 2px 10px; border-radius: 6px; font-family: monospace; font-size: 15px; margin-left: 8px; }
+    .vague-cats { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+    .vague-cat { display: inline-block; background: linear-gradient(90deg, #C0392B, #FFA726); color: #fff; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
     .vague-card .count { color: #888; font-size: 13px; margin-bottom: 10px; }
     .vague-card button { width: 100%; padding: 16px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; }
     .vague-athletes { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; }
@@ -708,6 +710,17 @@ async function refreshStarterData() {
     return null;
   }
 
+  function categoriesVague(numero) {
+    const rows = parVague[numero] || [];
+    const counts = {};
+    for (const r of rows) {
+      if (!r.categorie) continue;
+      counts[r.categorie] = (counts[r.categorie] || 0) + 1;
+    }
+    // Trie par nb décroissant, retourne les labels séparés
+    return Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  }
+
   const aDemarrer = vagues.filter(v => !v.heure_depart);
   const demarrees = vagues
     .filter(v => v.heure_depart)
@@ -721,9 +734,12 @@ async function refreshStarterData() {
     $('starter-empty-todo').hidden = true;
     list.innerHTML = aDemarrer.map(v => {
       const heurePrev = heurePrevueVague(v.numero);
+      const cats = categoriesVague(v.numero);
+      const catBadges = cats.map(c => '<span class="vague-cat">' + c + '</span>').join(' ');
       return `
       <div class="vague-card">
         <div class="label">Vague ${v.numero}${heurePrev ? ' · <span class="vague-heure">🕐 ' + heurePrev + '</span>' : ''}</div>
+        ${catBadges ? '<div class="vague-cats">' + catBadges + '</div>' : ''}
         <div class="count">${v.athletes_count} athlète${v.athletes_count > 1 ? 's' : ''}</div>
         ${athletesHtml(v.numero)}
         <button data-vague="${v.numero}">🏁 Démarrer maintenant</button>
