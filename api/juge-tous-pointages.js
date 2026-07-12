@@ -18,7 +18,8 @@ export default async function handler(req, res) {
     const { data, error } = await supabase
       .from('Pointages')
       .select('id, inscription_id, station, timestamp_pointage, penalite_30s, penalite_5min')
-      .order('timestamp_pointage', { ascending: true });
+      .order('timestamp_pointage', { ascending: true })
+      .range(0, 9999);
 
     if (error) {
       console.error('Erreur Supabase juge-tous-pointages:', error);
