@@ -88,9 +88,7 @@
     }
 
     var cats = Object.keys(map).sort(function(a,b) {
-      var ia = CAT_ORDER.indexOf(a), ib = CAT_ORDER.indexOf(b);
-      if (ia < 0) ia = 99; if (ib < 0) ib = 99;
-      return ia - ib;
+      return new Date(map[a]).getTime() - new Date(map[b]).getTime();
     });
 
     if (cats.length === 0) { loading.textContent = 'Aucune catégorie trouvée'; return; }
