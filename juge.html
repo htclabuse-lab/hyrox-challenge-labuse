@@ -60,6 +60,7 @@
     .section-title { font-size: 12px; font-weight: 800; color: #888; letter-spacing: 1px; margin: 18px 0 8px; text-transform: uppercase; }
     .vague-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
     .vague-card .label { font-size: 18px; font-weight: 800; color: #FFEE00; margin-bottom: 4px; }
+    .vague-card .vague-heure { display: inline-block; background: #FFEE00; color: #0a0a0a; padding: 2px 10px; border-radius: 6px; font-family: monospace; font-size: 15px; margin-left: 8px; }
     .vague-card .count { color: #888; font-size: 13px; margin-bottom: 10px; }
     .vague-card button { width: 100%; padding: 16px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; }
     .vague-athletes { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; }
@@ -697,6 +698,16 @@ async function refreshStarterData() {
     }).join('') + '</div>';
   }
 
+  function heurePrevueVague(numero) {
+    const rows = parVague[numero] || [];
+    for (const r of rows) {
+      if (r.heure_depart) {
+        return new Date(r.heure_depart).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion' });
+      }
+    }
+    return null;
+  }
+
   const aDemarrer = vagues.filter(v => !v.heure_depart);
   const demarrees = vagues
     .filter(v => v.heure_depart)
@@ -708,14 +719,17 @@ async function refreshStarterData() {
     $('starter-empty-todo').hidden = false;
   } else {
     $('starter-empty-todo').hidden = true;
-    list.innerHTML = aDemarrer.map(v => `
+    list.innerHTML = aDemarrer.map(v => {
+      const heurePrev = heurePrevueVague(v.numero);
+      return `
       <div class="vague-card">
-        <div class="label">Vague ${v.numero}</div>
+        <div class="label">Vague ${v.numero}${heurePrev ? ' · <span class="vague-heure">🕐 ' + heurePrev + '</span>' : ''}</div>
         <div class="count">${v.athletes_count} athlète${v.athletes_count > 1 ? 's' : ''}</div>
         ${athletesHtml(v.numero)}
         <button data-vague="${v.numero}">🏁 Démarrer maintenant</button>
       </div>
-    `).join('');
+    `;
+    }).join('');
     list.querySelectorAll('button[data-vague]').forEach(btn => {
       btn.addEventListener('click', () => startVague(parseInt(btn.dataset.vague, 10)));
     });
