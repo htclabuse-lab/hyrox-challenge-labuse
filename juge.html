@@ -60,8 +60,12 @@
     .section-title { font-size: 12px; font-weight: 800; color: #888; letter-spacing: 1px; margin: 18px 0 8px; text-transform: uppercase; }
     .vague-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
     .vague-card .label { font-size: 18px; font-weight: 800; color: #FFEE00; margin-bottom: 4px; }
-    .vague-card .count { color: #888; font-size: 13px; margin-bottom: 12px; }
+    .vague-card .count { color: #888; font-size: 13px; margin-bottom: 10px; }
     .vague-card button { width: 100%; padding: 16px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; }
+    .vague-athletes { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; }
+    .vague-athlete { color: #ddd; font-size: 13px; padding: 3px 0; line-height: 1.4; border-bottom: 1px dashed #1a1a1a; }
+    .vague-athlete:last-child { border-bottom: none; }
+    .vague-athlete .doss { display: inline-block; background: #FFEE00; color: #0a0a0a; padding: 1px 6px; border-radius: 3px; font-family: monospace; font-weight: 800; font-size: 11px; margin-right: 6px; }
     .vague-historique { background: #0e1a0e; border: 1px solid #1e3a1e; border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
     .vague-historique .label { font-size: 15px; font-weight: 700; color: #b6f0b6; }
     .vague-historique .meta { font-size: 12px; color: #7a9a7a; font-variant-numeric: tabular-nums; }
@@ -659,14 +663,40 @@ async function enterStarterScreen() {
 }
 
 async function refreshStarterData() {
-  const { ok, data } = await api('/api/juge-vagues', {});
-  if (!ok) {
-    showToast('starter-toast', data.error || 'Erreur lecture vagues');
+  const [vaguesRes, listRes] = await Promise.all([
+    api('/api/juge-vagues', {}),
+    api('/api/juge-liste', {}),
+  ]);
+  if (!vaguesRes.ok) {
+    showToast('starter-toast', vaguesRes.data.error || 'Erreur lecture vagues');
     $('vagues-a-demarrer').innerHTML = '';
     $('vagues-historique').innerHTML = '';
     return;
   }
-  const vagues = data.vagues || [];
+  const vagues = vaguesRes.data.vagues || [];
+  const inscriptions = (listRes.ok ? (listRes.data.inscriptions || []) : []);
+
+  // Group inscriptions par vague (ordre : par dossard croissant)
+  const parVague = {};
+  for (const i of inscriptions) {
+    if (i.absent) continue;
+    if (!parVague[i.vague]) parVague[i.vague] = [];
+    parVague[i.vague].push(i);
+  }
+  Object.keys(parVague).forEach(v => {
+    parVague[v].sort((a, b) => (a.dossard || 0) - (b.dossard || 0));
+  });
+
+  function athletesHtml(numero) {
+    const rows = parVague[numero] || [];
+    if (rows.length === 0) return '';
+    return '<div class="vague-athletes">' + rows.map(r => {
+      const nom = ((r.prenom || '') + ' ' + (r.nom || '')).trim();
+      const team = r.nom_equipe ? ' · ' + r.nom_equipe : '';
+      return '<div class="vague-athlete"><span class="doss">#' + r.dossard + '</span>' + nom + team + '</div>';
+    }).join('') + '</div>';
+  }
+
   const aDemarrer = vagues.filter(v => !v.heure_depart);
   const demarrees = vagues
     .filter(v => v.heure_depart)
@@ -682,6 +712,7 @@ async function refreshStarterData() {
       <div class="vague-card">
         <div class="label">Vague ${v.numero}</div>
         <div class="count">${v.athletes_count} athlète${v.athletes_count > 1 ? 's' : ''}</div>
+        ${athletesHtml(v.numero)}
         <button data-vague="${v.numero}">🏁 Démarrer maintenant</button>
       </div>
     `).join('');
