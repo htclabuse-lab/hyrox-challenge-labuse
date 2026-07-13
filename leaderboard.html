@@ -280,10 +280,13 @@ function render() {
     return true;
   });
 
+  // Mode "Général" : quand aucun filtre d'âge, on affiche tout en un seul classement par catégorie
+  const generalMode = currentAge === 'all';
+
   const byCat = {};
   for (const r of filtered) {
     if (!byCat[r.cat]) byCat[r.cat] = {};
-    const ageKey = r.age || '—';
+    const ageKey = generalMode ? 'GÉNÉRAL' : (r.age || '—');
     if (!byCat[r.cat][ageKey]) byCat[r.cat][ageKey] = [];
     byCat[r.cat][ageKey].push(r);
   }
@@ -303,13 +306,18 @@ function render() {
     html += `<div class="cat-section">
       <div class="cat-title"><span>${escapeHtml(CAT_LABELS[cat] || cat)}</span><span class="cat-count">${catCount} participant${catCount > 1 ? 's' : ''}</span></div>
       <div class="cat-body">`;
-    const ages = AGE_ORDER.filter(a => ageGroups[a]);
-    if (ageGroups['—']) ages.push('—');
-    if (ages.length === 0) ages.push(...Object.keys(ageGroups));
+    let ages;
+    if (generalMode) {
+      ages = ['GÉNÉRAL'];
+    } else {
+      ages = AGE_ORDER.filter(a => ageGroups[a]);
+      if (ageGroups['—']) ages.push('—');
+      if (ages.length === 0) ages.push(...Object.keys(ageGroups));
+    }
     for (const age of ages) {
       const rows = ageGroups[age];
       if (!rows || rows.length === 0) continue;
-      const ageLabel = age === '—' ? 'Sans tranche d\'âge' : escapeHtml(age) + ' ans';
+      const ageLabel = age === 'GÉNÉRAL' ? '🏆 Classement général' : (age === '—' ? 'Sans tranche d\'âge' : escapeHtml(age) + ' ans');
       html += `<div class="age-sub-title"><span>${ageLabel}</span><span class="age-count">${rows.length}</span></div>`;
       rows.forEach((r, i) => {
         const pos = i + 1;
