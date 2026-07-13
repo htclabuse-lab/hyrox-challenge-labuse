@@ -253,6 +253,17 @@
 
   <!-- À VENIR -->
   <div class="tab-content" id="tab-avenir">
+    <div class="event-card" style="text-align:center;padding:2rem 1rem;">
+      <div style="font-size:48px;margin-bottom:12px;">🔜</div>
+      <div class="event-title" style="margin-bottom:8px;">Prochaine édition en préparation</div>
+      <p style="color:#aaa;font-size:14px;line-height:1.6;margin-bottom:14px;">L'équipe se repose après un dimanche 12 juillet exceptionnel !<br>Reste connecté sur nos réseaux pour la prochaine édition 💪</p>
+      <a href="https://www.instagram.com/hyroxtclabuse" target="_blank" style="display:inline-block;background:#C0392B;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">📱 Suivre sur Instagram</a>
+    </div>
+  </div>
+
+  <!-- PASSÉS -->
+  <div class="tab-content" id="tab-passes">
+
     <div class="event-card">
       <div class="event-header">
         <div>
@@ -260,131 +271,28 @@
           <div class="event-date">Dimanche 12 juillet 2026</div>
           <div class="event-lieu">Crossfit La Buse — Saint-Paul, La Réunion</div>
         </div>
-        <span class="badge badge-complet">COMPLET</span>
+        <span class="badge badge-closed">Terminé</span>
       </div>
       <div class="event-body">
         <div style="margin-bottom:12px;">
           <span class="format-tag fluo">Hyrox 1000</span>
           <span class="format-tag fluo">Hyrox 500</span>
-          <span class="format-tag">Solo</span>
-          <span class="format-tag">Duo</span>
-          <span class="format-tag">Relais</span>
+          <span class="format-tag">158 inscriptions</span>
+          <span class="format-tag">243 athlètes</span>
         </div>
-        <div class="btn-complet">🚫 COMPLET — événement plein</div>
-        <a href="benevoles.html" class="btn-inscrire" style="background:#1B7B49;color:#fff;margin-top:10px;">🙌 Devenir bénévole le 12 juillet</a>
+        <p style="color:#ccc;font-size:14px;line-height:1.5;margin:0 0 12px;">Une journée exceptionnelle sous la pluie ! Merci à tous les athlètes, bénévoles et supporters qui ont fait vibrer le Crossfit La Buse 💪🔥</p>
         <div class="actions-grid">
-          <button type="button" class="action-btn" onclick="toggleSection('planning-avenir',this); loadVagues();">📅 Vagues</button>
-          <button type="button" class="action-btn" onclick="toggleSection('rulebook-avenir',this)">📋 Rule book</button>
           <button type="button" class="action-btn" onclick="window.location.href='leaderboard.html?event=2'">🏆 Leaderboard</button>
-          <button type="button" class="action-btn" onclick="toggleSection('photos-avenir',this)">📸 Photos</button>
+          <button type="button" class="action-btn" onclick="window.location.href='resultats.html'">🔍 Chercher mon résultat</button>
+          <button type="button" class="action-btn" onclick="toggleSection('photos-h2',this)">📸 Photos</button>
         </div>
-        <div class="sub-section" id="planning-avenir">
-          <div class="sub-title">Vagues du dimanche 12 juillet 2026</div>
-          <div id="vagues-content" style="font-size:14px;color:#666;">Chargement…</div>
-        </div>
-        <div class="sub-section" id="rulebook-avenir">
-          <div class="sub-title">📋 Rulebook Hyrox — Règles officielles (traduit FR)</div>
-          <p style="font-size:14px;color:#ccc;line-height:1.6;margin-bottom:12px;">Notre événement suit le règlement officiel Hyrox. Ci-dessous, une <strong style="color:#FFEE00;">traduction condensée des règles clés</strong> en français, avec quelques <strong style="color:#FFEE00;">ajustements liés aux spécificités de notre course</strong>. Le règlement complet reste disponible en anglais :</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
-            <a href="https://hyroxfrance.com/wp-content/uploads/2026/06/26_27_HYROX_RulebookSingles_EN_240626.pdf" target="_blank" style="background:#1a1a1a;border:1px solid #FFEE00;border-radius:8px;padding:10px 14px;color:#FFEE00;text-decoration:none;font-weight:700;font-size:13px;text-align:center;">
-              🧍 PDF Solo (EN)
-            </a>
-            <a href="https://hyroxfrance.com/wp-content/uploads/2026/06/26_27_HYROX_RulebookDoubles_EN_Final_240626.pdf" target="_blank" style="background:#1a1a1a;border:1px solid #FFEE00;border-radius:8px;padding:10px 14px;color:#FFEE00;text-decoration:none;font-weight:700;font-size:13px;text-align:center;">
-              👥 PDF Duo (EN)
-            </a>
-          </div>
-
-          <div style="background:#0d1400;border:1px solid #FFEE00;border-radius:8px;padding:14px;font-size:13px;color:#ccc;line-height:1.65;">
-
-            <div style="color:#FFEE00;font-weight:800;font-size:15px;margin-bottom:6px;">🎯 1. Le concept</div>
-            <p>Hyrox est une compétition indoor de fitness. Chaque course = <strong>8 km de course</strong> (8 × 1&nbsp;km) alternés avec <strong>8 stations d'exercice fonctionnel</strong>, toujours dans cet ordre :</p>
-            <ol style="margin:6px 0 10px 20px;padding:0;">
-              <li>SkiErg 1&nbsp;000 m</li>
-              <li>Sled Push (5 × 10 m)</li>
-              <li>Sled Pull (5 × 10 m)</li>
-              <li>Burpee Broad Jumps (80 m)</li>
-              <li>Rameur 1&nbsp;000 m</li>
-              <li>Farmer's Carry (200 m, 2 kettlebells)</li>
-              <li>Sandbag Lunges (100 m)</li>
-              <li>Wall Balls (100 répétitions)</li>
-            </ol>
-            <p style="color:#aaa;">Le classement se fait sur le temps final le plus rapide dans chaque catégorie.</p>
-
-            <div style="color:#FFEE00;font-weight:800;font-size:15px;margin:16px 0 6px;">🏃 2. Déroulement de la course</div>
-            <ul style="margin:6px 0 10px 20px;padding:0;">
-              <li>Départs par <strong>vagues</strong> à horaire précis (voir ton mail perso).</li>
-              <li><strong>Ordre strict des stations.</strong></li>
-            </ul>
-
-            <div style="color:#FFEE00;font-weight:800;font-size:15px;margin:16px 0 6px;">👥 3. Spécifique DUO</div>
-            <ul style="margin:6px 0 10px 20px;padding:0;">
-              <li><strong>Les 2 coéquipiers courent ensemble</strong> et <strong>doivent impérativement attendre leur coéquipier avant de commencer</strong> une station, sinon pénalité.</li>
-            </ul>
-
-            <div style="color:#FFEE00;font-weight:800;font-size:15px;margin:16px 0 6px;">⚙️ 4. Standards des mouvements</div>
-            <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin-bottom:8px;">
-              <strong style="color:#FFEE00;">SkiErg (1&nbsp;000 m)</strong> — pieds sur la plateforme, talons peuvent dépasser mais ne pas toucher le sol. <strong>Interdit de lâcher les poignées</strong> pendant l'exercice. Après validation, on lève le bras pour signaler au juge. <em>Pénalité : 15 s par pieds au sol · 2 min si lâcher des poignées.</em>
-            </div>
-            <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin-bottom:8px;">
-              <strong style="color:#FFEE00;">Sled Push & Pull (2 × 5 × 10 m)</strong> — respecter la voie assignée, dépasser complètement les lignes de 10 m avant de changer de direction. Debout uniquement pour le Pull. <em>Pénalité : 15 s par infraction.</em>
-            </div>
-            <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin-bottom:8px;">
-              <strong style="color:#FFEE00;">Burpee Broad Jumps (80 m)</strong> — poitrine au sol à chaque burpee, saut à deux pieds joints (écart max 5 cm entre les pieds), mains posées à moins de 30 cm des orteils au burpee suivant. <em>Pénalité : 15 s par infraction.</em>
-            </div>
-            <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin-bottom:8px;">
-              <strong style="color:#FFEE00;">Rameur (1&nbsp;000 m)</strong> — assis jusqu'à la fin, pas debout avant validation du juge. <em>Pénalité : 15 s par infraction.</em>
-            </div>
-            <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin-bottom:8px;">
-              <strong style="color:#FFEE00;">Farmer's Carry (200 m)</strong> — 2 kettlebells portés bras tendus le long du corps. Repose autorisée si les kb ne "reculent" pas. Rendre les kb à leur emplacement à la fin. <em>Pénalité : 30 s si mal remis.</em>
-            </div>
-            <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin-bottom:8px;">
-              <strong style="color:#FFEE00;">Sandbag Lunges (100 m)</strong> — genou arrière touche le sol à chaque fente, jambes en extension complète en haut, alternance obligatoire. Sac sur les épaules en permanence. <em>Pénalité : 15 s si non-respect, sac au sol = 15 s.</em>
-            </div>
-            <div style="background:#1a1a1a;border-radius:6px;padding:10px;margin-bottom:8px;">
-              <strong style="color:#FFEE00;">Wall Balls (100 reps)</strong> — squat sous parallèle (hanches sous genoux), lancer à la cible officielle (Femmes 2,70 m / Hommes 3,00 m). Chaussures retirables si besoin. <em>Pas d'avertissement : chaque rep est "valide" ou "no rep".</em>
-            </div>
-
-            <div style="color:#FFEE00;font-weight:800;font-size:15px;margin:16px 0 6px;">🚫 5. Pénalités principales</div>
-            <ul style="margin:6px 0 10px 20px;padding:0;">
-              <li><strong>Manquer un tour de course</strong> : <strong>DQ</strong>.</li>
-              <li><strong>Manquer une station complète</strong> : <strong>DQ</strong>.</li>
-              <li><strong>Mauvais ordre de station</strong> : +3 min à la 1<sup>re</sup> infraction, DQ à la 2<sup>e</sup>.</li>
-              <li><strong>Lâcher les poignées du SkiErg</strong> : +2 min.</li>
-              <li><strong>Ne pas attendre son partenaire</strong> (Duo) : +3 min à la 1<sup>re</sup> infraction, DQ à la 2<sup>e</sup>.</li>
-              <li><strong>Aide extérieure</strong> (nourriture/boisson tendue) : +2 min.</li>
-              <li><strong>Cracher, se moucher au sol, jeter déchets</strong> : +2 min.</li>
-              <li><strong>Comportement antisportif</strong> : +2 min ou DQ selon décision du Race Director.</li>
-            </ul>
-
-            <div style="color:#FFEE00;font-weight:800;font-size:15px;margin:16px 0 6px;">👕 6. Tenue et équipement</div>
-            <ul style="margin:6px 0 10px 20px;padding:0;">
-              <li><strong>Chaussures fermées</strong> obligatoires (sauf Wall Balls où on peut les retirer).</li>
-              <li><strong>Autorisé :</strong> genouillères, gants (pas de grips), ceinture de force, poignets, sac d'hydratation, inhalateurs sur prescription.</li>
-              <li><strong>Interdit :</strong> écouteurs, téléphone, GoPro/caméra, VR, casque, lunettes connectées, bouchons d'oreille.</li>
-              <li>La <strong>craie fournie</strong> ne peut être utilisée qu'aux stations Sled Pull et Farmer's Carry. Craie perso ou hors zone = +2 min.</li>
-            </ul>
-
-            <div style="color:#FFEE00;font-weight:800;font-size:15px;margin:16px 0 6px;">🤝 7. Code de conduite</div>
-            <p>Respect, fair-play, honnêteté. Tricherie, insultes, obstructions envers juges/bénévoles/autres athlètes = pénalité, DQ ou même bannissement à vie. Toujours suivre les consignes des juges — leurs décisions sont finales.</p>
-
-            <p style="font-size:11px;color:#666;margin-top:16px;border-top:1px solid #333;padding-top:8px;">Traduction condensée à partir du règlement officiel Hyrox saison 26/27. Source : <a href="https://hyroxfrance.com/fr/reglements/" target="_blank" style="color:#888;">hyroxfrance.com/fr/reglements/</a></p>
-          </div>
-        </div>
-        <div class="sub-section" id="lb-avenir">
-          <div class="sub-title">Leaderboard</div>
-          <div style="font-size:14px;color:#666;">Disponible le jour de la compétition en temps réel.</div>
-        </div>
-        <div class="sub-section" id="photos-avenir">
-          <div class="sub-title">Photos</div>
-          <div style="font-size:14px;color:#666;">Disponibles après l'événement.</div>
+        <div class="sub-section" id="photos-h2">
+          <div class="sub-title">📸 Photos — 12 juillet 2026</div>
+          <p style="font-size:13px;color:#888;margin-bottom:14px;">Les galeries seront ajoutées dès que nos photographes officiels publieront les photos.</p>
         </div>
       </div>
     </div>
 
-  </div>
-
-  <!-- PASSÉS -->
-  <div class="tab-content" id="tab-passes">
     <div class="event-card" style="border-color:#FFEE00;">
       <div class="event-header">
         <div>
