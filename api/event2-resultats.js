@@ -68,14 +68,23 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Erreur base de données' });
     }
 
-    const { data: pointages, error: ptErr } = await supabase
-      .from('Pointages')
-      .select('inscription_id, station, timestamp_pointage, penalite_30s, penalite_5min')
-      .limit(5000);
-
-    if (ptErr) {
-      console.error('Erreur fetch Pointages:', ptErr);
-      return res.status(500).json({ error: 'Erreur base de données' });
+    // Pagination pour lever la limite par défaut de 1000
+    const pointages = [];
+    const pageSize = 1000;
+    let from = 0;
+    while (true) {
+      const { data: page, error: ptErr } = await supabase
+        .from('Pointages')
+        .select('inscription_id, station, timestamp_pointage, penalite_30s, penalite_5min')
+        .range(from, from + pageSize - 1);
+      if (ptErr) {
+        console.error('Erreur fetch Pointages:', ptErr);
+        return res.status(500).json({ error: 'Erreur base de données' });
+      }
+      if (!page || page.length === 0) break;
+      pointages.push(...page);
+      if (page.length < pageSize) break;
+      from += pageSize;
     }
 
     const ptByIns = {};
