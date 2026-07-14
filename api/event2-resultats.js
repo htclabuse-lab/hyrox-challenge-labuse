@@ -70,7 +70,8 @@ export default async function handler(req, res) {
 
     const { data: pointages, error: ptErr } = await supabase
       .from('Pointages')
-      .select('inscription_id, station, timestamp_pointage, penalite_30s, penalite_5min');
+      .select('inscription_id, station, timestamp_pointage, penalite_30s, penalite_5min')
+      .limit(5000);
 
     if (ptErr) {
       console.error('Erreur fetch Pointages:', ptErr);
