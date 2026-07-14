@@ -60,7 +60,7 @@ export default async function handler(req, res) {
 
     const { data: inscriptions, error: insErr } = await supabase
       .from('Inscriptions')
-      .select('id, dossard, nom, prenom, nom_equipe, categorie, heure_depart, date_naissance, co1_nom, co1_prenom, co1_date_naissance, co2_nom, co2_prenom, co2_date_naissance, co3_nom, co3_prenom, co3_date_naissance')
+      .select('id, dossard, nom, prenom, nom_equipe, categorie, heure_depart, temps_final_s, date_naissance, co1_nom, co1_prenom, co1_date_naissance, co2_nom, co2_prenom, co2_date_naissance, co3_nom, co3_prenom, co3_date_naissance')
       .not('heure_depart', 'is', null);
 
     if (insErr) {
@@ -105,7 +105,10 @@ export default async function handler(req, res) {
       const totalPen30 = myPts.reduce((s, p) => s + (p.penalite_30s || 0), 0);
       const totalPen5 = myPts.reduce((s, p) => s + (p.penalite_5min || 0), 0);
       const penSec = totalPen30 * 30 + totalPen5 * 300;
-      const totalSec = brutSec + penSec;
+      // Priorité au temps final manuel (temps_final_s en BDD) si présent
+      const totalSec = (typeof ins.temps_final_s === 'number' && ins.temps_final_s > 0)
+        ? ins.temps_final_s
+        : brutSec + penSec;
 
       const splits = [];
       let prevTime = heureDepart;
