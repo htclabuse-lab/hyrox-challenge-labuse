@@ -60,7 +60,7 @@ export default async function handler(req, res) {
 
     const { data: inscriptions, error: insErr } = await supabase
       .from('Inscriptions')
-      .select('id, dossard, nom, prenom, nom_equipe, categorie, heure_depart, temps_final_s, date_naissance, co1_nom, co1_prenom, co1_date_naissance, co2_nom, co2_prenom, co2_date_naissance, co3_nom, co3_prenom, co3_date_naissance')
+      .select('id, dossard, nom, prenom, nom_equipe, categorie, heure_depart, heure_debut_reelle, temps_final_s, date_naissance, co1_nom, co1_prenom, co1_date_naissance, co2_nom, co2_prenom, co2_date_naissance, co3_nom, co3_prenom, co3_date_naissance')
       .not('heure_depart', 'is', null);
 
     if (insErr) {
@@ -99,7 +99,8 @@ export default async function handler(req, res) {
       const finished = myPts.length === 8 && myPts.every((p, i) => p.station === i + 1);
       if (!finished) continue;
 
-      const heureDepart = new Date(ins.heure_depart).getTime();
+      // Utilise le vrai top départ (heure_debut_reelle) si dispo, sinon fallback heure_depart prévue
+      const heureDepart = new Date(ins.heure_debut_reelle || ins.heure_depart).getTime();
       const station8Time = new Date(myPts[7].timestamp_pointage).getTime();
       const brutSec = Math.floor((station8Time - heureDepart) / 1000);
       const totalPen30 = myPts.reduce((s, p) => s + (p.penalite_30s || 0), 0);
