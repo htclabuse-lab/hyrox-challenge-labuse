@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ELITE 12 La Buse — Classement provisoire</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    .header { background: linear-gradient(135deg, #C0392B, #FFEE00); padding: 22px 18px; border-radius: 14px; margin-bottom: 1rem; text-align: center; color: #0a0a0a; }
+    .header h1 { font-size: 26px; letter-spacing: 2px; font-weight: 900; }
+    .header .sub { font-size: 13px; font-weight: 700; margin-top: 4px; opacity: 0.85; }
+    .provisoire { background: #1a1400; border: 2px dashed #FFEE00; color: #FFEE00; padding: 12px 16px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 700; margin-bottom: 1rem; line-height: 1.5; }
+    .filters { background: #1a1a1a; padding: 12px; border-radius: 12px; margin-bottom: 14px; }
+    .filter-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .filter-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-btn { background: #0a0a0a; color: #888; border: 1px solid #333; padding: 8px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 700; }
+    .filter-btn.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
+    .cat-section { background: #1a1a1a; border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+    .cat-title { background: linear-gradient(90deg, #C0392B, #FFA726); padding: 12px 16px; font-weight: 900; color: #fff; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .cat-title .count { font-size: 11px; opacity: 0.85; font-weight: 500; letter-spacing: 0.5px; text-transform: none; }
+    .cat-body { padding: 0; }
+    .row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 1px solid #222; }
+    .row:last-child { border-bottom: none; }
+    .pos { width: 36px; font-weight: 900; font-size: 15px; font-family: monospace; text-align: center; flex-shrink: 0; color: #666; }
+    .pos.p1 { color: #FFD700; font-size: 20px; }
+    .pos.p2 { color: #C0C0C0; font-size: 18px; }
+    .pos.p3 { color: #CD7F32; font-size: 18px; }
+    .info { flex: 1; min-width: 0; }
+    .info .team { font-size: 14px; font-weight: 800; color: #fff; }
+    .info .members { font-size: 12px; color: #888; margin-top: 2px; line-height: 1.3; }
+    .time { font-family: monospace; font-weight: 900; font-size: 16px; color: #4caf50; flex-shrink: 0; }
+    .event-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; margin-left: 6px; vertical-align: middle; }
+    .event-badge.e1 { background: #1B7B49; color: #fff; }
+    .event-badge.e2 { background: #C0392B; color: #fff; }
+    .footer { text-align: center; font-size: 11px; color: #666; margin-top: 1.5rem; }
+    #loading { text-align: center; padding: 2rem; color: #888; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>🏆 ELITE 12 LA BUSE</h1>
+    <div class="sub">Top 12 chronos par catégorie · HC #1 + HC #2</div>
+  </div>
+
+  <div class="provisoire">
+    ⏳ CLASSEMENT PROVISOIRE — un 3<sup>e</sup> event Hyrox Challenge La Buse est prévu.<br>
+    Ce classement sera mis à jour après HC #3.
+  </div>
+
+  <div class="filters">
+    <div class="filter-label">Filtre catégorie</div>
+    <div class="filter-btns" id="cat-filters"></div>
+  </div>
+
+  <div id="loading">Chargement…</div>
+  <div id="content"></div>
+
+  <div class="footer">
+    Doublons dédupliqués — meilleur temps gardé lorsqu'une même équipe a couru sur les 2 éditions.<br>
+    <span class="event-badge e1">HC #1</span> = 26 avril 2026 · <span class="event-badge e2">HC #2</span> = 12 juillet 2026
+  </div>
+</div>
+
+<script>
+const CAT_ORDER = [
+  { key: 'solo rx hommes', label: 'Solo RX Hommes' },
+  { key: 'solo rx femmes', label: 'Solo RX Femmes' },
+  { key: 'solo scaled hommes', label: 'Solo Scaled Hommes' },
+  { key: 'solo scaled femmes', label: 'Solo Scaled Femmes' },
+  { key: 'duo rx homme', label: 'Duo RX Hommes' },
+  { key: 'duo rx femme', label: 'Duo RX Femmes' },
+  { key: 'duo rx mixte', label: 'Duo RX Mixte' },
+  { key: 'duo scaled hommes', label: 'Duo Scaled Hommes' },
+  { key: 'duo scaled femmes', label: 'Duo Scaled Femmes' },
+  { key: 'duo scaled mixte', label: 'Duo Scaled Mixte' },
+];
+
+// Aliases pour dédupliquer les équipes identiques avec orthographes différentes
+// clé source (normalisée) → clé cible (canonique)
+const NAME_ALIASES = {
+  'onora ketty': 'onorato ketty',
+  // ajouter d'autres cas connus si besoin
+};
+
+function norm(s) {
+  if (!s) return '';
+  return String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9\s]/g, '').trim().toLowerCase().replace(/\s+/g, ' ');
+}
+function normMember(s) {
+  const n = norm(s);
+  return NAME_ALIASES[n] || n;
+}
+function t2s(hms) {
+  if (!hms) return 0;
+  const p = hms.split(':').map(Number);
+  if (p.length === 3) return p[0]*3600 + p[1]*60 + p[2];
+  if (p.length === 2) return p[0]*60 + p[1];
+  return 0;
+}
+function s2t(sec) {
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+function teamKey(r) {
+  if (r.solo) return 'solo|' + norm(r.nom);
+  if (r.membres) {
+    const members = r.membres.split('/').map(m => normMember(m)).filter(Boolean).sort();
+    return 'team|' + members.join('+');
+  }
+  return 'name|' + norm(r.nom);
+}
+
+let currentCat = 'all';
+let allData = [];
+
+async function load() {
+  try {
+    const [ev1Res, ev2Res] = await Promise.all([
+      fetch('/data/event-1.json').then(r => r.json()),
+      fetch('/api/event2-resultats', { method: 'POST', headers: { 'Content-Type':'application/json' }}).then(r => r.json())
+    ]);
+    const merged = [];
+    (ev1Res.resultats || []).forEach(r => merged.push({...r, _event:'HC #1'}));
+    (ev2Res.resultats || []).forEach(r => merged.push({...r, _event:'HC #2'}));
+    // Dédupe : meilleur temps par (cat, teamKey)
+    const best = {};
+    for (const r of merged) {
+      const cat = (r.cat || '').toLowerCase().trim();
+      if (!cat || !r.temps) continue;
+      const sec = t2s(r.temps);
+      if (!sec) continue;
+      const key = cat + '::' + teamKey(r);
+      if (!best[key] || sec < t2s(best[key].temps)) {
+        best[key] = {...r, _cat: cat, _sec: sec};
+      }
+    }
+    allData = Object.values(best);
+    buildFilters();
+    render();
+  } catch(e) {
+    document.getElementById('loading').textContent = 'Erreur : ' + e.message;
+  }
+}
+
+function buildFilters() {
+  const wrap = document.getElementById('cat-filters');
+  let html = `<button class="filter-btn active" data-cat="all">Toutes</button>`;
+  CAT_ORDER.forEach(c => {
+    if (allData.some(d => d._cat === c.key)) {
+      html += `<button class="filter-btn" data-cat="${c.key}">${c.label}</button>`;
+    }
+  });
+  wrap.innerHTML = html;
+  wrap.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentCat = btn.dataset.cat;
+      wrap.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+      render();
+    });
+  });
+}
+
+function render() {
+  document.getElementById('loading').style.display = 'none';
+  const content = document.getElementById('content');
+  let html = '';
+  CAT_ORDER.forEach(cat => {
+    if (currentCat !== 'all' && currentCat !== cat.key) return;
+    const rows = allData.filter(d => d._cat === cat.key).sort((a,b) => a._sec - b._sec).slice(0, 12);
+    if (rows.length === 0) return;
+    html += `<div class="cat-section">
+      <div class="cat-title"><span>🏆 ${cat.label}</span><span class="count">TOP ${rows.length}</span></div>
+      <div class="cat-body">`;
+    rows.forEach((r, i) => {
+      const pos = i + 1;
+      const posClass = pos === 1 ? 'p1' : pos === 2 ? 'p2' : pos === 3 ? 'p3' : '';
+      const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : pos;
+      const evBadge = r._event === 'HC #1' ? '<span class="event-badge e1">HC #1</span>' : '<span class="event-badge e2">HC #2</span>';
+      const members = r.membres ? `<div class="members">${escapeHtml(r.membres)}</div>` : '';
+      html += `<div class="row">
+        <div class="pos ${posClass}">${medal}</div>
+        <div class="info">
+          <div class="team">${escapeHtml(r.nom)}${evBadge}</div>
+          ${members}
+        </div>
+        <div class="time">${escapeHtml(r.temps)}</div>
+      </div>`;
+    });
+    html += '</div></div>';
+  });
+  if (!html) html = '<div style="text-align:center;color:#666;padding:2rem;">Aucun résultat pour ce filtre</div>';
+  content.innerHTML = html;
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+load();
+</script>
+</body>
+</html>
