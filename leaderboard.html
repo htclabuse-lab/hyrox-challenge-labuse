@@ -373,8 +373,7 @@ function renderDetails(r) {
   return `<div class="details">
     <table class="splits-table"><tbody>${splitsRows}</tbody></table>
     <div class="summary">
-      <div class="srow"><div class="lbl">Temps brut</div><div class="val">${escapeHtml(formatBrut(r.brut_sec))}</div></div>
-      <div class="srow"><div class="lbl">Pénalités</div><div class="val">${penalitesLabel}${penSec > 0 ? ' <span style="color:#ffaa00;">(+' + formatBrut(penSec) + ')</span>' : ''}</div></div>
+      ${penSec > 0 ? `<div class="srow"><div class="lbl">Pénalités</div><div class="val">${penalitesLabel} <span style="color:#ffaa00;">(+${formatBrut(penSec)})</span></div></div>` : ''}
       <div class="srow total"><div class="lbl">Temps final</div><div class="val">${escapeHtml(r.temps)}</div></div>
     </div>
   </div>`;

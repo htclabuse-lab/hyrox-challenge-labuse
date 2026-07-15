@@ -250,8 +250,7 @@ function render(query) {
         <div class="details" id="detail-${idx}" hidden>
           <table class="splits-table"><tbody>${splitsRows}</tbody></table>
           <div class="summary">
-            <div class="srow"><div class="lbl">Temps brut</div><div class="val">${escapeHtml(formatBrut(r.brut_sec))}</div></div>
-            <div class="srow"><div class="lbl">Pénalités</div><div class="val">${penalitesLabel}${penalitesTotal > 0 ? ' <span style="color:#ffaa00;">(+' + formatBrut(penalitesTotal) + ')</span>' : ''}</div></div>
+            ${penalitesTotal > 0 ? `<div class="srow"><div class="lbl">Pénalités</div><div class="val">${penalitesLabel} <span style="color:#ffaa00;">(+${formatBrut(penalitesTotal)})</span></div></div>` : ''}
             <div class="srow total"><div class="lbl">Temps final</div><div class="val">${escapeHtml(r.temps)}</div></div>
           </div>
         </div>
