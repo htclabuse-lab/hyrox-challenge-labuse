@@ -282,7 +282,6 @@
         <div style="margin-bottom:12px;">
           <span class="format-tag fluo">Hyrox 1000</span>
           <span class="format-tag fluo">Hyrox 500</span>
-          <span class="format-tag">158 inscriptions</span>
           <span class="format-tag">243 athlètes</span>
         </div>
         <p style="color:#ccc;font-size:14px;line-height:1.5;margin:0 0 12px;">Une journée exceptionnelle sous la pluie ! Merci à tous les athlètes, bénévoles et supporters qui ont fait vibrer le Crossfit La Buse 💪🔥</p>
@@ -312,7 +311,7 @@
       </div>
     </div>
 
-    <div class="event-card" style="border-color:#FFEE00;">
+    <div class="event-card">
       <div class="event-header">
         <div>
           <div class="event-title">👨‍👧 Hyrox Parent-Enfant La Buse</div>
@@ -325,7 +324,7 @@
         <div style="margin-bottom:12px;">
           <span class="format-tag fluo">Parent-Enfant</span>
           <span class="format-tag">Enfant 6-15 ans</span>
-          <span class="format-tag">73 binômes</span>
+          <span class="format-tag">146 athlètes</span>
         </div>
         <p style="color:#ccc;font-size:14px;line-height:1.5;margin:0 0 12px;">Première édition Parent-Enfant : 7 stations adaptées + 200 m (ou 400 m XL) de course entre chaque. Un grand merci à tous les binômes qui ont partagé ce moment ! 🙌</p>
         <div class="actions-grid">
@@ -358,64 +357,15 @@
         <div style="margin-bottom:12px;">
           <span class="format-tag fluo">Hyrox 1000</span>
           <span class="format-tag fluo">Hyrox 500</span>
-          <span class="format-tag">110 participants</span>
+          <span class="format-tag">110 athlètes</span>
         </div>
+        <p style="color:#ccc;font-size:14px;line-height:1.5;margin:0 0 12px;">Première édition du Hyrox Challenge La Buse. Merci à tous les pionniers qui ont lancé l'aventure ! 🙌</p>
         <div class="actions-grid">
           <button type="button" class="action-btn" onclick="window.location.href='leaderboard.html?event=1'">🏆 Leaderboard</button>
-          <button type="button" class="action-btn" onclick="toggleSection('planning-passe',this)">📅 Planning</button>
-          <button type="button" class="action-btn" onclick="toggleSection('photos-passe',this)">📸 Photos</button>
-          <button type="button" class="action-btn" onclick="showTab('avenir')">➡️ Prochaine édition</button>
+          <button type="button" class="action-btn" onclick="window.location.href='resultats.html'">🔍 Chercher mon résultat</button>
+          <button type="button" class="action-btn" onclick="toggleSection('photos-h1',this)">📸 Photos</button>
         </div>
-
-     <div class="sub-section" id="lb-passe">
-  <div class="sub-title">Leaderboard — 26 avril 2026</div>
-  <div class="lb-filters">
-    <div>
-      <div class="filter-label">Catégorie</div>
-      <div class="filter-group" id="filter-cat">
-        <button type="button" class="filter-btn active" onclick="filterCat('all',this)">Toutes</button>
-        <button type="button" class="filter-btn" onclick="filterCat('rx hommes',this)">RX Hommes</button>
-        <button type="button" class="filter-btn" onclick="filterCat('scaled hommes',this)">Scaled Hommes</button>
-        <button type="button" class="filter-btn" onclick="filterCat('rx femme',this)">RX Femmes</button>
-        <button type="button" class="filter-btn" onclick="filterCat('scaled femmes',this)">Scaled Femmes</button>
-        <button type="button" class="filter-btn" onclick="filterCat('duo rx homme',this)">Duo RX H</button>
-        <button type="button" class="filter-btn" onclick="filterCat('duo rx femme',this)">Duo RX F</button>
-        <button type="button" class="filter-btn" onclick="filterCat('duo rx mixte',this)">Duo RX Mixte</button>
-        <button type="button" class="filter-btn" onclick="filterCat('duo scaled hommes',this)">Duo SC H</button>
-        <button type="button" class="filter-btn" onclick="filterCat('duo scaled femmes',this)">Duo SC F</button>
-        <button type="button" class="filter-btn" onclick="filterCat('duo scaled mixte',this)">Duo SC Mixte</button>
-        <button type="button" class="filter-btn" onclick="filterCat('relais',this)">Relais</button>
-      </div>
-    </div>
-    <div>
-      <div class="filter-label">Catégorie d'âge</div>
-      <div class="filter-group" id="filter-age">
-        <button type="button" class="filter-btn active" onclick="filterAge('all',this)">Tous</button>
-        <button type="button" class="filter-btn" onclick="filterAge('16-24',this)">16-24</button>
-        <button type="button" class="filter-btn" onclick="filterAge('25-34',this)">25-34</button>
-        <button type="button" class="filter-btn" onclick="filterAge('35-44',this)">35-44</button>
-        <button type="button" class="filter-btn" onclick="filterAge('45-54',this)">45-54</button>
-        <button type="button" class="filter-btn" onclick="filterAge('55+',this)">55+</button>
-      </div>
-    </div>
-  </div>
-  <div id="leaderboard-content"></div>
-</div>
-
-        <div class="sub-section" id="planning-passe">
-          <div class="sub-title">Planning — 26 avril 2026</div>
-          <div class="planning-row"><span class="planning-heure">08h00</span><span class="planning-cat">Solo Homme RX — 12 athlètes</span></div>
-          <div class="planning-row"><span class="planning-heure">08h30</span><span class="planning-cat">Solo Femme RX — 8 athlètes</span></div>
-          <div class="planning-row"><span class="planning-heure">09h00</span><span class="planning-cat">Duo Homme RX — 6 équipes</span></div>
-          <div class="planning-row"><span class="planning-heure">09h30</span><span class="planning-cat">Solo Homme Scaled — 15 athlètes</span></div>
-          <div class="planning-row"><span class="planning-heure">10h00</span><span class="planning-cat">Duo Mixte Scaled — 10 équipes</span></div>
-          <div class="planning-row"><span class="planning-heure">10h30</span><span class="planning-cat">Solo Femme Scaled — 9 athlètes</span></div>
-          <div class="planning-row"><span class="planning-heure">11h00</span><span class="planning-cat">Duo Femme RX — 5 équipes</span></div>
-          <div class="planning-row"><span class="planning-heure">11h30</span><span class="planning-cat">Duo Homme Scaled — 7 équipes</span></div>
-          <div class="planning-row"><span class="planning-heure">13h00</span><span class="planning-cat">Relais — 2 équipes</span></div>
-        </div>
-
-        <div class="sub-section" id="photos-passe">
+        <div class="sub-section" id="photos-h1">
           <div class="sub-title">📸 Photos — 26 avril 2026</div>
           <p style="font-size:13px;color:#888;margin-bottom:14px;">Retrouve toutes les photos de l'événement chez nos photographes officiels :</p>
           <div class="photo-card">
@@ -433,7 +383,6 @@
             </div>
           </div>
         </div>
-
       </div>
     </div>
 
