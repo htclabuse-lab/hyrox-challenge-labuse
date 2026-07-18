@@ -300,28 +300,44 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
     ? `${(inscription.contact_urgence_prenom || '').trim()} ${(inscription.contact_urgence_nom || '').trim()}${inscription.contact_urgence_tel ? ' · ' + inscription.contact_urgence_tel : ''}`.trim()
     : '—';
 
+  // Ligne athlètes pour la share card : capitaine + coéquipiers
+  const athletes = [`${prenom} ${nom}`.trim()];
+  if (inscription.co1_prenom || inscription.co1_nom) athletes.push(`${(inscription.co1_prenom || '').trim()} ${(inscription.co1_nom || '').trim()}`.trim());
+  if (inscription.co2_prenom || inscription.co2_nom) athletes.push(`${(inscription.co2_prenom || '').trim()} ${(inscription.co2_nom || '').trim()}`.trim());
+  if (inscription.co3_prenom || inscription.co3_nom) athletes.push(`${(inscription.co3_prenom || '').trim()} ${(inscription.co3_nom || '').trim()}`.trim());
+  const athletesHtml = athletes.map(a => `<div style="font-size:22px;font-weight:900;color:#fff;line-height:1.35;">${a}</div>`).join('');
+  const equipeShareLine = inscription.nom_equipe
+    ? `<div style="margin-top:10px;color:#FFEE00;font-size:15px;font-weight:700;">🏷 ${inscription.nom_equipe}</div>`
+    : '';
+
   return `
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#0a0a0a;color:#fff;padding:2rem;border-radius:12px;">
-      <div style="text-align:center;margin-bottom:1.5rem;">
-        <h1 style="color:#FFEE00;margin:0;font-size:26px;font-weight:800;letter-spacing:-0.5px;">Hyrox Challenge <span style="color:#fff">La Buse #3</span></h1>
-      </div>
-      <h2 style="color:#FFEE00;margin-top:1.5rem;font-size:22px;">Inscription confirmée ! 🎉</h2>
-      <p style="color:#ccc;line-height:1.7;margin-top:1rem;">
-        Bonjour <strong style="color:#fff;">${prenom}</strong>,<br><br>
-        Ton inscription au <strong style="color:#FFEE00;">Hyrox Challenge La Buse #3</strong> — <strong>dimanche 15 novembre 2026</strong> — est bien confirmée. À très vite sur la ligne de départ ! 💪
+      <h2 style="color:#FFEE00;margin:0 0 1rem;font-size:22px;">Inscription confirmée ! 🎉</h2>
+      <p style="color:#ccc;line-height:1.7;margin:0 0 1.5rem;">
+        Bonjour <strong style="color:#fff;">${prenom}</strong>,<br>
+        Ton inscription est bien confirmée. À très vite sur la ligne de départ ! 💪
       </p>
-      <div style="background:#111;border:1px solid #222;border-radius:12px;padding:1.25rem;margin-top:1.5rem;">
-        <div style="color:#FFEE00;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">📋 Récap de ton inscription</div>
+
+      <!-- ===== SHARE CARD (à screenshot & partager) ===== -->
+      <div style="background:linear-gradient(160deg,#C0392B 0%,#0a0a0a 55%);border:2px solid #FFEE00;border-radius:16px;padding:2rem 1.5rem;margin-bottom:1.5rem;text-align:center;">
+        <div style="color:#FFEE00;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:800;margin-bottom:8px;">✨ Prêt·e pour</div>
+        <div style="color:#fff;font-size:26px;font-weight:900;line-height:1.1;letter-spacing:-0.5px;">HYROX CHALLENGE</div>
+        <div style="color:#FFEE00;font-size:26px;font-weight:900;line-height:1.1;letter-spacing:-0.5px;margin-bottom:14px;">LA BUSE #3</div>
+        <div style="background:#FFEE00;color:#0a0a0a;display:inline-block;padding:8px 16px;border-radius:8px;font-weight:800;font-size:14px;letter-spacing:1px;margin-bottom:20px;">📅 DIMANCHE 15 NOVEMBRE 2026</div>
+        <div style="border-top:1px solid rgba(255,238,0,0.35);padding-top:18px;">
+          ${athletesHtml}
+          ${equipeShareLine}
+          <div style="margin-top:12px;background:rgba(0,0,0,0.35);color:#fff;display:inline-block;padding:6px 14px;border-radius:6px;font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;">${inscription.categorie || '—'}</div>
+          <div style="margin-top:10px;color:#ccc;font-size:13px;">⏱ Objectif : <strong style="color:#fff;">${inscription.temps_estime || '—'}</strong></div>
+        </div>
+        <div style="margin-top:16px;color:#888;font-size:11px;letter-spacing:1px;">🌐 hyrox-challenge-labuse.vercel.app</div>
+      </div>
+      <p style="color:#888;font-size:12px;text-align:center;margin:-4px 0 1.5rem;font-style:italic;">📸 Fais un screenshot ci-dessus et partage-le sur tes réseaux !</p>
+
+      <!-- ===== INFOS PERSO (pour toi) ===== -->
+      <div style="background:#111;border:1px solid #222;border-radius:12px;padding:1.25rem;margin-top:1rem;">
+        <div style="color:#FFEE00;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">📋 Tes infos perso</div>
         <table style="width:100%;border-collapse:collapse;">
-          <tr>
-            <td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Athlète</td>
-            <td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${prenom} ${nom}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Catégorie</td>
-            <td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${inscription.categorie || '—'}</td>
-          </tr>
-          ${equipeLine}
           <tr>
             <td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">T-shirt</td>
             <td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${tshirt || '—'}</td>
@@ -329,10 +345,6 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
           <tr>
             <td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">${labelAge}</td>
             <td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${valAge}</td>
-          </tr>
-          <tr>
-            <td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">Temps estimé</td>
-            <td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${inscription.temps_estime || '—'}</td>
           </tr>
           <tr>
             <td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">🚨 Contact urgence</td>
