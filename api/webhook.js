@@ -216,8 +216,8 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
         <h2 style="color:#FFEE00;margin-top:1.5rem;">Inscription confirmée ! 🎉</h2>
         <p style="color:#ccc;line-height:1.7;margin-top:1rem;">
           Bonjour ${nomStripe || ''},<br><br>
-          Ton inscription au <strong style="color:#FFEE00;">Hyrox Challenge La Buse #2</strong> est bien confirmée !<br><br>
-          📅 <strong>Dimanche 12 juillet 2026</strong><br>
+          Ton inscription au <strong style="color:#FFEE00;">Hyrox Challenge La Buse #3</strong> est bien confirmée !<br><br>
+          📅 <strong>Dimanche 15 novembre 2026</strong><br>
           📍 <strong>Crossfit La Buse — Saint-Paul, La Réunion</strong><br><br>
           Montant payé : <strong style="color:#FFEE00;">${montantPaye} €</strong><br><br>
           On t'attend sur la ligne de départ ! 💪
@@ -290,15 +290,25 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
     }
   }
 
+  const packPhotoLine = inscription.pack_photo ? `
+          <tr>
+            <td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">📸 Pack photo</td>
+            <td style="padding:8px 0;color:#1B7B49;font-weight:700;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">✅ Inclus</td>
+          </tr>` : '';
+
+  const contactUrgence = (inscription.contact_urgence_nom || inscription.contact_urgence_prenom || inscription.contact_urgence_tel)
+    ? `${(inscription.contact_urgence_prenom || '').trim()} ${(inscription.contact_urgence_nom || '').trim()}${inscription.contact_urgence_tel ? ' · ' + inscription.contact_urgence_tel : ''}`.trim()
+    : '—';
+
   return `
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#0a0a0a;color:#fff;padding:2rem;border-radius:12px;">
       <div style="text-align:center;margin-bottom:1.5rem;">
-        <h1 style="color:#FFEE00;margin:0;font-size:26px;font-weight:800;letter-spacing:-0.5px;">Hyrox Challenge <span style="color:#fff">La Buse</span></h1>
+        <h1 style="color:#FFEE00;margin:0;font-size:26px;font-weight:800;letter-spacing:-0.5px;">Hyrox Challenge <span style="color:#fff">La Buse #3</span></h1>
       </div>
       <h2 style="color:#FFEE00;margin-top:1.5rem;font-size:22px;">Inscription confirmée ! 🎉</h2>
       <p style="color:#ccc;line-height:1.7;margin-top:1rem;">
         Bonjour <strong style="color:#fff;">${prenom}</strong>,<br><br>
-        Ton inscription au <strong style="color:#FFEE00;">Hyrox Challenge La Buse #2</strong> est bien confirmée. À très vite sur la ligne de départ ! 💪
+        Ton inscription au <strong style="color:#FFEE00;">Hyrox Challenge La Buse #3</strong> — <strong>dimanche 15 novembre 2026</strong> — est bien confirmée. À très vite sur la ligne de départ ! 💪
       </p>
       <div style="background:#111;border:1px solid #222;border-radius:12px;padding:1.25rem;margin-top:1.5rem;">
         <div style="color:#FFEE00;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">📋 Récap de ton inscription</div>
@@ -325,22 +335,37 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
             <td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:14px;border-bottom:1px solid #1a1a1a;">${inscription.temps_estime || '—'}</td>
           </tr>
           <tr>
+            <td style="padding:8px 0;color:#888;font-size:14px;border-bottom:1px solid #1a1a1a;">🚨 Contact urgence</td>
+            <td style="padding:8px 0;color:#fff;font-weight:600;text-align:right;font-size:13px;border-bottom:1px solid #1a1a1a;">${contactUrgence}</td>
+          </tr>
+          ${packPhotoLine}
+          <tr>
             <td style="padding:8px 0;color:#888;font-size:14px;">Montant payé</td>
             <td style="padding:8px 0;color:#FFEE00;font-weight:800;text-align:right;font-size:16px;">${montantPaye} €</td>
           </tr>
         </table>
         ${coequipiersHtml}
       </div>
-      <div style="background:#1a1a00;border:1px solid #FFEE00;border-radius:12px;padding:1rem 1.25rem;margin-top:1rem;">
-        <div style="color:#FFEE00;font-weight:700;font-size:14px;line-height:1.6;">⚠️ N'oublie pas : un podium est prévu pour chaque catégorie d'âge !</div>
-        <div style="color:#ccc;font-size:13px;line-height:1.6;margin-top:6px;">Reste avec nous jusqu'à la cérémonie de remise des prix, tu pourrais y être 🏆</div>
+
+      <div style="background:#1a1400;border:1px solid #C0392B;border-radius:12px;padding:1rem 1.25rem;margin-top:1rem;">
+        <div style="color:#C0392B;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">💳 Politique de remboursement</div>
+        <div style="color:#ccc;font-size:13px;line-height:1.6;">
+          <strong style="color:#fff;">Aucun remboursement</strong> ne sera effectué après l'inscription.<br>
+          Tu peux cependant <strong style="color:#fff;">revendre ta place toi-même</strong> jusqu'au <strong style="color:#FFEE00;">mercredi 5 novembre 2026</strong> (10 jours avant l'événement). Dans ce cas, <strong style="color:#fff;">informe-nous</strong> par mail à <a href="mailto:htclabuse@gmail.com" style="color:#FFEE00;">htclabuse@gmail.com</a> pour transférer l'inscription (nouveau nom, catégorie d'âge, taille de t-shirt).
+        </div>
       </div>
+
+      <div style="background:#1a1a00;border:1px solid #FFEE00;border-radius:12px;padding:1rem 1.25rem;margin-top:1rem;">
+        <div style="color:#FFEE00;font-weight:700;font-size:14px;line-height:1.6;">🏆 Plus de 40 podiums à décrocher !</div>
+        <div style="color:#ccc;font-size:13px;line-height:1.6;margin-top:6px;">Podium par catégorie et tranche d'âge. Reste avec nous jusqu'à la cérémonie — tu pourrais y être. Et les 12 meilleurs chronos de chaque cat se qualifient pour la <strong style="color:#FFEE00;">Grande Finale ELITE 12 en 2027</strong>.</div>
+      </div>
+
       <div style="background:#0d1400;border:1px solid #FFEE00;border-radius:12px;padding:1.25rem;margin-top:1.5rem;text-align:center;">
-        <div style="color:#FFEE00;font-weight:800;font-size:14px;margin-bottom:8px;">📅 Dimanche 12 juillet 2026</div>
+        <div style="color:#FFEE00;font-weight:800;font-size:14px;margin-bottom:8px;">📅 Dimanche 15 novembre 2026</div>
         <div style="color:#ccc;font-size:14px;">📍 Crossfit La Buse — Saint-Paul, La Réunion</div>
       </div>
       <div style="text-align:center;margin-top:1.5rem;">
-        <a href="https://hyrox-challenge-labuse.vercel.app" style="background:#FFEE00;color:#0a0a0a;padding:14px 36px;border-radius:10px;text-decoration:none;font-weight:800;display:inline-block;">Voir le site</a>
+        <a href="https://hyrox-challenge-labuse.vercel.app" style="background:#FFEE00;color:#0a0a0a;padding:14px 36px;border-radius:10px;text-decoration:none;font-weight:800;display:inline-block;">🌐 Toutes les infos sur notre site</a>
       </div>
       <p style="color:#888;font-size:13px;line-height:1.7;margin-top:2rem;text-align:center;">
         Ton dossard et tes horaires de passage te seront communiqués par email une fois toutes les inscriptions clôturées.
