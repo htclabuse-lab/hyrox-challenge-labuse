@@ -73,9 +73,8 @@
   <div class="header">
     <div class="logo">Hyrox Challenge <span>La Buse</span></div>
     <div class="subtitle">
-      <div style="font-size:15px;color:#C0392B;font-weight:700;margin-bottom:4px;text-decoration:line-through;opacity:.6;">🏃 Hyrox Challenge — dim. 12 juillet 2026 <span style="background:#C0392B;color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;margin-left:6px;text-decoration:none;display:inline-block;letter-spacing:1px;">COMPLET</span></div>
-      <div style="font-size:15px;color:#1B7B49;font-weight:700;margin-bottom:6px;text-decoration:line-through;opacity:.6;">👨‍👧 Parent-Enfant — sam. 27 juin 2026 <span style="background:#1B7B49;color:#fff;font-size:10px;padding:2px 7px;border-radius:4px;margin-left:6px;text-decoration:none;display:inline-block;letter-spacing:1px;">COMPLET</span></div>
-      <div style="font-size:11px;color:#888;">Crossfit La Buse — Saint-Paul</div>
+      <div style="font-size:17px;color:#C0392B;font-weight:800;margin-bottom:6px;">🏃 Hyrox Challenge #3 — dim. 15 novembre 2026</div>
+      <div style="font-size:11px;color:#888;">Crossfit La Buse — Saint-Paul, La Réunion</div>
     </div>
   </div>
 
@@ -491,16 +490,12 @@
     }
 
     document.getElementById('prix-label').textContent = state.catLabel;
-    document.getElementById('prix-val').textContent = state.prix + ' €';
     var prixInsc = remise > 0 ? Math.round(state.prix * (1 - remise) * 100) / 100 : state.prix;
+    document.getElementById('prix-val').textContent = prixInsc + ' €';
     var packRow = document.getElementById('pack-row');
     if (packRow) packRow.style.display = state.packPhoto ? 'flex' : 'none';
     var prixFinal = state.packPhoto ? prixInsc + PACK_PHOTO_PRIX : prixInsc;
-    var totalTxt = '';
-    if (remise > 0 && state.packPhoto)      totalTxt = (state.prix + PACK_PHOTO_PRIX) + ' € → ' + prixFinal + ' €';
-    else if (remise > 0)                    totalTxt = state.prix + ' € → ' + prixFinal + ' €';
-    else                                    totalTxt = prixFinal + ' €';
-    document.getElementById('prix-total').textContent = totalTxt;
+    document.getElementById('prix-total').textContent = prixFinal + ' €';
   }
 
   function appliquerCode() {
