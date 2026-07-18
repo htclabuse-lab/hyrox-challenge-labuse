@@ -101,7 +101,10 @@
         <div class="field"><label class="label">Prénom</label><input type="text" id="prenom" placeholder="Jean"></div>
       </div>
       <div class="field"><label class="label">Date de naissance</label><input type="date" id="dob"></div>
-      <div class="field"><label class="label">Email</label><input type="email" id="email" placeholder="jean@email.fr"></div>
+      <div class="field"><label class="label">Email</label><input type="email" id="email" placeholder="jean@email.fr" autocomplete="off" oncopy="return false;" onpaste="return false;" oncut="return false;"></div>
+      <div class="field"><label class="label">Confirme ton email</label><input type="email" id="email-confirm-input" placeholder="Retape ton email pour vérifier" autocomplete="off" oncopy="return false;" onpaste="return false;" oncut="return false;">
+        <div id="email-match-msg" style="font-size:12px;margin-top:4px;color:#C0392B;display:none;">⚠️ Les deux emails ne correspondent pas</div>
+      </div>
       <div class="field"><label class="label">Téléphone</label><input type="tel" id="tel" placeholder="06 12 34 56 78"></div>
       <div class="field"><label class="label">Genre</label>
         <div style="display:flex;gap:10px;margin-top:4px;">
@@ -270,7 +273,10 @@
       <div class="confirm">
         <div class="confirm-icon">✅</div>
         <div style="font-size:20px;font-weight:700;margin-bottom:8px;">Inscription confirmée !</div>
-        <div style="font-size:13px;color:#888;margin-bottom:1.5rem;">Le rule book a été envoyé à <strong id="email-confirm"></strong></div>
+        <div style="font-size:13px;color:#888;margin-bottom:1.5rem;">Un mail de confirmation vient d'être envoyé à <strong id="email-confirm"></strong></div>
+        <div style="background:#fff5ee;border:1px solid #FFA726;border-radius:10px;padding:12px 14px;margin-bottom:1.2rem;font-size:12px;color:#333;line-height:1.55;text-align:left;">
+          📩 <strong>Tu ne reçois rien ?</strong> Vérifie tes <strong>spams</strong> / courriers indésirables (expéditeur : <em>noreply@htclabuse.fr</em>).
+        </div>
         <div style="font-size:12px;color:#aaa;margin-bottom:4px;">Ton numéro de dossier</div>
         <div class="dossard" id="dossard-num"></div>
         <div style="font-size:12px;color:#aaa;margin-top:1rem;line-height:1.7;">Ton dossard et tes horaires de passage te seront communiqués par email une fois toutes les inscriptions clôturées.</div>
@@ -409,9 +415,21 @@
       if (!document.getElementById('nom').value.trim()) { alert('Merci de renseigner ton nom.'); return; }
       if (!document.getElementById('prenom').value.trim()) { alert('Merci de renseigner ton prénom.'); return; }
       if (!document.getElementById('dob').value) { alert('Merci de renseigner ta date de naissance.'); return; }
-      if (!document.getElementById('email').value.trim()) { alert('Merci de renseigner ton email.'); return; }
+      var em = document.getElementById('email').value.trim().toLowerCase();
+      var em2 = document.getElementById('email-confirm-input').value.trim().toLowerCase();
+      if (!em) { alert('Merci de renseigner ton email.'); return; }
+      if (!em2) { alert('Merci de confirmer ton email.'); return; }
+      if (em !== em2) {
+        document.getElementById('email-match-msg').style.display = 'block';
+        alert('Les deux emails ne correspondent pas — vérifie ta saisie.');
+        return;
+      }
+      document.getElementById('email-match-msg').style.display = 'none';
       if (!document.getElementById('tel').value.trim()) { alert('Merci de renseigner ton téléphone.'); return; }
       if (!state.genre) { alert('Merci de sélectionner ton genre.'); return; }
+      if (!document.getElementById('urg-nom').value.trim()) { alert('Merci de renseigner le nom du contact d\'urgence.'); return; }
+      if (!document.getElementById('urg-prenom').value.trim()) { alert('Merci de renseigner le prénom du contact d\'urgence.'); return; }
+      if (!document.getElementById('urg-tel').value.trim()) { alert('Merci de renseigner le téléphone du contact d\'urgence.'); return; }
     }
     if (currentStep === 1) {
       if (!state.cat) { alert('Merci de choisir une catégorie.'); return; }
