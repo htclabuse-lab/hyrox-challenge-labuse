@@ -244,7 +244,16 @@
       </div>
       <div id="code-msg" style="font-size:12px;margin-top:6px;"></div>
     </div>
-    <button type="button" class="btn-next" id="btn-payer" onclick="payer()">Payer et confirmer l'inscription</button>
+    <div class="card" style="background:#fff8ee;border:2px solid #FFA726;">
+      <label style="display:flex;gap:12px;align-items:flex-start;cursor:pointer;">
+        <input type="checkbox" id="sante-check" onchange="toggleSante(this)" style="width:22px;height:22px;margin-top:2px;flex-shrink:0;accent-color:#C0392B;">
+        <div style="font-size:13px;color:#333;line-height:1.55;">
+          <strong style="color:#C0392B;">Attestation sur l'honneur —</strong> Je déclare être apte à la pratique du sport en compétition et n'avoir aucune contre-indication médicale à participer au HYROX Challenge La Buse. Je participe sous ma propre responsabilité et décharge l'organisation de toute responsabilité en cas de blessure ou d'incident lié à ma participation.
+        </div>
+      </label>
+    </div>
+    <button type="button" class="btn-next" id="btn-payer" onclick="payer()" disabled style="opacity:.45;cursor:not-allowed;">Payer et confirmer l'inscription</button>
+    <div id="sante-hint" style="font-size:12px;color:#C0392B;text-align:center;margin-top:6px;">☝️ Coche l'attestation ci-dessus pour continuer</div>
     <button type="button" class="btn-back" onclick="goStep(4)">← Retour</button>
   </div>
 
@@ -287,7 +296,7 @@
   const PACK_PHOTO_PRIX = 20;
 
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  var state = { genre:'', cat:'', catLabel:'', prix:0, coupe:'', taille:'', packPhoto:false };
+  var state = { genre:'', cat:'', catLabel:'', prix:0, coupe:'', taille:'', packPhoto:false, santeDeclaree:false };
   var currentStep = 0;
   var remise = 0;
   var codeApplique = ''; // Mémorise quel code a été appliqué (ex: 'RETOUR10')
@@ -530,6 +539,23 @@
     buildRecap();
   }
 
+  function toggleSante(el) {
+    state.santeDeclaree = !!el.checked;
+    var btn = document.getElementById('btn-payer');
+    var hint = document.getElementById('sante-hint');
+    if (state.santeDeclaree) {
+      btn.disabled = false;
+      btn.style.opacity = '';
+      btn.style.cursor = '';
+      if (hint) hint.style.display = 'none';
+    } else {
+      btn.disabled = true;
+      btn.style.opacity = '.45';
+      btn.style.cursor = 'not-allowed';
+      if (hint) hint.style.display = 'block';
+    }
+  }
+
   // ============================================
   //  Sélection du bon lien Stripe selon catégorie + code promo + pack photo
   // ============================================
@@ -568,6 +594,7 @@
       categorie: state.catLabel,
       prix: prixFinal,
       pack_photo: !!state.packPhoto,
+      sante_declaree: !!state.santeDeclaree,
       contact_urgence_nom: document.getElementById('urg-nom') ? document.getElementById('urg-nom').value : '',
       contact_urgence_prenom: document.getElementById('urg-prenom') ? document.getElementById('urg-prenom').value : '',
       contact_urgence_tel: document.getElementById('urg-tel') ? document.getElementById('urg-tel').value : '',
