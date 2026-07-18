@@ -72,12 +72,10 @@
     .sub-title { font-size: 15px; font-weight: 800; color: #FFEE00; margin-bottom: 12px; }
     .format-block { background: #111; border: 1px solid #222; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
     .format-block-title { font-size: 16px; font-weight: 800; color: #FFEE00; margin-bottom: 10px; }
-    .epreuve-row { padding: 10px 0; border-bottom: 1px solid #1a1a1a; }
+    .epreuve-row { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; padding: 12px 0; border-bottom: 1px solid #1a1a1a; }
     .epreuve-row:last-child { border-bottom: none; }
-    .epreuve-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
     .epreuve-nom { color: #fff; font-weight: 700; font-size: 15px; }
-    .epreuve-detail { color: #FFEE00; font-size: 13px; font-weight: 600; font-family: monospace; }
-    .epreuve-desc { color: #999; font-size: 12px; line-height: 1.4; }
+    .epreuve-detail { color: #FFEE00; font-size: 14px; font-weight: 700; font-family: monospace; white-space: nowrap; }
     .poids-block { margin-top: 12px; background: #0d0d0d; border-radius: 8px; padding: 10px 14px; }
     .poids-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; }
     .poids-label { color: #888; }
@@ -195,7 +193,7 @@
 
     <!-- COURSE 100% DIGITALISÉE — UNIQUES À LA RÉUNION -->
     <div style="background:linear-gradient(135deg,#C0392B,#1a0000);color:#fff;border-radius:14px;padding:24px 20px;margin-top:1.5rem;border:2px solid #FFEE00;">
-      <div style="background:#FFEE00;color:#0a0a0a;display:inline-block;padding:5px 12px;border-radius:4px;font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">⭐ Uniques à La Réunion</div>
+      <div style="background:#FFEE00;color:#0a0a0a;display:inline-block;padding:5px 12px;border-radius:4px;font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">⭐ Unique à La Réunion</div>
       <div style="font-size:22px;font-weight:900;color:#FFEE00;line-height:1.2;margin-bottom:12px;">Une course 100 %<br>digitalisée</div>
       <p style="margin:0 0 14px;font-size:14px;color:#f5deb3;">Aucun autre événement Hyrox à La Réunion ne t'offre ce niveau de suivi. Chez nous, ton chrono ne se perd pas dans une feuille de calcul :</p>
       <div style="background:rgba(0,0,0,0.35);border-radius:10px;padding:14px 16px;font-size:14px;">
@@ -213,38 +211,14 @@
     <div class="section-title" style="margin-bottom:1.5rem;">Les <span>8 épreuves</span></div>
     <div class="format-block">
       <div class="format-block-title">Les 8 stations — dans l'ordre</div>
-      <div class="epreuve-row">
-        <div class="epreuve-head"><span class="epreuve-nom">1 · SkiErg</span><span class="epreuve-detail">1 000 m</span></div>
-        <div class="epreuve-desc">Cardio explosif sur ergomètre à ski — tirer les poignées à deux mains, engagement du haut du corps + gainage.</div>
-      </div>
-      <div class="epreuve-row">
-        <div class="epreuve-head"><span class="epreuve-nom">2 · Sled Push</span><span class="epreuve-detail">50 m (5 × 10 m)</span></div>
-        <div class="epreuve-desc">Pousser un traîneau lesté sur 50 m — puissance jambes, on garde le dos droit et on avance en poussant fort.</div>
-      </div>
-      <div class="epreuve-row">
-        <div class="epreuve-head"><span class="epreuve-nom">3 · Sled Pull</span><span class="epreuve-detail">50 m (5 × 10 m)</span></div>
-        <div class="epreuve-desc">Tirer un traîneau à la corde en reculant — travail du dos et des bras, on ramène le sled à soi.</div>
-      </div>
-      <div class="epreuve-row">
-        <div class="epreuve-head"><span class="epreuve-nom">4 · Burpee Broad Jumps</span><span class="epreuve-detail">80 m</span></div>
-        <div class="epreuve-desc">Enchaînement burpee (poitrine au sol) + saut long à pieds joints, sur 80 m — technique + cardio.</div>
-      </div>
-      <div class="epreuve-row">
-        <div class="epreuve-head"><span class="epreuve-nom">5 · Row</span><span class="epreuve-detail">1 000 m</span></div>
-        <div class="epreuve-desc">Rameur assis — jambes / dos / bras, un classique pour brûler du calorie.</div>
-      </div>
-      <div class="epreuve-row">
-        <div class="epreuve-head"><span class="epreuve-nom">6 · Farmer's Carry</span><span class="epreuve-detail">200 m</span></div>
-        <div class="epreuve-desc">Marcher avec 2 kettlebells bras tendus le long du corps — gainage total et grip.</div>
-      </div>
-      <div class="epreuve-row">
-        <div class="epreuve-head"><span class="epreuve-nom">7 · Sandbag Lunges</span><span class="epreuve-detail">100 m</span></div>
-        <div class="epreuve-desc">Fentes marchées avec un sac de sable sur les épaules — le genou arrière touche le sol à chaque fente.</div>
-      </div>
-      <div class="epreuve-row">
-        <div class="epreuve-head"><span class="epreuve-nom">8 · Wall Balls</span><span class="epreuve-detail">100 répétitions</span></div>
-        <div class="epreuve-desc">Squat sous parallèle + lancer une médecine-ball à la cible officielle — le juge du dernier atelier valide chaque rep.</div>
-      </div>
+      <div class="epreuve-row"><span class="epreuve-nom">1 · SkiErg</span><span class="epreuve-detail">1 000 m</span></div>
+      <div class="epreuve-row"><span class="epreuve-nom">2 · Sled Push</span><span class="epreuve-detail">50 m (5 × 10 m)</span></div>
+      <div class="epreuve-row"><span class="epreuve-nom">3 · Sled Pull</span><span class="epreuve-detail">50 m (5 × 10 m)</span></div>
+      <div class="epreuve-row"><span class="epreuve-nom">4 · Burpee Broad Jumps</span><span class="epreuve-detail">80 m</span></div>
+      <div class="epreuve-row"><span class="epreuve-nom">5 · Row</span><span class="epreuve-detail">1 000 m</span></div>
+      <div class="epreuve-row"><span class="epreuve-nom">6 · Farmer's Carry</span><span class="epreuve-detail">200 m</span></div>
+      <div class="epreuve-row"><span class="epreuve-nom">7 · Sandbag Lunges</span><span class="epreuve-detail">100 m</span></div>
+      <div class="epreuve-row"><span class="epreuve-nom">8 · Wall Balls</span><span class="epreuve-detail">100 répétitions</span></div>
     </div>
     <div style="font-size:12px;color:#888;text-align:center;margin:-8px 0 14px;font-style:italic;">🏃 Entre chaque station : <strong style="color:#FFEE00;">1 km de course</strong> (RX) ou <strong style="color:#FFEE00;">500 m</strong> (Scaled)</div>
     <div style="background:#0d1400;border:1px solid #FFEE00;border-radius:10px;padding:12px 14px;margin-bottom:1rem;font-size:14px;color:#ccc;">
