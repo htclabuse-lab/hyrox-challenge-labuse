@@ -20,6 +20,10 @@
     .stat { background: #111; border: 1px solid #222; border-radius: 12px; padding: 1rem; text-align: center; }
     .stat-val { font-size: 24px; font-weight: 800; color: #FFEE00; }
     .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+    .event-tabs { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .event-tab { padding: 10px 16px; background: #111; border: 2px solid #222; color: #888; font-size: 13px; font-weight: 800; cursor: pointer; font-family: sans-serif; border-radius: 10px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.15s; }
+    .event-tab.active { color: #0a0a0a; background: #FFEE00; border-color: #FFEE00; }
+    .event-tab:hover:not(.active) { color: #fff; background: #222; }
     .main-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border-bottom: 2px solid #222; overflow-x: auto; }
     .main-tab { padding: 14px 20px; background: transparent; border: none; color: #666; font-size: 14px; font-weight: 700; cursor: pointer; font-family: sans-serif; border-bottom: 3px solid transparent; margin-bottom: -2px; white-space: nowrap; }
     .main-tab.active { color: #FFEE00; border-bottom-color: #FFEE00; }
@@ -68,11 +72,19 @@
   </div>
 
   <div class="content">
+    <div class="event-tabs">
+      <button type="button" class="event-tab" onclick="switchEvent('hc2', this)">🏃 HC #2 · 12 juil.</button>
+      <button type="button" class="event-tab" onclick="switchEvent('pe', this)">👨‍👧 Parent-Enfant · 27 juin</button>
+      <button type="button" class="event-tab active" onclick="switchEvent('hc3', this)">🔥 HC #3 · 15 nov.</button>
+    </div>
+    <div style="font-size:12px;color:#888;margin-bottom:1rem;" id="event-label"></div>
+
     <div class="stats">
-      <div class="stat"><div class="stat-val" id="total-inscrits">—</div><div class="stat-label">Total inscrits</div></div>
+      <div class="stat"><div class="stat-val" id="total-inscrits">—</div><div class="stat-label">Inscriptions</div></div>
+      <div class="stat"><div class="stat-val" id="total-athletes">—</div><div class="stat-label">Athlètes total</div></div>
       <div class="stat"><div class="stat-val" id="total-solo">—</div><div class="stat-label">Solo</div></div>
       <div class="stat"><div class="stat-val" id="total-duo">—</div><div class="stat-label">Duo</div></div>
-      <div class="stat"><div class="stat-val" id="total-relais">—</div><div class="stat-label">Relais</div></div>
+      <div class="stat"><div class="stat-val" id="total-pack">—</div><div class="stat-label">📸 Pack photo</div></div>
     </div>
 
     <div class="main-tabs">
@@ -95,7 +107,7 @@
       <div style="overflow-x:auto;">
         <table>
           <thead>
-            <tr><th>#</th><th>Nom</th><th>Prénom</th><th>Email</th><th>Catégorie</th><th>Équipe</th><th>T-shirt</th><th>Âge / Moy. équipe</th><th>Temps estimé</th><th>Prix</th><th>Statut</th><th>Date</th></tr>
+            <tr><th>#</th><th>Nom</th><th>Prénom</th><th>Email</th><th>Catégorie</th><th>Équipe</th><th>T-shirt</th><th>📸</th><th>Âge / Moy. équipe</th><th>Temps estimé</th><th>Prix</th><th>Statut</th><th>Date</th></tr>
           </thead>
           <tbody id="body-inscription"></tbody>
         </table>
@@ -174,6 +186,54 @@
 
   var allData = [];
   var currentSubCat = 'all';
+  var currentEvent = 'hc3'; // Défaut sur HC #3 (event actif)
+
+  // Filtres par événement
+  var EVENT_FILTERS = {
+    'hc2': function(d) {
+      var h = d.heure_depart || '';
+      return d.categorie !== 'Parent-Enfant' && h >= '2026-07-12' && h < '2026-07-13';
+    },
+    'pe': function(d) { return d.categorie === 'Parent-Enfant'; },
+    'hc3': function(d) {
+      var h = d.heure_depart || '';
+      // HC #3 = inscription HC (Solo/Duo) qui n'est PAS dans HC #2 ni Parent-Enfant
+      // Utilise created_at post-19 juillet 2026 comme heuristique
+      return d.categorie !== 'Parent-Enfant' && (!h || (h >= '2026-11-14' && h < '2026-11-16'));
+    }
+  };
+
+  var EVENT_LABELS = {
+    'hc2': 'HC Challenge #2 · 12 juillet 2026',
+    'pe':  'Parent-Enfant · 27 juin 2026',
+    'hc3': 'HC Challenge #3 · 15 novembre 2026'
+  };
+
+  function eventData() {
+    return allData.filter(EVENT_FILTERS[currentEvent] || function(){return true;});
+  }
+
+  function nbAthletes(insc) {
+    var n = 1;
+    if (insc.co1_nom || insc.co1_prenom) n++;
+    if (insc.co2_nom || insc.co2_prenom) n++;
+    if (insc.co3_nom || insc.co3_prenom) n++;
+    return n;
+  }
+
+  function switchEvent(key, btn) {
+    currentEvent = key;
+    document.querySelectorAll('.event-tab').forEach(function(b){ b.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    // Re-render tout
+    renderStats();
+    renderInscription();
+    renderCategories();
+    renderPassage();
+    renderTshirts();
+    renderInventaire();
+    renderPackPhoto();
+  }
 
   var CAT_ORDER = [
     'duo scaled hommes', 'duo rx homme', 'solo scaled hommes', 'solo rx hommes',
@@ -436,10 +496,15 @@
   }
 
   function renderStats() {
-    document.getElementById('total-inscrits').textContent = allData.length;
-    document.getElementById('total-solo').textContent = allData.filter(function(d){ return d.categorie && d.categorie.toLowerCase().includes('solo'); }).length;
-    document.getElementById('total-duo').textContent = allData.filter(function(d){ return d.categorie && d.categorie.toLowerCase().includes('duo'); }).length;
-    document.getElementById('total-relais').textContent = allData.filter(function(d){ return d.categorie && d.categorie.toLowerCase().includes('relais'); }).length;
+    var d = eventData();
+    document.getElementById('event-label').textContent = '📅 ' + (EVENT_LABELS[currentEvent] || '');
+    document.getElementById('total-inscrits').textContent = d.length;
+    var totalAth = d.reduce(function(s, r) { return s + nbAthletes(r); }, 0);
+    document.getElementById('total-athletes').textContent = totalAth;
+    document.getElementById('total-solo').textContent = d.filter(function(r){ return r.categorie && r.categorie.toLowerCase().includes('solo'); }).length;
+    document.getElementById('total-duo').textContent = d.filter(function(r){ return r.categorie && r.categorie.toLowerCase().includes('duo'); }).length;
+    document.getElementById('total-pack').textContent = d.filter(function(r){ return r.pack_photo === true; }).length;
+    var relEl = document.getElementById('total-relais'); if (relEl) relEl.textContent = d.filter(function(r){ return r.categorie && r.categorie.toLowerCase().includes('relais'); }).length;
   }
 
   function showMainTab(tab, btn) {
@@ -451,7 +516,8 @@
 
   function renderInscription() {
     var html = '';
-    allData.forEach(function(d, i) {
+    var list = eventData();
+    list.forEach(function(d, i) {
       var date = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
       html += '<tr>';
       html += '<td style="color:#666;">' + (i+1) + '</td>';
@@ -465,6 +531,7 @@ if (d.co1_tshirt) tshirts += ' / ' + d.co1_tshirt;
 if (d.co2_tshirt) tshirts += ' / ' + d.co2_tshirt;
 if (d.co3_tshirt) tshirts += ' / ' + d.co3_tshirt;
 html += '<td>' + tshirts + '</td>';
+html += '<td style="text-align:center;">' + (d.pack_photo ? '<span style="color:#1B7B49;font-weight:800;">✓</span>' : '<span style="color:#444;">—</span>') + '</td>';
       var ageCell = '';
 if (isParentEnfant(d)) {
   // Pour Parent-Enfant : on affiche uniquement l'âge de l'enfant
@@ -492,12 +559,12 @@ html += '<td style="font-size:12px;color:#FFEE00;">' + ageCell + '</td>';
       html += '<td style="font-size:12px;">' + date + '</td>';
       html += '</tr>';
     });
-    document.getElementById('body-inscription').innerHTML = html || '<tr><td colspan="11" style="text-align:center;color:#666;padding:2rem;">Aucun inscrit</td></tr>';
+    document.getElementById('body-inscription').innerHTML = html || '<tr><td colspan="13" style="text-align:center;color:#666;padding:2rem;">Aucun inscrit pour cet événement</td></tr>';
   }
 
   function getGroups() {
     var groups = {};
-    allData.forEach(function(d) {
+    eventData().forEach(function(d) {
       var key = getCatKey(d.categorie);
       if (!groups[key]) groups[key] = [];
       groups[key].push(d);
@@ -554,15 +621,12 @@ function shortTemps(t) {
   }
 
   function renderPassage() {
-    // Nouvelle version : utilise les vagues + heure_depart stockées en DB (patch du 12 juillet)
-    // Filtre : uniquement Hyrox Challenge (pas Parent-Enfant, pas Kids, pas Bénévole)
-    var hcData = allData.filter(function(d) {
+    // Filtré par event sélectionné (via eventData())
+    var hcData = eventData().filter(function(d) {
       if (!d.vague || !d.heure_depart) return false;
       if (isParentEnfant(d)) return false;
       var c = (d.categorie||'').toLowerCase();
       if (c.indexOf('bénévole') !== -1 || c.indexOf('kids') !== -1) return false;
-      // Uniquement les vagues du 12 juillet 2026
-      if (d.heure_depart.indexOf('2026-07-12') === -1) return false;
       return true;
     });
     if (hcData.length === 0) {
@@ -622,8 +686,8 @@ function isParentEnfant(d) {
 
   function renderTshirts() {
     var counts = {};
-    allData.forEach(function(d) {
-      if (isParentEnfant(d)) return; // comptés à part dans l'onglet Parent-Enfant
+    eventData().forEach(function(d) {
+      if (isParentEnfant(d) && currentEvent !== 'pe') return; // Parent-Enfant compté à part sauf dans son onglet
       if (d.tshirt_taille && d.tshirt_coupe) {
         var key = d.tshirt_taille + ' ' + d.tshirt_coupe;
         counts[key] = (counts[key] || 0) + 1;
@@ -848,7 +912,7 @@ function isParentEnfant(d) {
   }
 
   function renderInventaire() {
-    var paid = allData.filter(function(d) { return d.statut_paiement === 'paye'; });
+    var paid = eventData().filter(function(d) { return d.statut_paiement === 'paye'; });
 
     // Trophées : 1 par (catégorie × tranche d'âge) avec ≥1 participant
     var trophees = {}; // {catKey: {ageBucket: count_inscriptions}}
