@@ -80,22 +80,24 @@
     <div style="font-size:12px;color:#888;margin-bottom:1rem;" id="event-label"></div>
 
     <div class="stats">
-      <div class="stat"><div class="stat-val" id="total-inscrits">—</div><div class="stat-label">Inscriptions</div></div>
-      <div class="stat"><div class="stat-val" id="total-athletes">—</div><div class="stat-label">Athlètes total</div></div>
-      <div class="stat"><div class="stat-val" id="total-solo">—</div><div class="stat-label">Solo</div></div>
-      <div class="stat"><div class="stat-val" id="total-duo">—</div><div class="stat-label">Duo</div></div>
-      <div class="stat"><div class="stat-val" id="total-pack">—</div><div class="stat-label">📸 Pack photo</div></div>
+      <div class="stat" id="stat-inscrits"><div class="stat-val" id="total-inscrits">—</div><div class="stat-label" id="label-inscrits">Inscriptions</div></div>
+      <div class="stat" id="stat-athletes"><div class="stat-val" id="total-athletes">—</div><div class="stat-label">Athlètes total</div></div>
+      <div class="stat" id="stat-solo"><div class="stat-val" id="total-solo">—</div><div class="stat-label">Solo</div></div>
+      <div class="stat" id="stat-duo"><div class="stat-val" id="total-duo">—</div><div class="stat-label">Duo</div></div>
+      <div class="stat" id="stat-pack"><div class="stat-val" id="total-pack">—</div><div class="stat-label">📸 Pack photo</div></div>
+      <div class="stat" id="stat-kids" style="display:none;"><div class="stat-val" id="total-kids">—</div><div class="stat-label">🧒 Pré-inscriptions Kids</div></div>
     </div>
 
     <div class="main-tabs">
-      <button type="button" class="main-tab active" onclick="showMainTab('inscription', this)">🕐 Ordre d'inscription</button>
-      <button type="button" class="main-tab" onclick="showMainTab('categories', this)">📊 Par catégorie</button>
-      <button type="button" class="main-tab" onclick="showMainTab('passage', this)">⏱ Ordre de passage</button>
-      <button type="button" class="main-tab" onclick="showMainTab('tshirts', this)">👕 T-shirts</button>
-      <button type="button" class="main-tab" onclick="showMainTab('inventaire', this)">🏆 Trophées & Patchs</button>
-      <button type="button" class="main-tab" onclick="showMainTab('parent-enfant', this)">👨‍👧 Parent-Enfant</button>
-      <button type="button" class="main-tab" onclick="showMainTab('benevoles', this)">🙌 Bénévoles</button>
-      <button type="button" class="main-tab" onclick="showMainTab('kids', this)">🧒 Pré-inscriptions Kids</button>
+      <button type="button" class="main-tab active" data-tab="inscription" onclick="showMainTab('inscription', this)">🕐 Ordre d'inscription</button>
+      <button type="button" class="main-tab" data-tab="categories" onclick="showMainTab('categories', this)">📊 Par catégorie</button>
+      <button type="button" class="main-tab" data-tab="passage" onclick="showMainTab('passage', this)">⏱ Ordre de passage</button>
+      <button type="button" class="main-tab" data-tab="tshirts" onclick="showMainTab('tshirts', this)">👕 T-shirts</button>
+      <button type="button" class="main-tab" data-tab="inventaire" onclick="showMainTab('inventaire', this)">🏆 Trophées & Patchs</button>
+      <button type="button" class="main-tab" data-tab="pack-photo" onclick="showMainTab('pack-photo', this)">📸 Pack photo</button>
+      <button type="button" class="main-tab" data-tab="parent-enfant" onclick="showMainTab('parent-enfant', this)">👨‍👧 Parent-Enfant</button>
+      <button type="button" class="main-tab" data-tab="benevoles" onclick="showMainTab('benevoles', this)">🙌 Bénévoles</button>
+      <button type="button" class="main-tab" data-tab="kids" onclick="showMainTab('kids', this)">🧒 Pré-inscriptions Kids</button>
     </div>
 
     <!-- ONGLET ORDRE D'INSCRIPTION -->
@@ -107,7 +109,7 @@
       <div style="overflow-x:auto;">
         <table>
           <thead>
-            <tr><th>#</th><th>Nom</th><th>Prénom</th><th>Email</th><th>Catégorie</th><th>Équipe</th><th>T-shirt</th><th>📸</th><th>Âge / Moy. équipe</th><th>Temps estimé</th><th>Prix</th><th>Statut</th><th>Date</th></tr>
+            <tr><th>#</th><th>Nom</th><th>Prénom</th><th>Email</th><th>Catégorie</th><th>Équipe</th><th>T-shirt</th><th>📸 Pack photo</th><th>Âge / Moy. équipe</th><th>Temps estimé</th><th>Prix</th><th>Statut</th><th>Date</th></tr>
           </thead>
           <tbody id="body-inscription"></tbody>
         </table>
@@ -157,6 +159,11 @@
     <div class="tab-content" id="tab-inventaire">
       <div style="font-size:13px;color:#888;margin-bottom:1rem;">Calculé uniquement sur les inscriptions <strong style="color:#FFEE00;">payées</strong>. Mis à jour à chaque ouverture de la page.</div>
       <div id="inventaire-content"></div>
+    </div>
+
+    <!-- ONGLET PACK PHOTO -->
+    <div class="tab-content" id="tab-pack-photo">
+      <div id="pack-photo-content"></div>
     </div>
 
     <!-- ONGLET PARENT-ENFANT -->
@@ -221,10 +228,33 @@
     return n;
   }
 
+  // Onglets visibles selon l'événement sélectionné
+  var EVENT_TABS = {
+    'hc2': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
+    'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
+    'pe':  ['parent-enfant','kids']
+  };
+
+  function applyEventTabs() {
+    var allowed = EVENT_TABS[currentEvent] || [];
+    var activeStillVisible = false;
+    document.querySelectorAll('.main-tab').forEach(function(b) {
+      var ok = allowed.indexOf(b.dataset.tab) !== -1;
+      b.style.display = ok ? '' : 'none';
+      if (ok && b.classList.contains('active')) activeStillVisible = true;
+    });
+    // Si l'onglet ouvert n'existe pas pour cet event, bascule sur le premier dispo
+    if (!activeStillVisible && allowed.length) {
+      var first = document.querySelector('.main-tab[data-tab="' + allowed[0] + '"]');
+      if (first) showMainTab(allowed[0], first);
+    }
+  }
+
   function switchEvent(key, btn) {
     currentEvent = key;
     document.querySelectorAll('.event-tab').forEach(function(b){ b.classList.remove('active'); });
     if (btn) btn.classList.add('active');
+    applyEventTabs();
     // Re-render tout
     renderStats();
     renderInscription();
@@ -326,6 +356,8 @@
     renderPassage();
     renderTshirts();
     renderInventaire();
+    renderPackPhoto();
+    applyEventTabs();
     renderParentEnfant();
     renderKids();
     loadBenevoles();
@@ -505,6 +537,59 @@
     document.getElementById('total-duo').textContent = d.filter(function(r){ return r.categorie && r.categorie.toLowerCase().includes('duo'); }).length;
     document.getElementById('total-pack').textContent = d.filter(function(r){ return r.pack_photo === true; }).length;
     var relEl = document.getElementById('total-relais'); if (relEl) relEl.textContent = d.filter(function(r){ return r.categorie && r.categorie.toLowerCase().includes('relais'); }).length;
+
+    // Parent-Enfant : pas de Solo/Duo/pack photo, mais les pré-inscriptions Kids
+    var isPE = (currentEvent === 'pe');
+    document.getElementById('stat-solo').style.display = isPE ? 'none' : '';
+    document.getElementById('stat-duo').style.display  = isPE ? 'none' : '';
+    document.getElementById('stat-pack').style.display = isPE ? 'none' : '';
+    document.getElementById('stat-kids').style.display = isPE ? '' : 'none';
+    document.getElementById('label-inscrits').textContent = isPE ? 'Binômes inscrits' : 'Inscriptions';
+    document.getElementById('total-kids').textContent = allKids.length;
+  }
+
+  function renderPackPhoto() {
+    var list = eventData().filter(function(r){ return r.pack_photo === true; });
+    var payes = list.filter(function(r){ return r.statut_paiement === 'paye'; });
+    var totalAth = list.reduce(function(s, r){ return s + nbAthletes(r); }, 0);
+    var ca = list.length * 20;
+
+    var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;">Équipes ayant pris le <strong style="color:#FFEE00;">pack photo (+20 € / équipe)</strong> — ' + (EVENT_LABELS[currentEvent] || '') + '</div>';
+
+    html += '<div class="stats" style="margin-bottom:1.5rem;">';
+    html += '<div class="stat"><div class="stat-val">' + list.length + '</div><div class="stat-label">Packs vendus</div></div>';
+    html += '<div class="stat"><div class="stat-val">' + payes.length + '</div><div class="stat-label">Dont payés</div></div>';
+    html += '<div class="stat"><div class="stat-val">' + totalAth + '</div><div class="stat-label">Athlètes concernés</div></div>';
+    html += '<div class="stat"><div class="stat-val">' + ca + ' €</div><div class="stat-label">CA pack photo</div></div>';
+    html += '</div>';
+
+    if (list.length === 0) {
+      html += '<div style="text-align:center;color:#666;padding:2rem;">Aucun pack photo pour cet événement</div>';
+      document.getElementById('pack-photo-content').innerHTML = html;
+      return;
+    }
+
+    html += '<div style="overflow-x:auto;"><table><thead><tr>';
+    html += '<th>#</th><th>Équipe</th><th>Athlètes</th><th>Email</th><th>Catégorie</th><th>Statut</th>';
+    html += '</tr></thead><tbody>';
+
+    list.forEach(function(d, i) {
+      var noms = '<strong style="color:#fff;">' + (d.prenom||'') + ' ' + (d.nom||'') + '</strong>';
+      if (d.co1_nom || d.co1_prenom) noms += '<br>' + (d.co1_prenom||'') + ' ' + (d.co1_nom||'');
+      if (d.co2_nom || d.co2_prenom) noms += '<br>' + (d.co2_prenom||'') + ' ' + (d.co2_nom||'');
+      if (d.co3_nom || d.co3_prenom) noms += '<br>' + (d.co3_prenom||'') + ' ' + (d.co3_nom||'');
+      html += '<tr>';
+      html += '<td style="color:#666;">' + (i+1) + '</td>';
+      html += '<td>' + (d.nom_equipe||'—') + '</td>';
+      html += '<td style="font-size:13px;">' + noms + '</td>';
+      html += '<td style="font-size:12px;">' + (d.email||'—') + '</td>';
+      html += '<td>' + (d.categorie||'—') + '</td>';
+      html += '<td>' + getStatut(d.statut_paiement) + '</td>';
+      html += '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    document.getElementById('pack-photo-content').innerHTML = html;
   }
 
   function showMainTab(tab, btn) {
@@ -1046,11 +1131,12 @@ function isParentEnfant(d) {
   }
 
   function exportCSV() {
-    var headers = ['Nom','Prénom','Email','Catégorie','Équipe','T-shirt','Temps estimé','Prix','Statut','Date'];
-    var rows = allData.map(function(d) {
+    var headers = ['Nom','Prénom','Email','Catégorie','Équipe','T-shirt','Pack photo','Temps estimé','Prix','Statut','Date'];
+    var rows = eventData().map(function(d) {
       return [
         d.nom||'', d.prenom||'', d.email||'', d.categorie||'',
         d.nom_equipe||'', (d.tshirt_taille||'') + ' ' + (d.tshirt_coupe||''),
+        d.pack_photo ? 'oui' : 'non',
         d.temps_estime||'', d.prix||'', d.statut_paiement||'',
         d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : ''
       ].join(';');
@@ -1060,7 +1146,7 @@ function isParentEnfant(d) {
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'inscrits_hyrox.csv';
+    a.download = 'inscrits_' + currentEvent + '.csv';
     a.click();
   }
 
