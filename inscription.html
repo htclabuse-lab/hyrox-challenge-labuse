@@ -110,6 +110,14 @@
         </div>
       </div>
     </div>
+    <div class="card">
+      <div class="section-title">🚨 Contact en cas d'urgence</div>
+      <div class="grid2">
+        <div class="field"><label class="label">Nom</label><input type="text" id="urg-nom" placeholder="MARTIN"></div>
+        <div class="field"><label class="label">Prénom</label><input type="text" id="urg-prenom" placeholder="Marie"></div>
+      </div>
+      <div class="field"><label class="label">Téléphone</label><input type="tel" id="urg-tel" placeholder="06 12 34 56 78"></div>
+    </div>
     <button type="button" class="btn-next" onclick="goStep(1)">Continuer →</button>
   </div>
 
@@ -121,23 +129,24 @@
       <div class="field">
         <div class="group-label">Solo · <span style="color:#C0392B;">🏃 dim. 15 novembre 2026</span></div>
         <div class="grid2">
-          <button type="button" class="cat-btn" onclick="setCat(this,'solo-h-rx',55,'Solo Homme RX')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">RX</div><div class="prix-tag">55 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'solo-h-sc',55,'Solo Homme Scaled')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">Scaled</div><div class="prix-tag">55 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'solo-f-rx',55,'Solo Femme RX')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">RX</div><div class="prix-tag">55 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'solo-f-sc',55,'Solo Femme Scaled')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">Scaled</div><div class="prix-tag">55 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'solo-h-rx',55,'Solo Homme RX')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">55 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'solo-h-sc',55,'Solo Homme Scaled')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">55 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'solo-f-rx',55,'Solo Femme RX')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">55 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'solo-f-sc',55,'Solo Femme Scaled')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">55 €</div></button>
         </div>
       </div>
       <div class="field">
         <div class="group-label">Duo · <span style="color:#C0392B;">🏃 dim. 15 novembre 2026</span> · 1 inscription pour 2 athlètes</div>
         <div class="grid2">
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-h-rx',110,'Duo Homme RX')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">RX</div><div class="prix-tag">110 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-h-sc',110,'Duo Homme Scaled')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">Scaled</div><div class="prix-tag">110 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-f-rx',110,'Duo Femme RX')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">RX</div><div class="prix-tag">110 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-f-sc',110,'Duo Femme Scaled')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">Scaled</div><div class="prix-tag">110 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-mix-rx',110,'Duo Mixte RX')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">RX</div><div class="prix-tag">110 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-mix-sc',110,'Duo Mixte Scaled')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">Scaled</div><div class="prix-tag">110 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-h-rx',110,'Duo Homme RX')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">110 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-h-sc',110,'Duo Homme Scaled')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">110 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-f-rx',110,'Duo Femme RX')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">110 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-f-sc',110,'Duo Femme Scaled')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">110 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-mix-rx',110,'Duo Mixte RX')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">110 €</div></button>
+          <button type="button" class="cat-btn" onclick="setCat(this,'duo-mix-sc',110,'Duo Mixte Scaled')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">110 €</div></button>
         </div>
       </div>
+      <div style="font-size:11px;color:#888;text-align:center;margin:8px 0 4px;font-style:italic;">🏃 Distance de course entre chaque station : RX = 1 000 m · Scaled = 500 m</div>
       </div>
       <div class="field" id="nom-equipe-bloc" style="display:none;">
         <label class="label">Nom d'équipe</label>
@@ -559,6 +568,9 @@
       categorie: state.catLabel,
       prix: prixFinal,
       pack_photo: !!state.packPhoto,
+      contact_urgence_nom: document.getElementById('urg-nom') ? document.getElementById('urg-nom').value : '',
+      contact_urgence_prenom: document.getElementById('urg-prenom') ? document.getElementById('urg-prenom').value : '',
+      contact_urgence_tel: document.getElementById('urg-tel') ? document.getElementById('urg-tel').value : '',
       nom_equipe: document.getElementById('nom-equipe').value,
       tshirt_coupe: state.coupe,
       tshirt_taille: state.taille,
