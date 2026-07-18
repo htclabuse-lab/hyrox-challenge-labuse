@@ -82,11 +82,6 @@
 </div>
 
 <div class="content">
-  <div id="preview-bar" class="preview-bar" hidden>
-    <span id="preview-text">🔒 Hyrox #2 non publié</span>
-    <input id="preview-pw" class="preview-input" type="password" placeholder="Mot de passe" autocomplete="off">
-    <button id="preview-btn">Voir</button>
-  </div>
   <div id="count-info" class="count-info" hidden></div>
   <div id="results"></div>
 </div>
@@ -120,30 +115,12 @@ async function loadAll() {
   await loadEvent2();
 }
 
-async function loadEvent2(password) {
+async function loadEvent2() {
   try {
-    const res = await fetch('/api/event2-resultats', {
-      method: password ? 'POST' : 'GET',
-      headers: password ? { 'Content-Type': 'application/json' } : undefined,
-      body: password ? JSON.stringify({ password }) : undefined,
-    });
+    const res = await fetch('/api/event2-resultats', { method: 'GET' });
     const ev = await res.json();
-    if (ev && ev.gated) {
-      if (password) {
-        document.getElementById('preview-text').textContent = '🔒 Mot de passe incorrect — réessaie';
-      } else {
-        document.getElementById('preview-bar').hidden = false;
-      }
-      return;
-    }
     if (ev && Array.isArray(ev.resultats) && ev.resultats.length > 0) {
       allEvents.push(enrichWithRank(ev));
-      if (password) {
-        document.getElementById('preview-bar').className = 'preview-bar active';
-        document.getElementById('preview-text').textContent = '👁️ Mode preview activé (Hyrox #2)';
-        document.getElementById('preview-pw').style.display = 'none';
-        document.getElementById('preview-btn').style.display = 'none';
-      }
       render(document.getElementById('search').value);
     }
   } catch (err) {
@@ -305,18 +282,6 @@ let debounceTimer = null;
 input.addEventListener('input', () => {
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => render(input.value), 120);
-});
-
-document.getElementById('preview-btn').addEventListener('click', async () => {
-  const pw = document.getElementById('preview-pw').value;
-  if (!pw) return;
-  document.getElementById('preview-btn').disabled = true;
-  await loadEvent2(pw);
-  document.getElementById('preview-btn').disabled = false;
-  document.getElementById('preview-pw').value = '';
-});
-document.getElementById('preview-pw').addEventListener('keypress', e => {
-  if (e.key === 'Enter') document.getElementById('preview-btn').click();
 });
 
 (async () => {
