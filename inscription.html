@@ -360,11 +360,11 @@
         html += '<div class="field"><label class="label">Taille t-shirt</label><select id="m'+i+'ts">';
         if (isParentEnfant) {
           html += '<optgroup label="Tailles enfant"><option>6 ans</option><option>8 ans</option><option>10 ans</option><option>12 ans</option><option>14 ans</option></optgroup>';
-          html += '<optgroup label="Tailles adulte"><option>XS Homme</option><option>S Homme</option><option>M Homme</option><option>L Homme</option><option>XL Homme</option><option>XXL Homme</option>';
-          html += '<option>XS Femme</option><option>S Femme</option><option>M Femme</option><option>L Femme</option><option>XL Femme</option></optgroup>';
+          html += '<optgroup label="Tailles adulte"><option>S Homme</option><option>M Homme</option><option>L Homme</option><option>XL Homme</option><option>XXL Homme</option>';
+          html += '<option>S Femme</option><option>M Femme</option><option>L Femme</option><option>XL Femme</option></optgroup>';
         } else {
-          html += '<option>XS Homme</option><option>S Homme</option><option>M Homme</option><option>L Homme</option><option>XL Homme</option><option>XXL Homme</option>';
-          html += '<option>XS Femme</option><option>S Femme</option><option>M Femme</option><option>L Femme</option><option>XL Femme</option>';
+          html += '<option>S Homme</option><option>M Homme</option><option>L Homme</option><option>XL Homme</option><option>XXL Homme</option>';
+          html += '<option>S Femme</option><option>M Femme</option><option>L Femme</option><option>XL Femme</option>';
         }
         html += '</select></div></div></div>';
       }
@@ -378,7 +378,7 @@
     state.coupe = c;
     document.getElementById('c-h').classList.toggle('selected', c==='Homme');
     document.getElementById('c-f').classList.toggle('selected', c==='Femme');
-    var tailles = c === 'Femme' ? ['XS','S','M','L','XL'] : ['XS','S','M','L','XL','XXL'];
+    var tailles = c === 'Femme' ? ['S','M','L','XL'] : ['S','M','L','XL','XXL'];
     document.getElementById('tailles-grid').innerHTML = tailles.map(function(t){
       return '<button type="button" class="size-btn" onclick="setTaille(this,\''+t+'\')"><span class="check">✓</span>' + t + '</button>';
     }).join('');
