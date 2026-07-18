@@ -319,7 +319,7 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
       </p>
 
       <!-- ===== SHARE CARD (à screenshot & partager) ===== -->
-      <div style="background:linear-gradient(160deg,#C0392B 0%,#0a0a0a 55%);border:2px solid #FFEE00;border-radius:16px;padding:2rem 1.5rem;margin-bottom:1.5rem;text-align:center;">
+      <div style="background:#0a0a0a;border:3px solid #FFEE00;border-radius:16px;padding:2rem 1.5rem;margin-bottom:1.5rem;text-align:center;">
         <div style="color:#FFEE00;font-size:11px;letter-spacing:3px;text-transform:uppercase;font-weight:800;margin-bottom:8px;">✨ Prêt·e pour</div>
         <div style="color:#fff;font-size:26px;font-weight:900;line-height:1.1;letter-spacing:-0.5px;">HYROX CHALLENGE</div>
         <div style="color:#FFEE00;font-size:26px;font-weight:900;line-height:1.1;letter-spacing:-0.5px;margin-bottom:14px;">LA BUSE #3</div>
@@ -327,8 +327,8 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
         <div style="border-top:1px solid rgba(255,238,0,0.35);padding-top:18px;">
           ${athletesHtml}
           ${equipeShareLine}
-          <div style="margin-top:12px;background:rgba(0,0,0,0.35);color:#fff;display:inline-block;padding:6px 14px;border-radius:6px;font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;">${inscription.categorie || '—'}</div>
-          <div style="margin-top:10px;color:#ccc;font-size:13px;">⏱ Objectif : <strong style="color:#fff;">${inscription.temps_estime || '—'}</strong></div>
+          <div style="margin-top:12px;background:#FFEE00;color:#0a0a0a;display:inline-block;padding:6px 14px;border-radius:6px;font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;">${inscription.categorie || '—'}</div>
+          <div style="margin-top:10px;color:#ccc;font-size:13px;">⏱ Objectif : <strong style="color:#FFEE00;">${inscription.temps_estime || '—'}</strong></div>
         </div>
         <div style="margin-top:16px;color:#888;font-size:11px;letter-spacing:1px;">🌐 hyrox-challenge-labuse.vercel.app</div>
       </div>
@@ -359,8 +359,8 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
         ${coequipiersHtml}
       </div>
 
-      <div style="background:#1a1400;border:1px solid #C0392B;border-radius:12px;padding:1rem 1.25rem;margin-top:1rem;">
-        <div style="color:#C0392B;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">💳 Politique de remboursement</div>
+      <div style="background:#1a1a00;border:1px solid #FFEE00;border-radius:12px;padding:1rem 1.25rem;margin-top:1rem;">
+        <div style="color:#FFEE00;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">💳 Politique de remboursement</div>
         <div style="color:#ccc;font-size:13px;line-height:1.6;">
           <strong style="color:#fff;">Aucun remboursement</strong> ne sera effectué après l'inscription.<br>
           Tu peux cependant <strong style="color:#fff;">revendre ta place toi-même</strong> jusqu'au <strong style="color:#FFEE00;">mercredi 5 novembre 2026</strong> (10 jours avant l'événement). Dans ce cas, <strong style="color:#fff;">informe-nous</strong> par mail à <a href="mailto:htclabuse@gmail.com" style="color:#FFEE00;">htclabuse@gmail.com</a> pour transférer l'inscription (nouveau nom, catégorie d'âge, taille de t-shirt).
