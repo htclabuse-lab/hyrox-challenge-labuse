@@ -27,12 +27,12 @@
     .photo-bandeau { width: 100%; height: 200px; background-size: cover; background-position: center; filter: grayscale(100%) brightness(0.35); }
 
     /* NAV */
-    .nav { display: flex; background: #111; border-bottom: 3px solid #FFEE00; overflow-x: auto; position: sticky; top: 0; z-index: 100; }
-    .nav-btn { flex: 1; min-width: 80px; padding: 18px 8px; background: transparent; border: none; border-bottom: 4px solid transparent; color: #666; font-size: 14px; font-weight: 800; cursor: pointer; font-family: sans-serif; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.15s; }
-    .nav-btn.active { color: #0a0a0a; background: #FFEE00; }
-    .nav-btn:hover:not(.active) { color: #fff; background: #1a1a1a; }
-    .nav-btn.nav-juge { color: #FFEE00; border-bottom-color: #FFEE00; }
-    .nav-btn.nav-juge:hover { background: #1a1400; color: #FFEE00; }
+    .nav { display: flex; gap: 4px; background: #050505; border-bottom: 3px solid #FFEE00; overflow-x: auto; position: sticky; top: 0; z-index: 100; padding: 6px 4px 0; }
+    .nav-btn { flex: 1; min-width: 90px; padding: 16px 8px; background: #1a1a1a; border: 1px solid #2a2a2a; border-bottom: none; border-radius: 8px 8px 0 0; color: #888; font-size: 13px; font-weight: 800; cursor: pointer; font-family: sans-serif; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.15s; }
+    .nav-btn.active { color: #0a0a0a; background: #FFEE00; border-color: #FFEE00; box-shadow: 0 -2px 8px rgba(255,238,0,0.35); }
+    .nav-btn:hover:not(.active) { color: #fff; background: #2a2a2a; border-color: #3a3a3a; }
+    .nav-btn.nav-juge { color: #FFEE00; background: #1a1400; border-color: #3a2f00; }
+    .nav-btn.nav-juge:hover { background: #2a2000; color: #FFEE00; border-color: #FFEE00; }
 
     /* CONTENT */
     .content { max-width: 600px; margin: 0 auto; padding: 1.5rem 1rem; }
@@ -72,10 +72,12 @@
     .sub-title { font-size: 15px; font-weight: 800; color: #FFEE00; margin-bottom: 12px; }
     .format-block { background: #111; border: 1px solid #222; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
     .format-block-title { font-size: 16px; font-weight: 800; color: #FFEE00; margin-bottom: 10px; }
-    .epreuve-row { display: flex; justify-content: space-between; font-size: 14px; padding: 7px 0; border-bottom: 1px solid #1a1a1a; }
+    .epreuve-row { padding: 10px 0; border-bottom: 1px solid #1a1a1a; }
     .epreuve-row:last-child { border-bottom: none; }
-    .epreuve-nom { color: #fff; font-weight: 600; }
-    .epreuve-detail { color: #888; }
+    .epreuve-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3px; }
+    .epreuve-nom { color: #fff; font-weight: 700; font-size: 15px; }
+    .epreuve-detail { color: #FFEE00; font-size: 13px; font-weight: 600; font-family: monospace; }
+    .epreuve-desc { color: #999; font-size: 12px; line-height: 1.4; }
     .poids-block { margin-top: 12px; background: #0d0d0d; border-radius: 8px; padding: 10px 14px; }
     .poids-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; }
     .poids-label { color: #888; }
@@ -210,16 +212,41 @@
   <div class="tab-content" id="tab-epreuves">
     <div class="section-title" style="margin-bottom:1.5rem;">Les <span>8 épreuves</span></div>
     <div class="format-block">
-      <div class="format-block-title">Épreuves communes à tous les formats</div>
-      <div class="epreuve-row"><span class="epreuve-nom">SkiErg</span><span class="epreuve-detail">1 000 m</span></div>
-      <div class="epreuve-row"><span class="epreuve-nom">Sled Push</span><span class="epreuve-detail">50 m</span></div>
-      <div class="epreuve-row"><span class="epreuve-nom">Sled Pull</span><span class="epreuve-detail">50 m</span></div>
-      <div class="epreuve-row"><span class="epreuve-nom">Burpee Broad Jumps</span><span class="epreuve-detail">80 m</span></div>
-      <div class="epreuve-row"><span class="epreuve-nom">Row</span><span class="epreuve-detail">1 000 m</span></div>
-      <div class="epreuve-row"><span class="epreuve-nom">Farmer's Carry</span><span class="epreuve-detail">200 m</span></div>
-      <div class="epreuve-row"><span class="epreuve-nom">Sandbag Lunges</span><span class="epreuve-detail">100 m</span></div>
-      <div class="epreuve-row"><span class="epreuve-nom">Wall Balls</span><span class="epreuve-detail">100 répétitions</span></div>
+      <div class="format-block-title">Les 8 stations — dans l'ordre</div>
+      <div class="epreuve-row">
+        <div class="epreuve-head"><span class="epreuve-nom">1 · SkiErg</span><span class="epreuve-detail">1 000 m</span></div>
+        <div class="epreuve-desc">Cardio explosif sur ergomètre à ski — tirer les poignées à deux mains, engagement du haut du corps + gainage.</div>
+      </div>
+      <div class="epreuve-row">
+        <div class="epreuve-head"><span class="epreuve-nom">2 · Sled Push</span><span class="epreuve-detail">50 m (5 × 10 m)</span></div>
+        <div class="epreuve-desc">Pousser un traîneau lesté sur 50 m — puissance jambes, on garde le dos droit et on avance en poussant fort.</div>
+      </div>
+      <div class="epreuve-row">
+        <div class="epreuve-head"><span class="epreuve-nom">3 · Sled Pull</span><span class="epreuve-detail">50 m (5 × 10 m)</span></div>
+        <div class="epreuve-desc">Tirer un traîneau à la corde en reculant — travail du dos et des bras, on ramène le sled à soi.</div>
+      </div>
+      <div class="epreuve-row">
+        <div class="epreuve-head"><span class="epreuve-nom">4 · Burpee Broad Jumps</span><span class="epreuve-detail">80 m</span></div>
+        <div class="epreuve-desc">Enchaînement burpee (poitrine au sol) + saut long à pieds joints, sur 80 m — technique + cardio.</div>
+      </div>
+      <div class="epreuve-row">
+        <div class="epreuve-head"><span class="epreuve-nom">5 · Row</span><span class="epreuve-detail">1 000 m</span></div>
+        <div class="epreuve-desc">Rameur assis — jambes / dos / bras, un classique pour brûler du calorie.</div>
+      </div>
+      <div class="epreuve-row">
+        <div class="epreuve-head"><span class="epreuve-nom">6 · Farmer's Carry</span><span class="epreuve-detail">200 m</span></div>
+        <div class="epreuve-desc">Marcher avec 2 kettlebells bras tendus le long du corps — gainage total et grip.</div>
+      </div>
+      <div class="epreuve-row">
+        <div class="epreuve-head"><span class="epreuve-nom">7 · Sandbag Lunges</span><span class="epreuve-detail">100 m</span></div>
+        <div class="epreuve-desc">Fentes marchées avec un sac de sable sur les épaules — le genou arrière touche le sol à chaque fente.</div>
+      </div>
+      <div class="epreuve-row">
+        <div class="epreuve-head"><span class="epreuve-nom">8 · Wall Balls</span><span class="epreuve-detail">100 répétitions</span></div>
+        <div class="epreuve-desc">Squat sous parallèle + lancer une médecine-ball à la cible officielle — le juge du dernier atelier valide chaque rep.</div>
+      </div>
     </div>
+    <div style="font-size:12px;color:#888;text-align:center;margin:-8px 0 14px;font-style:italic;">🏃 Entre chaque station : <strong style="color:#FFEE00;">1 km de course</strong> (RX) ou <strong style="color:#FFEE00;">500 m</strong> (Scaled)</div>
     <div style="background:#0d1400;border:1px solid #FFEE00;border-radius:10px;padding:12px 14px;margin-bottom:1rem;font-size:14px;color:#ccc;">
       ⚡ <strong style="color:#FFEE00;">Scaled</strong> — mêmes épreuves et mêmes poids, course de <strong>500 m</strong> entre les stations (au lieu de 1 000 m)
     </div>
@@ -246,10 +273,13 @@
       </div>
     </div>
     <div class="format-block">
-      <div class="format-block-title">Format Relais — 4 personnes</div>
-      <div class="relais-info">En équipe de 4, chaque coéquipier enchaîne course + workout à tour de rôle. Chaque membre effectue 2 fois 1 km de course à pied suivi d'une station 💪</div>
+      <div class="format-block-title">👨‍👧 Format Parent-Enfant</div>
+      <div style="font-size:14px;color:#ccc;line-height:1.6;margin-bottom:10px;">1 parent + 1 enfant (6-15 ans) — un format fun et accessible pour partager l'expérience Hyrox en famille.</div>
+      <div style="background:#0d0d0d;border-radius:8px;padding:12px 14px;">
+        <div style="font-size:12px;color:#FFEE00;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🏃 7 stations adaptées + 200 m de course entre chaque</div>
+        <div style="font-size:13px;color:#aaa;line-height:1.7;">Skierg, Sled Push, Sled Pull, Burpee, Row, Farmer's Carry (ou Sandbag), Wall Balls — poids et distances ajustés pour l'enfant. Toujours en binôme, on avance ensemble à chaque station.</div>
+      </div>
     </div>
-    <div class="btn-complet">🚫 COMPLET — événement plein</div>
   </div>
 
   <!-- À VENIR -->
