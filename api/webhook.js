@@ -367,9 +367,29 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
         </div>
       </div>
 
-      <div style="background:#1a1a00;border:1px solid #FFEE00;border-radius:12px;padding:1rem 1.25rem;margin-top:1rem;">
-        <div style="color:#FFEE00;font-weight:700;font-size:14px;line-height:1.6;">🏆 Plus de 40 podiums à décrocher !</div>
-        <div style="color:#ccc;font-size:13px;line-height:1.6;margin-top:6px;">Podium par catégorie et tranche d'âge. Reste avec nous jusqu'à la cérémonie — tu pourrais y être. Et les 12 meilleurs chronos de chaque cat se qualifient pour la <strong style="color:#FFEE00;">Grande Finale ELITE 12 en 2027</strong>.</div>
+      <!-- CE QUI EST INCLUS · 4 blocs -->
+      <div style="margin-top:1.5rem;">
+        <div style="color:#FFEE00;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center;">✨ Ce qui est inclus dans ton inscription</div>
+
+        <div style="background:#111;border:1px solid #222;border-left:4px solid #FFEE00;border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+          <div style="color:#FFEE00;font-weight:900;font-size:14px;margin-bottom:4px;">🏅 Patch finisher pour tous</div>
+          <div style="color:#ccc;font-size:12px;line-height:1.5;">Chaque athlète qui franchit la ligne d'arrivée repart avec son patch exclusif Hyrox Challenge La Buse.</div>
+        </div>
+
+        <div style="background:#111;border:1px solid #222;border-left:4px solid #FFEE00;border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+          <div style="color:#FFEE00;font-weight:900;font-size:14px;margin-bottom:4px;">🏆 Plus de 40 podiums à décrocher</div>
+          <div style="color:#ccc;font-size:12px;line-height:1.5;">Trophées + patchs podium répartis par catégorie et tranche d'âge — beaucoup de chances de repartir avec une récompense.</div>
+        </div>
+
+        <div style="background:#111;border:1px solid #222;border-left:4px solid #FFEE00;border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+          <div style="color:#FFEE00;font-weight:900;font-size:14px;margin-bottom:4px;">⭐ Qualif ELITE 12 <span style="font-size:10px;background:#FFEE00;color:#0a0a0a;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:800;letter-spacing:1px;">GRANDE FINALE 2027</span></div>
+          <div style="color:#ccc;font-size:12px;line-height:1.5;">Les 12 meilleurs chronos par catégorie se qualifient pour la Grande Finale ELITE 12 en 2027.</div>
+        </div>
+
+        <div style="background:#111;border:1px solid #222;border-left:4px solid #FFEE00;border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+          <div style="color:#FFEE00;font-weight:900;font-size:14px;margin-bottom:4px;">⚡ Course 100 % digitalisée <span style="font-size:10px;background:#FFEE00;color:#0a0a0a;padding:2px 6px;border-radius:4px;margin-left:4px;font-weight:800;letter-spacing:1px;">UNIQUE À LA RÉUNION</span></div>
+          <div style="color:#ccc;font-size:12px;line-height:1.5;">Classement en direct sur écran + téléphone, temps par atelier communiqué à chaque athlète, résultats en temps réel sur notre site.</div>
+        </div>
       </div>
 
       <div style="background:#0d1400;border:1px solid #FFEE00;border-radius:12px;padding:1.25rem;margin-top:1.5rem;text-align:center;">
