@@ -304,8 +304,18 @@
   // Avec code promo RETOUR10 + pack photo
   const STRIPE_SOLO_PACK_PREV = 'https://buy.stripe.com/fZucN42zr2xB5jjaSg8Vi0c'; // 69,50 €
   const STRIPE_DUO_PACK_PREV  = 'https://buy.stripe.com/dRm7sK3Dv7RVcLLd0o8Vi0g'; // 119 €
+  // Code DUOGRATUIT (RETOUR10 + 1 place offerte) — DUO UNIQUEMENT
+  const STRIPE_DUO_GRATUIT      = 'https://buy.stripe.com/fZubJ04Hz5JNdPP2lK8Vi0j'; // 49,50 €
+  const STRIPE_DUO_PACK_GRATUIT = 'https://buy.stripe.com/7sY28q5LDdcf9zz1hG8Vi0i'; // 69,50 €
 
-  const CODES_PROMO = { 'RETOUR10': 0.10 };
+  // Taux de remise appliqué au prix de l'inscription (le pack photo n'est jamais remisé)
+  //  RETOUR10   : -10 %  → Duo 110 € = 99 €
+  //  DUOGRATUIT : -55 %  → Duo 110 € = 49,50 € (RETOUR10 + 1 place offerte)
+  const CODES_PROMO = { 'RETOUR10': 0.10, 'DUOGRATUIT': 0.55 };
+  // Codes réservés aux inscriptions Duo (pas de lien Stripe équivalent en Solo)
+  const CODES_DUO_ONLY = ['DUOGRATUIT'];
+  // Message affiché à la place du "-X%" générique
+  const CODES_MESSAGE = { 'DUOGRATUIT': '✓ Code appliqué ! 1 place offerte sur ton duo' };
   const PACK_PHOTO_PRIX = 20;
 
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -348,6 +358,19 @@
     el.classList.add('selected');
     state.cat = id; state.prix = prix; state.catLabel = label;
     var isDuo = id.startsWith('duo');
+    // Un code réservé au Duo appliqué avant de changer de catégorie doit sauter,
+    // sinon le récap afficherait un prix remisé que le lien Stripe ne pratique pas.
+    if (codeApplique && CODES_DUO_ONLY.indexOf(codeApplique) !== -1 && !isDuo) {
+      remise = 0;
+      codeApplique = '';
+      var champCode = document.getElementById('code-promo');
+      if (champCode) champCode.value = '';
+      var msgCode = document.getElementById('code-msg');
+      if (msgCode) {
+        msgCode.style.color = '#C0392B';
+        msgCode.textContent = '✗ Code retiré : il est réservé aux inscriptions Duo';
+      }
+    }
     var isRelais = id.startsWith('relais');
     var isParentEnfant = id === 'parent-enfant';
     var nomEquipeBloc = document.getElementById('nom-equipe-bloc');
@@ -544,11 +567,21 @@
   function appliquerCode() {
     var code = document.getElementById('code-promo').value.toUpperCase().trim();
     var msg = document.getElementById('code-msg');
+    // Certains codes n'existent qu'en Duo : les refuser ailleurs, sinon le prix
+    // affiché ne correspondrait pas au lien Stripe utilisé au moment de payer.
+    if (CODES_PROMO[code] && CODES_DUO_ONLY.indexOf(code) !== -1 && !(state.cat || '').startsWith('duo')) {
+      remise = 0;
+      codeApplique = '';
+      msg.style.color = '#C0392B';
+      msg.textContent = '✗ Ce code est réservé aux inscriptions Duo';
+      buildRecap();
+      return;
+    }
     if (CODES_PROMO[code]) {
       remise = CODES_PROMO[code];
       codeApplique = code;
       msg.style.color = '#4CAF50';
-      msg.textContent = '✓ Code appliqué ! -' + (remise * 100) + '% sur l\'inscription';
+      msg.textContent = CODES_MESSAGE[code] || ('✓ Code appliqué ! -' + (remise * 100) + '% sur l\'inscription');
       buildRecap();
     } else {
       remise = 0;
@@ -587,8 +620,11 @@
   function getStripeLink() {
     var isDuo = state.cat.startsWith('duo');
     var withCode = (codeApplique === 'RETOUR10');
+    var withGratuit = (codeApplique === 'DUOGRATUIT');
     var withPack = !!state.packPhoto;
     if (isDuo) {
+      if (withGratuit && withPack) return STRIPE_DUO_PACK_GRATUIT;
+      if (withGratuit)             return STRIPE_DUO_GRATUIT;
       if (withCode && withPack) return STRIPE_DUO_PACK_PREV;
       if (withCode)             return STRIPE_DUO_PREV;
       if (withPack)             return STRIPE_DUO_PACK;
