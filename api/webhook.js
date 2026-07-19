@@ -4,6 +4,7 @@ import {
   isParentEnfantInscription,
   buildParentEnfantEmailHtml,
   buildEmailHtml,
+  destinatairesInscription,
 } from '../lib/email-template.js';
 
 export const config = {
@@ -108,7 +109,7 @@ export default async function handler(req, res) {
         },
         body: JSON.stringify({
           from: 'Hyrox Challenge La Buse <noreply@htclabuse.fr>',
-          to: inscription?.email || email,
+          to: destinatairesInscription(inscription, email),
           subject,
           html,
           reply_to: 'htclabuse@gmail.com'

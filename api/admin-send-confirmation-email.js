@@ -3,6 +3,7 @@ import {
   isParentEnfantInscription,
   buildParentEnfantEmailHtml,
   buildEmailHtml,
+  destinatairesInscription,
 } from '../lib/email-template.js';
 
 export default async function handler(req, res) {
@@ -56,7 +57,7 @@ export default async function handler(req, res) {
       const supabase = createClient('https://mzyfnmjzlosranptwucr.supabase.co', process.env.SUPABASE_SERVICE_KEY);
       const { data: inscriptions, error: fetchErr } = await supabase
         .from('Inscriptions')
-        .select('email')
+        .select('email, co1_email')
         .eq('statut_paiement', 'paye')
         .not('email', 'is', null);
 
@@ -68,13 +69,18 @@ export default async function handler(req, res) {
       const excludeSet = new Set((exclude_emails || []).map(e => String(e).trim().toLowerCase()));
       const seen = new Set();
       const eligibles = [];
+      // L'inscrit principal ET son coéquipier (si son adresse a été renseignée).
+      // Le dédoublonnage global évite qu'un binôme partageant une boîte, ou
+      // quelqu'un inscrit sur plusieurs équipes, reçoive le mail en double.
       for (const r of inscriptions || []) {
-        const email = String(r.email || '').trim().toLowerCase();
-        if (!email || !email.includes('@')) continue;
-        if (excludeSet.has(email)) continue;
-        if (seen.has(email)) continue;
-        seen.add(email);
-        eligibles.push(email);
+        for (const brut of [r.email, r.co1_email]) {
+          const email = String(brut || '').trim().toLowerCase();
+          if (!email || !email.includes('@')) continue;
+          if (excludeSet.has(email)) continue;
+          if (seen.has(email)) continue;
+          seen.add(email);
+          eligibles.push(email);
+        }
       }
 
       const cap = (typeof limit === 'number' && limit > 0) ? limit : eligibles.length;
@@ -145,7 +151,7 @@ export default async function handler(req, res) {
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM, to: inscription.email, subject, html, reply_to: REPLY_TO }),
+      body: JSON.stringify({ from: FROM, to: destinatairesInscription(inscription), subject, html, reply_to: REPLY_TO }),
     });
 
     if (!resendResponse.ok) {

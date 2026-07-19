@@ -386,6 +386,13 @@
         html += '<div class="grid2"><div class="field"><label class="label">Nom</label><input type="text" id="m'+i+'nom" placeholder="NOM"></div>';
         html += '<div class="field"><label class="label">Prénom</label><input type="text" id="m'+i+'prenom" placeholder="Prénom"></div></div>';
         html += '<div class="field"><label class="label">Date de naissance</label><input type="date" id="m'+i+'dob"></div>';
+        // Email du coéquipier : Duo uniquement (seule colonne co1_email en base),
+        // optionnel — sert à lui envoyer aussi la confirmation et les infos.
+        if (isDuo && i === 0) {
+          html += '<div class="field"><label class="label">Email du coéquipier <span style="color:#888;font-weight:400;">(optionnel)</span></label>';
+          html += '<input type="email" id="m'+i+'email" placeholder="son.email@exemple.fr">';
+          html += '<div style="font-size:12px;color:#888;margin-top:6px;">Il recevra lui aussi la confirmation d\'inscription et les infos pratiques.</div></div>';
+        }
         html += '<div class="field"><label class="label">Taille t-shirt</label><select id="m'+i+'ts">';
         if (isParentEnfant) {
           html += '<optgroup label="Tailles enfant"><option>6 ans</option><option>8 ans</option><option>10 ans</option><option>12 ans</option><option>14 ans</option></optgroup>';
@@ -516,7 +523,8 @@
         var mprenom = document.getElementById('m'+i+'prenom') ? document.getElementById('m'+i+'prenom').value : '';
         var mts = document.getElementById('m'+i+'ts') ? document.getElementById('m'+i+'ts').value : '';
         var memberLabel = isParentEnfant ? 'Enfant' : 'Coéquipier ' + n;
-        rows.push([memberLabel, (mnom||'—') + ' ' + (mprenom||'') + ' — ' + mts]);
+        var memail = document.getElementById('m'+i+'email') ? document.getElementById('m'+i+'email').value.trim() : '';
+        rows.push([memberLabel, (mnom||'—') + ' ' + (mprenom||'') + ' — ' + mts + (memail ? ' — ' + memail : '')]);
       }
     }
 
@@ -668,6 +676,7 @@
       co1_prenom: document.getElementById('m0prenom') ? document.getElementById('m0prenom').value : '',
       co1_date_naissance: document.getElementById('m0dob') && document.getElementById('m0dob').value ? document.getElementById('m0dob').value : null,
       co1_tshirt: document.getElementById('m0ts') ? document.getElementById('m0ts').value : '',
+      co1_email: document.getElementById('m0email') && document.getElementById('m0email').value.trim() ? document.getElementById('m0email').value.trim() : null,
       co2_nom: document.getElementById('m1nom') ? document.getElementById('m1nom').value : '',
       co2_prenom: document.getElementById('m1prenom') ? document.getElementById('m1prenom').value : '',
       co2_date_naissance: document.getElementById('m1dob') && document.getElementById('m1dob').value ? document.getElementById('m1dob').value : null,
