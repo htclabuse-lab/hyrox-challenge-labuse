@@ -49,7 +49,10 @@ export default async function handler(req, res) {
 
     // ----- MODE 'broadcast' : envoi à tous les inscrits payés (ou subset), HTML/subject custom -----
     if (mode === 'broadcast') {
-      const { subject, html, limit, exclude_emails } = req.body;
+      // extra_emails : adresses hors base (ex. anciens participants HC #1, dont les
+      // inscriptions ne sont pas dans Supabase). Elles passent par le même
+      // dédoublonnage et les mêmes exclusions que les adresses lues en base.
+      const { subject, html, limit, exclude_emails, extra_emails } = req.body;
       if (!subject || !html) {
         return res.status(400).json({ error: 'subject et html requis' });
       }
@@ -72,8 +75,12 @@ export default async function handler(req, res) {
       // L'inscrit principal ET son coéquipier (si son adresse a été renseignée).
       // Le dédoublonnage global évite qu'un binôme partageant une boîte, ou
       // quelqu'un inscrit sur plusieurs équipes, reçoive le mail en double.
-      for (const r of inscriptions || []) {
-        for (const brut of [r.email, r.co1_email]) {
+      const sources = [
+        ...(inscriptions || []).map(r => [r.email, r.co1_email]),
+        ...(Array.isArray(extra_emails) ? extra_emails.map(e => [e]) : []),
+      ];
+      for (const r of sources) {
+        for (const brut of r) {
           const email = String(brut || '').trim().toLowerCase();
           if (!email || !email.includes('@')) continue;
           if (excludeSet.has(email)) continue;
