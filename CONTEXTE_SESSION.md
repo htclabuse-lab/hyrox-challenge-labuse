@@ -1,171 +1,193 @@
-# CONTEXTE SESSION — 18-19 juillet 2026
+# CONTEXTE SESSION — dernière mise à jour : dimanche 19 juillet 2026
 
-## 🎯 Objectif principal de la session
+## 🚀 ÉTAT ACTUEL
 
-Préparer **l'ouverture des inscriptions HC #3** (dimanche 19 juillet à midi, event le **dimanche 15 novembre 2026**), en gardant exactement la même base technique que HC #2 (Payment Links Stripe + insertion Supabase + webhook confirmation).
+**Les inscriptions HC #3 sont OUVERTES** depuis le dimanche 19 juillet 2026 (commit `f6704ce`).
+Événement : **dimanche 15 novembre 2026**, Crossfit La Buse — Saint-Paul, La Réunion.
 
-Un mail de pré-annonce a été envoyé aux **260 anciens participants** (HC #1 + HC #2 + Parent-Enfant + Kids), incluant un code promo `RETOUR10` (-10 %).
+Un mail de pré-annonce a été envoyé aux **260 anciens participants** (HC #1 + HC #2 + Parent-Enfant + Kids), avec le code promo `RETOUR10` (-10 %).
+
+### Tout est déployé et validé ✅
+
+| Élément | État |
+|---|---|
+| Site public (`index.html`) | ✅ en ligne, boutons « Inscriptions ici » actifs |
+| Page d'inscription HC #3 | ✅ en ligne |
+| 8 Payment Links Stripe | ✅ LIVE |
+| Webhook Stripe → base | ✅ testé bout-en-bout |
+| Mail de confirmation | ✅ testé, template unifié |
+| Admin par événement | ✅ terminé |
+| Base de données | ✅ propre, 0 inscription HC #3 au moment du lancement |
 
 ---
 
-## 📋 Résumé de ce qui a été fait
+## 📋 Session du 18-19 juillet — ce qui a été fait
 
 ### 1. Site public (`index.html`)
-- Onglet **Accueil** : bandeau photo noir retiré · nouveaux prix HC #3 (55/110 €) · Relais retiré · mention "Prix tout compris — frais de plateforme absorbés" en grand bandeau jaune · section "Ce qui est inclus" avec 4 blocs uniformisés (🏅 Patch finisher / 🏆 40+ podiums / ⭐ ELITE 12 / ⚡ Digitalisée) · photos déco déplacées en bas
-- Onglet **Épreuves** : encadré jaune pour HC · encadré multicolore pour Parent-Enfant (sans Sled Pull) · descriptions RX 1000m / Scaled 500m
-- Onglet **À venir** : carte HC #3 avec 4 onglets grisés non cliquables (Leaderboard, Résultats, Photos, Vagues)
-- Onglet **Passés** : HC #1 aligné sur le format HC #2 (3 boutons) · Parent-Enfant multicolor border · HC # jaune border · corrige HC #1 → 164 athlètes (au lieu de 110) · retire "158 inscriptions" pour HC #2 · retire bloc "inscriptions closes"
-- Nav : onglets plus séparés visuellement (fond gris, bordures arrondies) · nouvel onglet ELITE 12
+- Onglet **Accueil** : bandeau photo noir retiré · prix HC #3 (55/110 €) · Relais retiré · bandeau jaune « Prix tout compris — frais de plateforme absorbés » · section « Ce qui est inclus » · photos déco en bas
+- Onglet **Épreuves** : encadré jaune HC · encadré multicolore Parent-Enfant (sans Sled Pull) · descriptions RX 1000 m / Scaled 500 m
+- Onglet **À venir** : carte HC #3 avec 4 onglets grisés (Leaderboard, Résultats, Photos, Vagues)
+- Onglet **Passés** : HC #1 aligné sur le format HC #2 · HC #1 corrigé à 164 athlètes
+- Nav : onglets mieux séparés visuellement · nouvel onglet ELITE 12
+
+**Section « Ce qui est inclus » — 5 blocs** (ajout du T-shirt le 19 juillet) :
+1. 👕 **T-shirt offert à chaque athlète** (liseré bleu `#3498DB`)
+2. 🏅 Patch finisher pour tous
+3. 🏆 Plus de 40 podiums à décrocher
+4. ⭐ Qualif ELITE 12 — Grande Finale 2027
+5. ⚡ Course 100 % digitalisée
+
+**Ouverture des inscriptions (19 juillet)** :
+- **3 boutons « 🔥 Inscriptions ici »** → hero, encadré « Prochain événement » (Accueil), carte HC #3 (À venir)
+- Bandeau vert du hero : « 🔥 Hyrox Challenge La Buse #3 — Dimanche 15 novembre »
+- ⚠️ **Toutes les mentions « dimanche 19 juillet à midi » ont été retirées** de `index.html`. Ne pas les réintroduire : elles seraient fausses.
 
 ### 2. Nouvelles pages
-- **`elite12.html`** : classement top 12 combiné HC #1 + HC #2 avec dédup (alias ONORA/ONORATO) · encart "principe" + "provisoire" · bouton retour accueil · exclut Relais
-- **`podiums.html`** : horaires podiums par catégorie (last vague + 2h) · tri chrono · QR ajouté sur qrcodes-public.html
-- **`vagues.html`** : planning imprimable des vagues + dossards + QR sur qrcodes-orga.html
-- **`benevoles-distrib.html`** : distribution bénévoles (T-shirt/Boisson/Bon conso/Repas/Chèque Intersport) · 2 onglets À faire/Fini · tri par nom · repas et chèque uniquement pour dispo "journee"
+- **`elite12.html`** : classement top 12 combiné HC #1 + HC #2 avec dédup (alias ONORA/ONORATO) · exclut Relais
+- **`podiums.html`** : horaires podiums par catégorie (last vague + 2h) · tri chrono
+- **`vagues.html`** : planning imprimable des vagues + dossards
+- **`benevoles-distrib.html`** : distribution bénévoles (T-shirt/Boisson/Bon conso/Repas/Chèque Intersport) · 2 onglets À faire/Fini · repas et chèque uniquement pour dispo « journee »
 
-### 3. Inscription (`inscription.html`) — MAJ HC #3
-- Nouveaux prix : Solo 55 €, Duo 110 € (Relais et Parent-Enfant retirés)
-- **8 Payment Links Stripe** créés en LIVE (voir section Stripe ci-dessous)
-- Code promo `HTCLABUSE10` → **`RETOUR10`** (-10 % sur inscription uniquement, PAS sur pack photo)
-- **Pack photo** (+20 € par équipe, forfait) : case à cocher étape 5 avec explication "photographe par grande zone"
-- **Bandeau HC #3 en haut** : "🏃 Hyrox Challenge #3 — dim. 15 novembre 2026"
-- **Overlay "COMPLET" bloquant retiré** (les boutons catégorie sont cliquables)
-- Étape "Profil" : nouveau bloc **🚨 Contact urgence** (nom / prénom / téléphone) obligatoire
-- Étape "Profil" : **double saisie email** (champ + confirmation) avec copier-coller désactivé
-- Étape catégorie : **RX · 1 000 m** / **Scaled · 500 m** précisé sur chaque bouton
-- Étape "T-shirt" : **XS retiré** (femme S/M/L/XL · homme S/M/L/XL/XXL)
-- Étape 5 récap :
-  - Bandeau événement HC #3 (15 nov)
-  - Prix barré retiré (juste prix final affiché)
-  - Bloc **💳 Politique de remboursement** (aucun refund, revente perso possible jusqu'au 5 nov via mail à htclabuse@gmail.com)
-  - Bloc **attestation santé obligatoire** (option B — apte à la compétition + décharge responsabilité + acceptation politique remboursement)
-  - Bouton "Payer" bloqué (opacity 0.45, cursor not-allowed) tant que case pas cochée
-- Étape 6 confirmation : message "mail de confirmation envoyé" + rappel de vérifier les spams
+### 3. Inscription (`inscription.html`) — HC #3
+- Prix : Solo 55 €, Duo 110 € (Relais et Parent-Enfant retirés)
+- Code promo **`RETOUR10`** (-10 % sur l'inscription, **pas** sur le pack photo)
+- **Pack photo** (+20 € par équipe, forfait) : case à cocher étape 5
+- Bandeau HC #3 en haut · overlay « COMPLET » retiré
+- Étape Profil : bloc **🚨 Contact urgence** (nom / prénom / téléphone) obligatoire · **double saisie email** (copier-coller désactivé)
+- Étape catégorie : **RX · 1 000 m** / **Scaled · 500 m** sur chaque bouton
+- Étape T-shirt : **XS retiré** (femme S/M/L/XL · homme S/M/L/XL/XXL)
+- Étape 5 récap : politique de remboursement · attestation santé obligatoire · bouton « Payer » bloqué tant que la case n'est pas cochée
+- Étape 6 : message « mail de confirmation envoyé » + rappel spams
 
-### 4. Webhook mail de confirmation (`api/webhook.js`)
-Refactor complet du mail HC #3 :
-- **Share card** noir + jaune fluo (screenshot-friendly, à partager sur les réseaux) : titre HC #3 + date en gros + tous les athlètes (les 2 pour un duo) + équipe + catégorie + temps estimé
-- **Infos perso** (T-shirt, cat âge, contact urgence, pack photo, montant, coéquipiers)
-- **Politique de remboursement** (bordure jaune, mention revente 5 nov)
-- **Ce qui est inclus** — 4 blocs identiques au site (Patch / Podiums / ELITE 12 / Digitalisée)
+### 4. ⭐ Template de mail unifié (19 juillet) — IMPORTANT
+
+**Problème trouvé** : `api/admin-send-confirmation-email.js` avait sa **propre copie** du template, restée sur une ancienne version (sans la section « Ce qui est inclus »). La preview envoyait donc un mail **différent** de celui reçu par les vrais inscrits.
+
+**Correction** : le template vit désormais dans **`lib/email-template.js`**, importé par les deux routes.
+
+```
+lib/email-template.js   ← SOURCE UNIQUE. Toute modif du mail se fait ICI.
+  ├── api/webhook.js                       (envoi réel après paiement Stripe)
+  └── api/admin-send-confirmation-email.js (preview / renvoi manuel)
+```
+
+Fonctions exportées : `getAgeCat`, `getMoyenneAge`, `isParentEnfantInscription`, `buildParentEnfantEmailHtml`, `buildEmailHtml`.
+
+Signature : `buildEmailHtml(inscription, nomStripe, montantPaye)`.
+Depuis l'admin on appelle `buildEmailHtml(inscription, null, inscription.prix)` (pas de nom Stripe, montant lu en base).
+
+⚠️ **Ne jamais recréer une copie du template dans une route.** C'est exactement le bug qui a été corrigé.
+
+### 5. Contenu du mail de confirmation HC #3
+- **Share card** noir + jaune fluo (screenshot-friendly) : titre HC #3 + date + tous les athlètes + équipe + catégorie + temps estimé
+- **Infos perso** : T-shirt, cat âge, contact urgence, pack photo, montant, coéquipiers
+- **Politique de remboursement** (revente possible jusqu'au 5 nov)
+- **Ce qui est inclus** — les 5 blocs identiques au site
 - CTA site + footer
 
-### 5. Admin (`admin.html`) — REFACTOR EN COURS ⚠️
-**Option A choisie** : sélecteur d'événement en haut + filtrage global (moins invasif que refactor complet).
+### 6. Admin (`admin.html`) — REFACTOR OPTION A TERMINÉ ✅
 
-**Fait** :
-- Ajout `currentEvent` (défaut = `'hc3'`) + `EVENT_FILTERS` + `EVENT_LABELS` + fonction `eventData()` + `nbAthletes(insc)` + `switchEvent(key, btn)`
-- CSS pour `.event-tabs` / `.event-tab`
-- UI barre `event-tabs` en haut avec 3 boutons (🏃 HC #2 · 👨‍👧 PE · 🔥 HC #3 actif par défaut)
-- Bandeau stats mis à jour : Inscriptions / Athlètes total / Solo / Duo / 📸 Pack photo
-- `renderStats` : filtre par event + compte athlètes (co1/co2/co3)
-- `renderInscription` : filtre par event + colonne 📸 ajoutée (✓ vert / — gris)
-- Header table : nouvelle colonne 📸 + colspan "Aucun inscrit" passe à 13
-- `getGroups` : utilise `eventData()`
-- `renderTshirts` : utilise `eventData()` + ignore PE sauf sur event PE
-- `renderInventaire` : utilise `eventData()`
-- `renderPassage` : utilise `eventData()` (retrait du filtre hardcodé "2026-07-12")
+**Sélecteur d'événement en haut + filtrage global.**
 
-**Reste à faire** (voir section "À FAIRE" en bas) :
-- Créer `renderPackPhoto()` (nouvelle sous-tab pour recap pack photo)
-- Ajouter la sous-tab "📸 Pack photo" dans la nav des sub-tabs
-- Ajouter le tab-content div `#tab-pack-photo`
-- Tester le changement d'event (loadData actuellement re-render l'onglet actif, pas sûr que ça persiste `currentEvent` au refresh 30s)
+- `currentEvent` (défaut `'hc3'`) + `EVENT_FILTERS` + `EVENT_LABELS` + `eventData()` + `nbAthletes(insc)` + `switchEvent(key, btn)`
+- Barre `event-tabs` : 🏃 HC #2 · 👨‍👧 Parent-Enfant · 🔥 HC #3 (actif par défaut)
+- **Onglets filtrés par événement** via `EVENT_TABS` + `applyEventTabs()` :
+  - **HC #2 / HC #3** → Ordre d'inscription, Par catégorie, Ordre de passage, T-shirts, Trophées & Patchs, Pack photo, Bénévoles
+  - **Parent-Enfant** → Parent-Enfant, Pré-inscriptions Kids
+  - Si l'onglet ouvert n'existe pas pour l'événement choisi, bascule automatique sur le premier disponible
+- **Bande stats** : Inscriptions · Athlètes total · Solo · Duo · 📸 Pack photo
+  - Sur Parent-Enfant : libellé « Binômes inscrits », Solo/Duo/Pack masqués, carte « 🧒 Pré-inscriptions Kids » affichée
+  - **Athlètes total** compte les coéquipiers (un duo = 2)
+  - HC #2 **exclut** les Parent-Enfant du total
+- **Onglet 📸 Pack photo** (`renderPackPhoto()`) : packs vendus, dont payés, athlètes concernés, CA, + liste détaillée
+- Colonne **📸 Pack photo** dans « Ordre d'inscription » (✓ vert / — gris)
+- **Export CSV** : limité à l'événement sélectionné, colonne Pack photo incluse, fichier `inscrits_<event>.csv`
+- `renderPassage` : filtre hardcodé `2026-07-12` retiré, utilise `eventData()`
 
-### 6. Mails envoyés
-- **260 mails de pré-annonce HC #3** envoyés (152 → HC #2/PE/Kids + 51 → HC #1 nouveaux + 2 preview toi + Maryan)
-- 4 previews mail de confirmation envoyées à `stephanie.caro31@gmail.com`
-- Fichier `mail-HC3-corps.html` déposé dans `~/Downloads/` pour partage WhatsApp à Romuald
+Vérifié : le refresh auto 30 s **ne casse pas** l'événement sélectionné (`loadData()` ne touche jamais à `currentEvent`).
 
-### 7. Réorganisation QR codes
+### 7. Test bout-en-bout du paiement (19 juillet) ✅
+
+Vraie inscription payée par CB, **inscription id 316** (Maryan Rivière, Solo Homme RX, Solo + pack photo + `RETOUR10` = 69,50 €).
+
+Validé :
+- `statut_paiement = paye` → **preuve que le webhook Stripe a bien tourné** (le formulaire n'écrit jamais `paye`, seul le webhook le fait)
+- `pack_photo = true`, `sante_declaree = true`, contact urgence rempli, T-shirt M Homme
+- Inscription visible dans l'admin sur l'onglet HC #3
+- Accents corrects de bout en bout (« Rivière » stocké et relu intact)
+
+Ensuite : remboursée dans Stripe et **lignes 315 + 316 supprimées** de la base. Les compteurs HC #3 démarrent à 0.
+
+### 8. Mails envoyés
+- **260 mails de pré-annonce HC #3** (152 → HC #2/PE/Kids + 51 → HC #1 nouveaux + previews)
+- Previews du mail de confirmation → `stephanie.caro31@gmail.com`
+- `mail-HC3-corps.html` déposé dans `~/Downloads/` pour partage WhatsApp
+
+### 9. QR codes
 - `qrcodes-orga.html` : 4 QR (Accueil · Juges · Distribution bénévoles · Résultats)
 - `qrcodes-public.html` : 5 QR (Vagues · Podiums · Live · Résultats · Séance d'essai) — compact 1 page A4
 
-### 8. Fixes bugs event 2 (rétro)
-- API `event2-resultats` : pagination pour lever limite 1000 pointages (Solo Femme SC passait de 3 à 9 résultats)
-- API `event2-resultats` : utilise `heure_debut_reelle` au lieu de `heure_depart` pour brut (élimine décalages)
-- API `event2-resultats` : privilégie `temps_final_s` (BDD) sur le calcul depuis pointages (respecte les corrections manuelles Mylène/Elsie)
-- Leaderboard + Résultats : retire l'affichage "Temps brut" (seul le final compte, pas de crossed-out)
-- Leaderboard : mode "Général" quand filtre âge = Toutes
-- Retrait de la ligne mot de passe sur `resultats.html`
-
-### 9. Suppressions / nettoyages
-- Test athlètes (dossards 995-998) supprimés de la BDD
-- Reset course a été fait plusieurs fois via `/api/admin-reset-course`
-- Marqué "absent" pour Florent Agénor (#69)
+### 10. Fixes bugs event 2 (rétro)
+- API `event2-resultats` : pagination (limite 1000 pointages) · `heure_debut_reelle` au lieu de `heure_depart` · privilégie `temps_final_s` (respecte les corrections manuelles)
+- Leaderboard + Résultats : « Temps brut » retiré · mode « Général » quand filtre âge = Toutes
+- Ligne mot de passe retirée de `resultats.html`
 
 ---
 
-## 🔧 Fichiers créés / modifiés
+## 🔧 Fichiers clés
 
 ### Créés
-- `elite12.html`
-- `podiums.html`
-- `vagues.html`
-- `benevoles-distrib.html`
+- `lib/email-template.js` — **template mail, source unique**
+- `elite12.html` · `podiums.html` · `vagues.html` · `benevoles-distrib.html`
 - `api/admin-reset-course.js` — DELETE all Pointages + reset heures/temps
-- `api/admin-penalite.js` — ajouter des pénalités a posteriori
-- `api/admin-update-pointage.js` — corriger timestamp d'un pointage
-- `CONTEXTE_SESSION.md` — ce fichier
+- `api/admin-penalite.js` — pénalités a posteriori
+- `api/admin-update-pointage.js` — corriger le timestamp d'un pointage
 
 ### Modifiés (majeurs)
-- `index.html` — refonte accueil, à venir, passés, nav, épreuves
+- `index.html` — refonte + boutons d'inscription
 - `inscription.html` — HC #3 complet
-- `admin.html` — refactor Option A **en cours** (voir "À FAIRE")
-- `api/webhook.js` — nouveau mail confirmation HC #3
-- `api/event2-resultats.js` — pagination + heure_debut_reelle + temps_final_s
-- `api/juge-liste.js` · `api/juge-vagues.js` · `juge.html` — fixes divers 12 juillet
-- `accueil.html` · `live.html` — colonnes absent/abandon
-- `qrcodes-orga.html` · `qrcodes-public.html` — réorg + nouvelles pages
-- `leaderboard.html` · `resultats.html` — mode général + retrait temps brut
+- `admin.html` — refactor Option A terminé
+- `api/webhook.js` — importe le template partagé (handler inchangé)
+- `api/admin-send-confirmation-email.js` — importe le template partagé
+- `api/event2-resultats.js` · `juge.html` · `accueil.html` · `live.html` · `leaderboard.html` · `resultats.html` · `qrcodes-*.html`
 
 ---
 
-## 🗄 État Supabase
+## 🗄 Supabase
 
-### Tables et colonnes ajoutées durant la session (via SQL Editor)
-Toutes ces colonnes ont été ajoutées avec `ADD COLUMN IF NOT EXISTS` :
+### Colonnes ajoutées (via SQL Editor, `ADD COLUMN IF NOT EXISTS`)
 
 **Table `Inscriptions`** :
-- `absent BOOLEAN DEFAULT false`
-- `abandon BOOLEAN DEFAULT false`
-- `pack_photo BOOLEAN DEFAULT false`
-- `contact_urgence_nom TEXT`
-- `contact_urgence_prenom TEXT`
-- `contact_urgence_tel TEXT`
-- `sante_declaree BOOLEAN NOT NULL DEFAULT false`
-- (déjà présentes) `temps_final_s INTEGER`, `pack_remis_at TIMESTAMPTZ`, `heure_debut_reelle TIMESTAMPTZ`
+`absent BOOLEAN DEFAULT false` · `abandon BOOLEAN DEFAULT false` · `pack_photo BOOLEAN DEFAULT false` · `contact_urgence_nom TEXT` · `contact_urgence_prenom TEXT` · `contact_urgence_tel TEXT` · `sante_declaree BOOLEAN NOT NULL DEFAULT false`
+(déjà présentes) `temps_final_s INTEGER` · `pack_remis_at TIMESTAMPTZ` · `heure_debut_reelle TIMESTAMPTZ`
 
-**Table `Benevoles`** (colonnes ajoutées cette session pour distribution) :
-- `tshirt_distribue_at TIMESTAMPTZ`
-- `repas_distribue_at TIMESTAMPTZ`
-- `boisson_distribuee_at TIMESTAMPTZ`
-- `bon_conso_distribue_at TIMESTAMPTZ`
-- `cheque_intersport_at TIMESTAMPTZ`
+**Table `Benevoles`** :
+`tshirt_distribue_at` · `repas_distribue_at` · `boisson_distribuee_at` · `bon_conso_distribue_at` · `cheque_intersport_at` (tous `TIMESTAMPTZ`)
 
-### RLS — ⚠️ NON TOUCHÉ
-- Table `Inscriptions` : **RLS DÉSACTIVÉE** (nécessaire pour permettre à `accueil.html`, `benevoles-distrib.html` d'écrire client-side avec l'anon key).
-- Table `Benevoles` : idem.
-- Table `Pointages` : RLS activée (invisible via anon key, seul le service key du serveur y accède).
-- **Alerte Supabase reçue** ("Table publicly accessible") — reportée à plus tard (fix propre = créer des endpoints admin API pour toutes les écritures + activer RLS strict).
+### RLS — ⚠️ NON TOUCHÉ, à traiter
+- `Inscriptions` et `Benevoles` : **RLS DÉSACTIVÉE** (nécessaire pour que `accueil.html` et `benevoles-distrib.html` écrivent client-side avec l'anon key)
+- `Pointages` : RLS activée (seul le service key y accède)
+- **Alerte Supabase reçue** (« Table publicly accessible ») — voir priorité 1 ci-dessous
 
-### Aucune "migration" formelle (Supabase Studio SQL Editor exécuté à la main).
-Pas de fichier de migrations dans le repo — toutes les modifications de schéma ont été appliquées directement via l'interface Supabase.
+### Pas de fichier de migrations
+Toutes les modifications de schéma ont été faites à la main via l'interface Supabase.
 
 ---
 
-## 🔑 Variables d'env / config
+## 🔑 Config
 
-### Vercel (déjà en place, aucun ajout cette session)
-Noms des clés seulement (valeurs privées) :
-- `SUPABASE_SERVICE_KEY` — clé service Supabase
-- `STRIPE_SECRET_KEY` — clé Stripe LIVE
-- `STRIPE_WEBHOOK_SECRET` — secret webhook Stripe
-- `RESEND_API_KEY` — clé Resend
-- `JUGES_PASSWORD` — mot de passe pages juges/accueil = `labuse`
+### Variables d'env Vercel (noms seulement)
+`SUPABASE_SERVICE_KEY` · `STRIPE_SECRET_KEY` · `STRIPE_WEBHOOK_SECRET` · `RESEND_API_KEY` · `JUGES_PASSWORD`
 
-### Stripe Payment Links HC #3 (LIVE, créés cette session)
-| Nom produit | Prix | Payment Link (fin de l'URL) |
+### Mots de passe — ⚠️ ATTENTION, ils diffèrent
+| Usage | Mot de passe |
+|---|---|
+| Page `admin.html` | `stephaniefitness974` |
+| Pages juges / accueil / bénévoles-distrib | `labuse` |
+| **API `admin-send-confirmation-email`** | **`labuse`** (= `JUGES_PASSWORD`, **pas** le mot de passe admin) |
+
+### Stripe Payment Links HC #3 (LIVE)
+| Produit | Prix | Fin de l'URL |
 |---|---|---|
 | HC3 - Solo | 55 € | `eVqcN4b5X3BF9zz7G48Vi09` |
 | HC3 - Solo (RETOUR10) | 49,50 € | `eVq4gyde50ptbHH2lK8Vi0a` |
@@ -176,91 +198,89 @@ Noms des clés seulement (valeurs privées) :
 | HC3 - Duo + Pack Photo | 130 € | `14A6oGca1fkn8vvgcA8Vi0h` |
 | HC3 - Duo + Pack Photo (RETOUR10) | 119 € | `dRm7sK3Dv7RVcLLd0o8Vi0g` |
 
-(Le premier lien à 150 € "Duo + Pack" créé par erreur a été **désactivé** dans Stripe.)
+(Le lien à 150 € « Duo + Pack » créé par erreur a été **désactivé**.)
 
 ---
 
-## ⚠️ ÉTAT ACTUEL — Ce qui reste à faire
+## ⚠️ CE QUI RESTE À FAIRE
 
-### 🔴 PRIORITÉ 1 — Bloquant pour tomorrow midi
-1. **Finir la refonte `admin.html` (Option A)** :
-   - Compléter `renderPackPhoto()` : nouvelle fonction pour l'onglet Pack Photo (recap : nb total, liste des athlètes avec pack)
-   - Ajouter la sub-tab "📸 Pack photo" dans les `.main-tabs`
-   - Ajouter la div `<div class="tab-content" id="tab-pack-photo">` avec container
-   - Appeler `renderPackPhoto()` dans `loadData()` et `switchEvent()`
-   - **Ligne modifiée non commitée : `admin.html`**
+### 🔴 PRIORITÉ 1 — Sécurité RLS Supabase
+Une alerte Supabase signale les tables publiquement accessibles. Maintenant que les inscriptions sont ouvertes, les données personnelles des athlètes sont en base.
+- Activer RLS sur `Inscriptions` et `Benevoles`
+- Créer `/api/admin-update-inscription` et `/api/admin-update-benevole` (protégés par mot de passe)
+- Refactorer `accueil.html` et `benevoles-distrib.html` pour passer par ces endpoints au lieu d'écrire client-side
+- Estimation : ~2 h de dev + test
 
-2. **Tester l'inscription HC #3 bout-en-bout** :
-   - Aller sur https://hyrox-challenge-labuse.vercel.app/inscription.html
-   - Faire 1 vraie inscription avec CB (rembourser dans Stripe après)
-   - Vérifier :
-     - Que le mail de confirmation arrive avec share card + infos + politique + inclus
-     - Que la ligne apparaît dans Supabase avec `statut_paiement=paye`, `pack_photo`, `contact_urgence_*`, `sante_declaree`
-     - Que l'admin `hc3` affiche bien la nouvelle inscription
-
-### 🟠 PRIORITÉ 2 — À faire après ouverture
-3. **Fixer la sécurité RLS Supabase** (Option B qu'on avait discutée) :
-   - Activer RLS sur `Inscriptions` et `Benevoles`
-   - Créer `/api/admin-update-inscription` et `/api/admin-update-benevole` (protégés par mdp)
-   - Refactorer `accueil.html` et `benevoles-distrib.html` pour utiliser ces endpoints au lieu d'écrire client-side
-   - Estimation : ~2h de dev + test
-
-4. **Archiver HC #2** (avant que HC #3 remplisse la BDD) :
-   - Export toutes les inscriptions HC #2 + pointages + bénévoles → `data/event-2.json` (comme `event-1.json`)
-   - Adapter `resultats.html` et `leaderboard.html` pour charger event-2 depuis JSON statique (comme event-1)
-   - Purger tables `Inscriptions` (HC #2 only), `Pointages`, `Benevoles`
-   - Estimation : ~1h
+### 🟠 PRIORITÉ 2 — Archiver HC #2
+À faire avant que HC #3 ne remplisse la base.
+- Exporter inscriptions HC #2 + pointages + bénévoles → `data/event-2.json` (comme `event-1.json`)
+- Adapter `resultats.html` et `leaderboard.html` pour lire event-2 depuis le JSON statique
+- Purger `Inscriptions` (HC #2 uniquement), `Pointages`, `Benevoles`
+- Estimation : ~1 h
 
 ### 🟡 PRIORITÉ 3 — Améliorations
-5. **Refactor complet admin (Option B)** : 3 onglets top-level = 3 events, sous-onglets propres. Plus propre visuellement mais lourd (~3h). À faire quand les inscriptions HC #3 rouleront.
-6. **Recréer les 4 athlètes tests** (id 311-314, dossards 995-998) si test nécessaire — instructions dans les commits précédents.
+- **Refactor admin Option B** : 3 onglets top-level = 3 events, sous-onglets propres. Plus propre visuellement mais lourd (~3 h). L'Option A actuelle fait déjà le travail.
+- Recréer des athlètes tests si besoin (voir commits précédents pour les dossards 995-998)
 
 ---
 
-## 🐛 Bugs connus / points d'attention
+## 🐛 Points d'attention
 
-- **Admin `renderPassage`** : fonctionnait avec filtre hardcodé `2026-07-12` ; retiré pour l'Option A. Maintenant filtré par `eventData()`. Si vagues+heures ne sont pas assignées pour HC #3, l'onglet sera vide (normal).
-- **Admin `loadData`** est appelé toutes les 30s en polling — vérifier qu'il ne re-render pas TOUT et ne casse pas l'event courant (à tester).
-- **Kids pré-inscriptions** : `allKids` est séparé de `allData` dans `loadData`. L'onglet Kids reste global (pas filtré par event) — c'est OK.
-- **Pack photo dans le mail** : ligne affichée seulement si `pack_photo === true` dans l'inscription. Le prix intègre déjà le +20 € via le Payment Link Stripe choisi.
-- **Code promo `RETOUR10`** géré côté JS client-only (bascule vers autre Payment Link) — pas de vérif serveur, donc quelqu'un qui bidouille le HTML peut mettre le lien réduit à la main. Acceptable pour l'usage.
+- **`renderPassage`** : si les vagues et heures ne sont pas assignées pour HC #3, l'onglet sera vide — c'est normal.
+- **Kids pré-inscriptions** : `allKids` est séparé de `allData` dans `loadData`. L'onglet Kids n'est pas filtré par événement, il est rattaché à Parent-Enfant.
+- **Pack photo dans le mail** : ligne affichée seulement si `pack_photo === true`. Le +20 € est déjà intégré via le Payment Link choisi.
+- **Code promo `RETOUR10`** : géré côté JS client uniquement (bascule vers un autre Payment Link), sans vérification serveur. Quelqu'un qui bidouille le HTML peut forcer le lien réduit. Jugé acceptable pour l'usage.
+- **Filtre HC #3 dans l'admin** : repose sur `heure_depart` (null ou entre le 14 et le 16 novembre). Tant que les vagues ne sont pas assignées, `heure_depart` est null et tout remonte bien. À revoir si la logique de vagues change.
+- **Pas de `node` installé sur le Mac** — impossible de faire un `node --check` en local. Pour tester un module JS : `python3 -m http.server` puis charger la page dans le navigateur (les modules ES sont toujours décodés en UTF-8, contrairement au HTML qui a besoin d'un `<meta charset="utf-8">`).
 
 ---
 
-## 🛠 Commandes utiles pour reprendre
+## 🛠 Commandes utiles
 
 ```bash
-# Voir l'état du repo
 cd /Users/stephaniecaro/hyrox-work/hyrox-challenge-labuse
 git status
 git log --oneline -10
+git push                      # Vercel auto-deploy sur main
 
-# Déployer manuellement (Vercel auto-deploy sur push main)
-git push
+# Voir les inscriptions HC #3 en base
+curl -s "https://mzyfnmjzlosranptwucr.supabase.co/rest/v1/Inscriptions?select=id,prenom,nom,categorie,prix,statut_paiement,pack_photo&order=id.desc&limit=20" \
+  -H "apikey: sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC" \
+  -H "Authorization: Bearer sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC" | python3 -m json.tool
 
-# Reset données course via API (mot de passe = labuse)
-curl -s -X POST https://hyrox-challenge-labuse.vercel.app/api/admin-reset-course \
-  -H "Content-Type: application/json" -d '{"password":"labuse"}'
+# Renvoyer le mail de confirmation d'une inscription (mdp = labuse !)
+curl -s -X POST https://hyrox-challenge-labuse.vercel.app/api/admin-send-confirmation-email \
+  -H "Content-Type: application/json" \
+  -d '{"password":"labuse","mode":"standard","inscription_id":316}'
 
-# Envoyer un mail de test admin
+# Mail de test libre
 curl -s -X POST https://hyrox-challenge-labuse.vercel.app/api/admin-send-confirmation-email \
   -H "Content-Type: application/json" \
   -d '{"password":"labuse","mode":"custom","to":"stephanie.caro31@gmail.com","subject":"Test","html":"<b>hello</b>"}'
 
-# Requête Supabase via anon key (test lecture)
-curl -s "https://mzyfnmjzlosranptwucr.supabase.co/rest/v1/Inscriptions?select=id&limit=1" \
-  -H "apikey: sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC" \
-  -H "Authorization: Bearer sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC"
+# Reset données course (mdp = labuse)
+curl -s -X POST https://hyrox-challenge-labuse.vercel.app/api/admin-reset-course \
+  -H "Content-Type: application/json" -d '{"password":"labuse"}'
 ```
 
 ---
 
-## 📞 Contacts / URLs importantes
+## 📞 Contacts / URLs
 
 - **Site prod** : https://hyrox-challenge-labuse.vercel.app
 - **Repo GitHub** : `htclabuse-lab/hyrox-challenge-labuse`
 - **Supabase** : https://mzyfnmjzlosranptwucr.supabase.co
-- **Stripe dashboard** : https://dashboard.stripe.com (compte SARL fitness training, workspace AsrxBoard)
+- **Stripe** : https://dashboard.stripe.com (compte SARL fitness training, workspace AsrxBoard)
 - **Resend expéditeur** : `noreply@htclabuse.fr` (reply_to = `htclabuse@gmail.com`)
-- **Mot de passe admin** : `stephaniefitness974`
-- **Mot de passe juges/accueil/bénévoles-distrib** : `labuse` (via env `JUGES_PASSWORD`)
+
+---
+
+## 📜 Commits de la session
+
+| Commit | Contenu |
+|---|---|
+| `c4c2caa` | checkpoint refactor admin en cours |
+| `a433df5` | admin : onglet Pack photo + séparation par event + export CSV filtré |
+| `165d449` | site + mail : bloc « T-shirt offert à chaque athlète » |
+| `4164b0e` | mail : template unique partagé (`lib/email-template.js`) |
+| `f6704ce` | site : **ouverture des inscriptions** — boutons « Inscriptions ici » |
