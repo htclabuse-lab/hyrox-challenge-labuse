@@ -367,9 +367,14 @@ function buildEmailHtml(inscription, nomStripe, montantPaye) {
         </div>
       </div>
 
-      <!-- CE QUI EST INCLUS · 4 blocs -->
+      <!-- CE QUI EST INCLUS · 5 blocs -->
       <div style="margin-top:1.5rem;">
         <div style="color:#FFEE00;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center;">✨ Ce qui est inclus dans ton inscription</div>
+
+        <div style="background:#111;border:1px solid #222;border-left:4px solid #FFEE00;border-radius:10px;padding:14px 16px;margin-bottom:10px;">
+          <div style="color:#FFEE00;font-weight:900;font-size:14px;margin-bottom:4px;">👕 T-shirt offert à chaque athlète</div>
+          <div style="color:#ccc;font-size:12px;line-height:1.5;">Le T-shirt officiel de l'événement est offert à tous les participants — taille et coupe choisies à l'inscription.</div>
+        </div>
 
         <div style="background:#111;border:1px solid #222;border-left:4px solid #FFEE00;border-radius:10px;padding:14px 16px;margin-bottom:10px;">
           <div style="color:#FFEE00;font-weight:900;font-size:14px;margin-bottom:4px;">🏅 Patch finisher pour tous</div>
