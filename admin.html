@@ -528,7 +528,9 @@
   }
 
   function renderStats() {
-    var d = eventData();
+    // Le décompte ne compte que les inscriptions payées : les paiements en attente
+    // (paniers abandonnés) restent visibles dans la table mais ne gonflent pas les chiffres.
+    var d = eventData().filter(function(r){ return r.statut_paiement === 'paye'; });
     document.getElementById('event-label').textContent = '📅 ' + (EVENT_LABELS[currentEvent] || '');
     document.getElementById('total-inscrits').textContent = d.length;
     var totalAth = d.reduce(function(s, r) { return s + nbAthletes(r); }, 0);
