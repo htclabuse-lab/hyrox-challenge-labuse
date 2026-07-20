@@ -646,6 +646,22 @@
   }
 
   async function payer() {
+    // Garde-fou email : le champ est validé à l'étape Profil, mais sa valeur peut
+    // être perdue si la personne revient sur la page depuis Stripe (les champs
+    // autocomplete="off" ne sont pas toujours restaurés par le navigateur). On
+    // revalide donc ici, juste avant l'enregistrement, pour ne jamais enregistrer
+    // un paiement sans adresse joignable. Si l'email manque, retour à l'étape Profil.
+    var emailVal = (document.getElementById('email').value || '').trim();
+    var reEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!reEmail.test(emailVal)) {
+      alert('Ton adresse email est manquante ou invalide. Merci de la ressaisir pour recevoir ta confirmation.');
+      goStep(0);
+      var champEmail = document.getElementById('email');
+      if (champEmail) { champEmail.value = ''; champEmail.focus(); }
+      var champConfirm = document.getElementById('email-confirm-input');
+      if (champConfirm) { champConfirm.value = ''; }
+      return;
+    }
     var btn = document.getElementById('btn-payer');
     btn.disabled = true;
     btn.textContent = 'Enregistrement...';
