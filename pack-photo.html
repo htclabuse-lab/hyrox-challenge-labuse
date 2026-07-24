@@ -45,7 +45,10 @@
     </p>
 
     <label for="email">Ton adresse email d'inscription</label>
+    <div style="font-size:12px;color:#ffe082;background:#1a1400;border:1px solid #FFEE00;border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.5;">⚠️ Utilise bien le <strong style="color:#FFEE00;">même email qu'à ton inscription</strong>, sinon on ne pourra pas retrouver ta place.</div>
     <input type="email" id="email" placeholder="ton.email@exemple.fr" autocomplete="email">
+    <label for="email-confirm" style="margin-top:14px;">Confirme ton email</label>
+    <input type="email" id="email-confirm" placeholder="Retape la même adresse">
     <button type="button" class="btn" id="btn-check" onclick="chercher()">Rechercher mon inscription</button>
 
     <div id="result"></div>
@@ -68,8 +71,13 @@
 
   async function chercher() {
     var email = (document.getElementById('email').value || '').trim().toLowerCase();
+    var email2 = (document.getElementById('email-confirm').value || '').trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       show('<div class="msg msg-err">Merci d\'entrer une adresse email valide.</div>');
+      return;
+    }
+    if (email !== email2) {
+      show('<div class="msg msg-err">Les deux emails ne correspondent pas — vérifie ta saisie. Utilise le même email qu\'à ton inscription.</div>');
       return;
     }
     var btn = document.getElementById('btn-check');
@@ -127,8 +135,10 @@
     }
   }
 
-  document.getElementById('email').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') chercher();
+  ['email', 'email-confirm'].forEach(function (id) {
+    document.getElementById(id).addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') chercher();
+    });
   });
 </script>
 </body>
