@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ajouter le pack photo — Hyrox Challenge La Buse #3</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0a0a0a; color: #fff; font-family: Arial, Helvetica, sans-serif; padding: 1.5rem; }
+  .wrap { max-width: 520px; margin: 0 auto; }
+  .logo { text-align: center; margin-bottom: 1rem; }
+  .logo img { width: 90px; height: 90px; border-radius: 20px; }
+  h1 { text-align: center; font-size: 24px; margin: 0 0 6px; }
+  h1 span { color: #FFEE00; }
+  .sub { text-align: center; color: #888; font-size: 14px; margin-bottom: 1.75rem; }
+  .card { background: #111; border: 1px solid #222; border-radius: 14px; padding: 1.5rem; }
+  label { display: block; font-size: 14px; color: #ccc; margin-bottom: 8px; font-weight: 700; }
+  input { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid #333; background: #0a0a0a; color: #fff; font-size: 16px; font-family: inherit; }
+  input:focus { outline: none; border-color: #FFEE00; }
+  .btn { width: 100%; margin-top: 1rem; background: #FFEE00; color: #0a0a0a; font-weight: 900; font-size: 17px; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-pay { display: block; text-align: center; text-decoration: none; background: #FFEE00; color: #0a0a0a; font-weight: 900; font-size: 17px; padding: 15px; border-radius: 10px; margin-top: 12px; }
+  .msg { margin-top: 1rem; font-size: 14px; line-height: 1.6; padding: 12px 14px; border-radius: 10px; }
+  .msg-info { background: #0d1400; border: 1px solid #1B7B49; color: #b9f6ca; }
+  .msg-warn { background: #1a1400; border: 1px solid #FFEE00; color: #ffe082; }
+  .msg-err  { background: #1a0d0d; border: 1px solid #C0392B; color: #ffb3ab; }
+  .insc-line { background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 12px 14px; margin-top: 10px; }
+  .insc-line .nom { font-weight: 800; color: #fff; }
+  .insc-line .det { font-size: 13px; color: #888; margin-top: 2px; }
+  .price { text-align: center; color: #FFEE00; font-weight: 900; font-size: 18px; margin: 14px 0 0; }
+  .back { display: block; text-align: center; color: #888; text-decoration: none; font-size: 13px; margin-top: 1.5rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo"><img src="logo.jpg" alt="HTC La Buse"></div>
+  <h1>Ajouter le <span>pack photo</span> 📸</h1>
+  <div class="sub">Hyrox Challenge La Buse #3 — dimanche 15 novembre 2026</div>
+
+  <div class="card">
+    <p style="color:#ccc;font-size:14px;line-height:1.6;margin:0 0 1.25rem;">
+      Tu es déjà inscrit·e mais tu n'as pas pris le pack photo ? Ajoute-le ici pour <strong style="color:#FFEE00;">20&nbsp;€</strong>.
+      Un photographe couvrira ta zone de course, et tu recevras tes photos après l'événement.
+    </p>
+
+    <label for="email">Ton adresse email d'inscription</label>
+    <input type="email" id="email" placeholder="ton.email@exemple.fr" autocomplete="email">
+    <button type="button" class="btn" id="btn-check" onclick="chercher()">Rechercher mon inscription</button>
+
+    <div id="result"></div>
+  </div>
+
+  <a class="back" href="index.html#accueil">← Retour au site</a>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Payment Link Stripe "Pack Photo — 20 €" (LIVE)
+  const STRIPE_PACK_PHOTO = 'https://buy.stripe.com/9B6aEWca1a03277f8w8Vi0k';
+
+  const OUVERTURE_HC3 = '2026-07-19'; // n'affiche que les inscriptions HC #3
+
+  function show(html) { document.getElementById('result').innerHTML = html; }
+
+  async function chercher() {
+    var email = (document.getElementById('email').value || '').trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      show('<div class="msg msg-err">Merci d\'entrer une adresse email valide.</div>');
+      return;
+    }
+    var btn = document.getElementById('btn-check');
+    btn.disabled = true; btn.textContent = 'Recherche...';
+    show('');
+
+    var res = await db.from('Inscriptions')
+      .select('id,prenom,nom,categorie,nom_equipe,statut_paiement,pack_photo,created_at')
+      .eq('email', email);
+
+    btn.disabled = false; btn.textContent = 'Rechercher mon inscription';
+
+    if (res.error) {
+      show('<div class="msg msg-err">Une erreur est survenue. Réessaie dans un instant.</div>');
+      return;
+    }
+    var rows = (res.data || []).filter(function (r) {
+      return (r.created_at || '') >= OUVERTURE_HC3
+        && (r.categorie || '').toLowerCase().indexOf('kids') === -1;
+    });
+
+    if (rows.length === 0) {
+      show('<div class="msg msg-warn">Aucune inscription au Hyrox Challenge #3 trouvée pour cet email. Vérifie l\'adresse, ou <a href="index.html#accueil" style="color:#FFEE00;">inscris-toi ici</a>.</div>');
+      return;
+    }
+
+    // Déjà un pack ?
+    var avecPack = rows.filter(function (r) { return r.pack_photo === true; });
+    var sansPackPaye = rows.filter(function (r) { return r.pack_photo !== true && r.statut_paiement === 'paye'; });
+    var enAttente = rows.filter(function (r) { return r.statut_paiement !== 'paye'; });
+
+    var html = '';
+    if (sansPackPaye.length > 0) {
+      sansPackPaye.forEach(function (r) {
+        var equipe = r.nom_equipe ? ' · ' + r.nom_equipe : '';
+        html += '<div class="insc-line">'
+          + '<div class="nom">' + ((r.prenom||'').trim() + ' ' + (r.nom||'').trim()) + '</div>'
+          + '<div class="det">' + (r.categorie||'') + equipe + '</div>'
+          + '<div class="price">+ 20 € — pack photo</div>'
+          + '<a class="btn-pay" href="' + STRIPE_PACK_PHOTO + '?client_reference_id=pack-' + r.id + '">📸 Payer mon pack photo</a>'
+          + '</div>';
+      });
+      show(html);
+      return;
+    }
+
+    if (avecPack.length > 0 && sansPackPaye.length === 0) {
+      show('<div class="msg msg-info">✅ Tu as déjà le pack photo sur ton inscription — rien à faire, on se voit le 15 novembre !</div>');
+      return;
+    }
+
+    if (enAttente.length > 0) {
+      show('<div class="msg msg-warn">Ton inscription n\'est pas encore finalisée (paiement en attente). Termine d\'abord ton inscription, tu pourras choisir le pack photo à ce moment-là. <a href="index.html#accueil" style="color:#FFEE00;">Finaliser →</a></div>');
+      return;
+    }
+  }
+
+  document.getElementById('email').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') chercher();
+  });
+</script>
+</body>
+</html>

@@ -4,8 +4,12 @@ import {
   isParentEnfantInscription,
   buildParentEnfantEmailHtml,
   buildEmailHtml,
+  buildPackPhotoEmailHtml,
   destinatairesInscription,
 } from '../lib/email-template.js';
+
+// Prix du pack photo acheté séparément après l'inscription (add-on).
+const PACK_PHOTO_PRIX = 20;
 
 export const config = {
   api: {
@@ -42,6 +46,49 @@ export default async function handler(req, res) {
     const clientReferenceId = session.client_reference_id;
 
     console.log('Paiement reçu pour:', email, '- Montant:', montantPaye, '- Ref:', clientReferenceId);
+
+    // ----- ACHAT DU PACK PHOTO "PLUS TARD" (add-on) -----
+    // Le lien de paiement du pack passe client_reference_id = "pack-<id>".
+    // Ce n'est PAS une nouvelle inscription : on ajoute juste le pack à la ligne
+    // existante (deja payee) et on envoie un petit mail de confirmation.
+    if (typeof clientReferenceId === 'string' && clientReferenceId.indexOf('pack-') === 0) {
+      const packInscriptionId = clientReferenceId.slice('pack-'.length);
+      try {
+        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const { data: found, error: selErr } = await supabase
+          .from('Inscriptions').select('*').eq('id', packInscriptionId).limit(1);
+        if (selErr || !found || !found.length) {
+          console.warn('Pack photo : inscription introuvable pour', clientReferenceId);
+        } else {
+          const insc = found[0];
+          const nouveauPrix = (Number(insc.prix) || 0) + PACK_PHOTO_PRIX;
+          await supabase.from('Inscriptions')
+            .update({ pack_photo: true, prix: nouveauPrix })
+            .eq('id', insc.id);
+          console.log('Pack photo ajouté à l\'inscription', insc.id);
+          if (resendKey && insc.email) {
+            try {
+              await fetch('https://api.resend.com/emails', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  from: 'Hyrox Challenge La Buse <noreply@htclabuse.fr>',
+                  to: destinatairesInscription(insc, email),
+                  subject: '📸 Ton pack photo est confirmé — Hyrox Challenge La Buse',
+                  html: buildPackPhotoEmailHtml(insc),
+                  reply_to: 'htclabuse@gmail.com',
+                }),
+              });
+            } catch (mailErr) {
+              console.error('Pack photo : erreur envoi mail', mailErr);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Pack photo : erreur traitement', err);
+      }
+      return res.status(200).json({ received: true, type: 'pack_photo' });
+    }
 
     let inscription = null;
 
