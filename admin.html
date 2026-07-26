@@ -552,15 +552,18 @@
 
   function renderPackPhoto() {
     var list = eventData().filter(function(r){ return r.pack_photo === true; });
+    // Les chiffres (packs, athlètes, CA) ne comptent que les packs PAYÉS.
+    // Les "en attente" restent visibles dans la table mais ne comptent pas.
     var payes = list.filter(function(r){ return r.statut_paiement === 'paye'; });
-    var totalAth = list.reduce(function(s, r){ return s + nbAthletes(r); }, 0);
-    var ca = list.length * 20;
+    var attente = list.length - payes.length;
+    var totalAth = payes.reduce(function(s, r){ return s + nbAthletes(r); }, 0);
+    var ca = payes.length * 20;
 
     var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;">Équipes ayant pris le <strong style="color:#FFEE00;">pack photo (+20 € / équipe)</strong> — ' + (EVENT_LABELS[currentEvent] || '') + '</div>';
 
     html += '<div class="stats" style="margin-bottom:1.5rem;">';
-    html += '<div class="stat"><div class="stat-val">' + list.length + '</div><div class="stat-label">Packs vendus</div></div>';
-    html += '<div class="stat"><div class="stat-val">' + payes.length + '</div><div class="stat-label">Dont payés</div></div>';
+    html += '<div class="stat"><div class="stat-val">' + payes.length + '</div><div class="stat-label">Packs payés</div></div>';
+    html += '<div class="stat"><div class="stat-val">' + attente + '</div><div class="stat-label">En attente</div></div>';
     html += '<div class="stat"><div class="stat-val">' + totalAth + '</div><div class="stat-label">Athlètes concernés</div></div>';
     html += '<div class="stat"><div class="stat-val">' + ca + ' €</div><div class="stat-label">CA pack photo</div></div>';
     html += '</div>';
