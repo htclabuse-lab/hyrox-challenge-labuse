@@ -365,24 +365,8 @@
 
   function renderKids() {
     var list = allKids;
-    var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + list.length + '</strong> pré-inscription(s) au cours Hyrox Kids — démarrage 1er septembre 2026</div>';
-
-    // Stats par créneau (stocké dans nom_equipe en CSV)
-    var CRENEAUX = ['Mercredi 6-9 ans','Mercredi 10-14 ans','Samedi 6-9 ans','Samedi 10-14 ans'];
-    var nbByCreneau = {};
-    CRENEAUX.forEach(function(c){ nbByCreneau[c] = 0; });
-    list.forEach(function(d) {
-      (d.nom_equipe||'').split(',').map(function(s){return s.trim();}).forEach(function(c) {
-        if (nbByCreneau[c] !== undefined) nbByCreneau[c]++;
-      });
-    });
-
-    html += '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:15px;">📅 Préférences de créneau</div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:1rem;">';
-    CRENEAUX.forEach(function(c) {
-      html += '<div style="background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:12px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#FFEE00;">' + nbByCreneau[c] + '</div><div style="font-size:11px;color:#888;margin-top:2px;">' + c + '</div></div>';
-    });
-    html += '</div>';
+    var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + list.length + '</strong> pré-inscription(s) au cours Training Kids — démarrage 16 septembre 2026</div>';
+    html += '<div style="font-size:12px;color:#666;margin:-0.5rem 0 1rem;font-style:italic;">Les créneaux préférés ne sont plus demandés dans le formulaire — la colonne reste remplie pour les anciennes pré-inscriptions.</div>';
 
     html += '<div style="font-weight:800;color:#FFEE00;margin:1rem 0 0.5rem;font-size:15px;">📋 Liste détaillée</div>';
     if (list.length === 0) {
