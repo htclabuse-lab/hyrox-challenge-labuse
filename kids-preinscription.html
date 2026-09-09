@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HYROX KIDS — Pré-inscription</title>
+  <title>TRAINING KIDS — Pré-inscription</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -22,7 +22,9 @@
     .info.prix { border-left-color: #FFEE00; }
     .info h3 { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
     .info p { font-size: 14px; line-height: 1.6; }
-    .creneau-line { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; }
+    .creneau-line { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: 13px; line-height: 1.5; }
+    .creneau-line .dot { margin-top: 5px; }
+    .creneau-line strong { color: #fff; }
     .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
     .dot.pink { background: #ff3399; } .dot.cyan { background: #00d8ff; } .dot.orange { background: #FFA726; } .dot.green { background: #4ade80; }
     .prix-big { font-size: 32px; font-weight: 900; color: #FFEE00; }
@@ -45,33 +47,48 @@
     .success-icon { font-size: 64px; margin-bottom: 12px; }
     .success h2 { color: #4caf50; font-size: 22px; margin-bottom: 10px; }
     .success p { color: #ccc; font-size: 14px; line-height: 1.6; }
+    .hero .tagline { font-size: 16px; font-style: italic; color: #fff; margin-bottom: 6px; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .badge { background: #2a2a2a; border: 1px solid #444; color: #ddd; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge.ok { border-color: #4ade80; color: #4ade80; }
+    .info .desc { font-size: 13px; color: #bbb; line-height: 1.6; margin-top: 12px; padding-top: 12px; border-top: 1px solid #2a2a2a; }
+    .contact { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 1rem; margin-top: 1rem; text-align: center; }
+    .contact-line { font-size: 14px; color: #ddd; padding: 4px 0; }
+    .contact a { color: #FFEE00; text-decoration: none; font-weight: 700; }
+    .footer-slogan { text-align: center; font-size: 13px; font-weight: 800; color: #888; letter-spacing: 1px; margin: 1.2rem 0 0.5rem; }
     .error { color: #C0392B; font-size: 13px; margin-top: 8px; }
   </style>
 </head>
 <body>
 <div class="wrap">
   <div class="hero">
-    <h1>HYROX <span>KIDS</span></h1>
-    <div class="sub">Crossfit La Buse — Saint-Paul, La Réunion</div>
+    <h1>TRAINING <span>KIDS</span></h1>
+    <div class="tagline">Hyrox, CrossFit…</div>
+    <div class="sub">📍 Crossfit La Buse — Saint-Paul, La Réunion</div>
     <div class="slogan">BOUGE. DÉPASSE-TOI. AMUSE-TOI.</div>
-    <div class="date">Dès le 1ᵉʳ septembre 2026</div>
+    <div class="date">Dès le 16 septembre 2026</div>
   </div>
 
   <div class="info-grid">
     <div class="info creneaux">
       <h3>📅 Créneaux</h3>
-      <div class="creneau-line"><span class="dot pink"></span>Mercredi après-midi — 6 à 9 ans</div>
-      <div class="creneau-line"><span class="dot cyan"></span>Mercredi après-midi — 10 à 14 ans</div>
-      <div class="creneau-line"><span class="dot orange"></span>Samedi matin — 6 à 9 ans</div>
-      <div class="creneau-line"><span class="dot green"></span>Samedi matin — 10 à 14 ans</div>
+      <div class="creneau-line"><span class="dot pink"></span><span>Mercredi après-midi — 5 à 9 ans<br><strong>14h15 à 15h00</strong></span></div>
+      <div class="creneau-line"><span class="dot cyan"></span><span>Mercredi après-midi — 10 à 15 ans<br><strong>15h00 à 16h00</strong></span></div>
+      <div class="creneau-line"><span class="dot orange"></span><span>Samedi matin — 5 à 9 ans<br><strong>8h45 à 9h30</strong></span></div>
+      <div class="creneau-line"><span class="dot green"></span><span>Samedi matin — 10 à 15 ans<br><strong>9h30 à 10h30</strong></span></div>
     </div>
     <div class="info places">
       <h3>⚠️ Places limitées</h3>
-      <p>12 enfants par groupe — <strong>24 places au total</strong></p>
+      <p><strong>12 enfants par groupe d'âge</strong></p>
     </div>
     <div class="info prix">
       <h3>💰 Tarif</h3>
       <p><span class="prix-big">39 €</span> <span class="prix-small">/ mois</span></p>
+      <div class="badges">
+        <span class="badge">2 séances / semaine</span>
+        <span class="badge ok">✔ Séance d'essai gratuite</span>
+      </div>
+      <p class="desc">L'abonnement à 39€/mois donne accès à 2 séances par semaine selon ta tranche d'âge — mercredi et samedi. Tu viens quand tu peux, sans obligation de présence. C'est toi qui gères ton rythme 💪</p>
     </div>
   </div>
 
@@ -90,14 +107,6 @@
     <div class="field"><label>Email *</label><input type="email" id="parent_email" placeholder="ex@email.com"></div>
     <div class="field"><label>Téléphone *</label><input type="tel" id="parent_tel" placeholder="0692 …"></div>
 
-    <div class="section-divider">⏰ Créneaux préférés (au moins 1)</div>
-    <div class="checkboxes">
-      <label><input type="checkbox" value="Mercredi 6-9 ans"> Mercredi après-midi — 6 à 9 ans</label>
-      <label><input type="checkbox" value="Mercredi 10-14 ans"> Mercredi après-midi — 10 à 14 ans</label>
-      <label><input type="checkbox" value="Samedi 6-9 ans"> Samedi matin — 6 à 9 ans</label>
-      <label><input type="checkbox" value="Samedi 10-14 ans"> Samedi matin — 10 à 14 ans</label>
-    </div>
-
     <button type="button" class="btn-submit" id="btn" onclick="submit()">Envoyer ma pré-inscription</button>
     <div class="error" id="err"></div>
   </div>
@@ -105,9 +114,15 @@
   <div id="success-block" class="success" style="display:none;">
     <div class="success-icon">🎉</div>
     <h2>Pré-inscription enregistrée !</h2>
-    <p>Merci. On te recontactera <strong>avant fin août</strong> pour finaliser l'inscription de ton enfant.</p>
+    <p>Merci. On te recontactera <strong>très vite</strong> pour finaliser l'inscription de ton enfant.</p>
     <p style="font-size:12px;color:#888;margin-top:14px;">L'équipe Hyrox La Buse 💪</p>
   </div>
+
+  <div class="contact">
+    <div class="contact-line">📞 Infos : Romu — <a href="tel:+262693927859">06 93 92 78 59</a></div>
+    <div class="contact-line">✉️ <a href="mailto:htclabuse@gmail.com">htclabuse@gmail.com</a></div>
+  </div>
+  <div class="footer-slogan">DES KIDS AUJOURD'HUI, DES CHAMPIONS DEMAIN !</div>
 </div>
 
 <script>
@@ -125,7 +140,6 @@
       parent_email: val('parent_email'),
       parent_tel: val('parent_tel'),
     };
-    const creneaux = Array.from(document.querySelectorAll('.checkboxes input:checked')).map(c => c.value);
 
     if (!f.enfant_prenom || !f.enfant_nom || !f.enfant_dob || !f.parent_prenom || !f.parent_nom || !f.parent_email || !f.parent_tel) {
       err('Tous les champs marqués * sont requis.');
@@ -133,10 +147,6 @@
     }
     if (!f.parent_email.includes('@')) {
       err('Email invalide.');
-      return;
-    }
-    if (creneaux.length === 0) {
-      err('Sélectionne au moins 1 créneau préféré.');
       return;
     }
 
@@ -154,7 +164,6 @@
       co1_nom: f.enfant_nom.toUpperCase(),
       co1_prenom: f.enfant_prenom,
       co1_date_naissance: f.enfant_dob,
-      nom_equipe: creneaux.join(', '),
     });
 
     if (error) {
