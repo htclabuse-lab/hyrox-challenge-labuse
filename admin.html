@@ -230,8 +230,8 @@
 
   // Onglets visibles selon l'événement sélectionné
   var EVENT_TABS = {
-    'hc2': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
-    'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
+    'hc2': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles','kids'],
+    'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles','kids'],
     'pe':  ['parent-enfant','kids']
   };
 
@@ -529,7 +529,7 @@
     document.getElementById('stat-solo').style.display = isPE ? 'none' : '';
     document.getElementById('stat-duo').style.display  = isPE ? 'none' : '';
     document.getElementById('stat-pack').style.display = isPE ? 'none' : '';
-    document.getElementById('stat-kids').style.display = isPE ? '' : 'none';
+    document.getElementById('stat-kids').style.display = '';  // cours Kids : visible quel que soit l'événement
     document.getElementById('label-inscrits').textContent = isPE ? 'Binômes inscrits' : 'Inscriptions';
     document.getElementById('total-kids').textContent = allKids.length;
   }
