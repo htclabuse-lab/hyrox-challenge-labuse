@@ -157,7 +157,7 @@
     document.getElementById('btn').disabled = true;
     document.getElementById('btn').textContent = 'Envoi…';
 
-    const { error } = await db.from('Inscriptions').insert({
+    const { data: inserted, error } = await db.from('Inscriptions').insert({
       nom: f.parent_nom.toUpperCase(),
       prenom: f.parent_prenom,
       email: f.parent_email,
@@ -168,7 +168,7 @@
       co1_nom: f.enfant_nom.toUpperCase(),
       co1_prenom: f.enfant_prenom,
       co1_date_naissance: f.enfant_dob,
-    });
+    }).select('id');
 
     if (error) {
       err('Erreur : ' + error.message);
@@ -176,6 +176,12 @@
       document.getElementById('btn').textContent = 'Envoyer ma pré-inscription';
       return;
     }
+    // Mail de bienvenue automatique (envoyé côté serveur ; ne bloque pas l'affichage du succès)
+    try {
+      if (inserted && inserted[0] && inserted[0].id) {
+        fetch('/api/kids-bienvenue', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: inserted[0].id }) });
+      }
+    } catch (e) {}
     document.getElementById('form-block').style.display = 'none';
     document.getElementById('success-block').style.display = 'block';
     window.scrollTo({top: 0, behavior: 'smooth'});
