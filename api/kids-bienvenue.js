@@ -81,7 +81,7 @@ function mailLancement(r) {
 <a href="${WHATSAPP}" style="color:#A6D402;font-weight:700;">Rejoindre le groupe WhatsApp</a></p>
 <p>💡 <strong>Les formules :</strong><br>
 &nbsp;&nbsp;• 2 séances par semaine : <strong>39 €/mois</strong><br>
-&nbsp;&nbsp;• 1 séance par semaine : <strong>30 €/mois</strong><br>
+&nbsp;&nbsp;• 1 séance par semaine : <strong>30 €/mois</strong> — choisis ton jour<br>
 &nbsp;&nbsp;• Fratrie : <strong>30 €/mois par enfant</strong> pour 2 séances par semaine<br>
 &nbsp;&nbsp;• Sans abonnement : carnet de <strong>10 séances pour 120 €</strong><br>
 On en parle sur place !</p>
@@ -108,7 +108,7 @@ function mailBienvenue(r) {
 <a href="${WHATSAPP}" style="color:#A6D402;font-weight:700;">Rejoindre le groupe WhatsApp</a></p>
 <p>💡 <strong>Les formules :</strong><br>
 &nbsp;&nbsp;• 2 séances par semaine : <strong>39 €/mois</strong><br>
-&nbsp;&nbsp;• 1 séance par semaine : <strong>30 €/mois</strong><br>
+&nbsp;&nbsp;• 1 séance par semaine : <strong>30 €/mois</strong> — choisis ton jour<br>
 &nbsp;&nbsp;• Fratrie : <strong>30 €/mois par enfant</strong> pour 2 séances par semaine<br>
 &nbsp;&nbsp;• Sans abonnement : carnet de <strong>10 séances pour 120 €</strong><br>
 On en parle sur place !</p>
