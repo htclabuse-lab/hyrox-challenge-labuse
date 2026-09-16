@@ -58,7 +58,7 @@ function enveloppe(titre, corps) {
   <h1 style="font-size:20px;color:#A6D402;margin:0 0 1rem;">${titre}</h1>
   <div style="font-size:15px;line-height:1.65;color:#eee;">${corps}</div>
   <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid #333;font-size:12px;color:#888;">
-    L'équipe Training Kids — Crossfit La Buse<br>Infos : Romu — 06 93 92 78 59
+    L'équipe Training Kids — Crossfit La Buse<br>Une question ? Réponds à ce mail ou écris-nous sur le groupe WhatsApp.
   </div>
 </div>`;
 }
