@@ -366,13 +366,13 @@
   function renderKids() {
     var list = allKids;
     var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + list.length + '</strong> pré-inscription(s) au cours Training Kids — démarrage 16 septembre 2026</div>';
-    html += '<div style="font-size:12px;color:#666;margin:-0.5rem 0 1rem;font-style:italic;">Les créneaux préférés ne sont plus demandés dans le formulaire — la colonne reste remplie pour les anciennes pré-inscriptions.</div>';
+    html += '<div style="font-size:12px;color:#666;margin:-0.5rem 0 1rem;font-style:italic;">Colonne « Formule / jour » : choix fait dans le formulaire (depuis le 16/09). Les 4 premières fiches (juin) affichent leurs anciens créneaux préférés.</div>';
 
     html += '<div style="font-weight:800;color:#FFEE00;margin:1rem 0 0.5rem;font-size:15px;">📋 Liste détaillée</div>';
     if (list.length === 0) {
       html += '<div style="color:#666;padding:2rem;text-align:center;background:#1a1a1a;border-radius:10px;">Aucune pré-inscription pour le moment</div>';
     } else {
-      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Enfant</th><th>Âge</th><th>Responsable légal</th><th>Email</th><th>Téléphone</th><th>Créneaux préférés</th><th>Date</th></tr></thead><tbody>';
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Enfant</th><th>Âge</th><th>Responsable légal</th><th>Email</th><th>Téléphone</th><th>Formule / jour</th><th>Date</th></tr></thead><tbody>';
       list.forEach(function(d, i) {
         var date = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
         var enfDob = d.co1_date_naissance;

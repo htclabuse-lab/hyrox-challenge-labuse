@@ -96,13 +96,23 @@ function mailBienvenue(r) {
   const enfant = esc((r.co1_prenom || '').trim()) || 'votre enfant';
   const i = infosEnfant(r.co1_date_naissance);
   const ageTxt = i.age !== null ? ` (${i.age} ans)` : '';
+  // Formule choisie dans le formulaire (stockée dans nom_equipe) : "2 séances/semaine" ou "1 séance/semaine — Mercredi|Samedi"
+  const formule = String(r.nom_equipe || '');
+  const uneSeance = formule.startsWith('1');
+  const jourMer = !uneSeance || formule.includes('Mercredi');
+  const jourSam = !uneSeance || formule.includes('Samedi');
+  const lignesJours = [
+    jourMer ? `&nbsp;&nbsp;• Mercredi après-midi à <strong>${i.mercredi}</strong><br>` : '',
+    jourSam ? `&nbsp;&nbsp;• Samedi matin à <strong>${i.samedi}</strong><br>` : '',
+  ].join('\n');
+  const formuleTxt = formule ? `<p>Formule choisie : <strong>${esc(formule)}</strong> — ${uneSeance ? '30' : '39'} €/mois. Tu pourras changer d'avis sur place, pas de souci.</p>` : '';
   const corps = `
 <p>Salut ${parent},</p>
 <p>La pré-inscription de <strong>${enfant}</strong> au Training Kids est bien reçue — bienvenue dans l'équipe ! 🙌</p>
 <p>📅 <strong>Les cours de ${enfant}${ageTxt} — groupe ${i.groupe}</strong><br>
-&nbsp;&nbsp;• Mercredi après-midi à <strong>${i.mercredi}</strong><br>
-&nbsp;&nbsp;• Samedi matin à <strong>${i.samedi}</strong><br>
+${lignesJours}
 &nbsp;&nbsp;à Crossfit La Buse, Saint-Paul. ${enfant} vient quand il/elle peut, sans obligation de présence.</p>
+${formuleTxt}
 <p>La <strong>première séance est offerte</strong>, sans engagement : on bouge, on rigole, on découvre — et on voit si ça lui plaît (spoiler : oui 😄).</p>
 <p><strong>Petite chose à faire : dis-nous à quelle séance ${enfant} vient pour son essai !</strong> Réponds simplement à ce mail, ou viens le dire directement sur le groupe WhatsApp des parents :<br>
 <a href="${WHATSAPP}" style="color:#A6D402;font-weight:700;">Rejoindre le groupe WhatsApp</a></p>
