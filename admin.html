@@ -76,6 +76,7 @@
       <button type="button" class="event-tab" onclick="switchEvent('hc2', this)">🏃 HC #2 · 12 juil.</button>
       <button type="button" class="event-tab" onclick="switchEvent('pe', this)">👨‍👧 Parent-Enfant · 27 juin</button>
       <button type="button" class="event-tab active" onclick="switchEvent('hc3', this)">🔥 HC #3 · 15 nov.</button>
+      <button type="button" class="event-tab" onclick="switchEvent('kids', this)">🧒 Training Kids · cours</button>
     </div>
     <div style="font-size:12px;color:#888;margin-bottom:1rem;" id="event-label"></div>
 
@@ -207,13 +208,16 @@
       // HC #3 = inscription HC (Solo/Duo) qui n'est PAS dans HC #2 ni Parent-Enfant
       // Utilise created_at post-19 juillet 2026 comme heuristique
       return d.categorie !== 'Parent-Enfant' && (!h || (h >= '2026-11-14' && h < '2026-11-16'));
-    }
+    },
+    // Cours Training Kids : pas une course, les pré-inscriptions sont dans allKids (pas allData)
+    'kids': function(d) { return false; }
   };
 
   var EVENT_LABELS = {
     'hc2': 'HC Challenge #2 · 12 juillet 2026',
     'pe':  'Parent-Enfant · 27 juin 2026',
-    'hc3': 'HC Challenge #3 · 15 novembre 2026'
+    'hc3': 'HC Challenge #3 · 15 novembre 2026',
+    'kids': 'Training Kids · cours du mercredi et du samedi · dès le 19 septembre 2026'
   };
 
   function eventData() {
@@ -230,9 +234,10 @@
 
   // Onglets visibles selon l'événement sélectionné
   var EVENT_TABS = {
-    'hc2': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles','kids'],
-    'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles','kids'],
-    'pe':  ['parent-enfant','kids']
+    'hc2': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
+    'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
+    'pe':  ['parent-enfant'],
+    'kids': ['kids']
   };
 
   function applyEventTabs() {
@@ -524,12 +529,15 @@
     document.getElementById('total-pack').textContent = d.filter(function(r){ return r.pack_photo === true; }).length;
     var relEl = document.getElementById('total-relais'); if (relEl) relEl.textContent = d.filter(function(r){ return r.categorie && r.categorie.toLowerCase().includes('relais'); }).length;
 
-    // Parent-Enfant : pas de Solo/Duo/pack photo, mais les pré-inscriptions Kids
+    // Parent-Enfant : pas de Solo/Duo/pack photo. Training Kids : uniquement le compteur Kids.
     var isPE = (currentEvent === 'pe');
-    document.getElementById('stat-solo').style.display = isPE ? 'none' : '';
-    document.getElementById('stat-duo').style.display  = isPE ? 'none' : '';
-    document.getElementById('stat-pack').style.display = isPE ? 'none' : '';
-    document.getElementById('stat-kids').style.display = '';  // cours Kids : visible quel que soit l'événement
+    var isKids = (currentEvent === 'kids');
+    document.getElementById('stat-inscrits').style.display = isKids ? 'none' : '';
+    document.getElementById('stat-athletes').style.display = isKids ? 'none' : '';
+    document.getElementById('stat-solo').style.display = (isPE || isKids) ? 'none' : '';
+    document.getElementById('stat-duo').style.display  = (isPE || isKids) ? 'none' : '';
+    document.getElementById('stat-pack').style.display = (isPE || isKids) ? 'none' : '';
+    document.getElementById('stat-kids').style.display = isKids ? '' : 'none';
     document.getElementById('label-inscrits').textContent = isPE ? 'Binômes inscrits' : 'Inscriptions';
     document.getElementById('total-kids').textContent = allKids.length;
   }
