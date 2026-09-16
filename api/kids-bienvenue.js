@@ -79,6 +79,7 @@ function mailLancement(r) {
 <p>Cette première séance est une <strong>séance d'essai, gratuite et sans engagement</strong> : on bouge, on rigole, on découvre — et on voit si ça lui plaît (spoiler : oui 😄).</p>
 <p><strong>Petite chose à faire : dis-nous si ${enfant} sera là samedi !</strong> Réponds simplement à ce mail, ou viens le dire directement sur le groupe WhatsApp des parents :<br>
 <a href="${WHATSAPP}" style="color:#A6D402;font-weight:700;">Rejoindre le groupe WhatsApp</a></p>
+<p>💡 Bon à savoir : <strong>réduction pour les fratries</strong>, et si l'abonnement mensuel ne vous convient pas, possibilité de <strong>payer à la séance par tickets</strong>. On en parle sur place !</p>
 <p>À prévoir : une tenue de sport, des baskets et une gourde. On s'occupe du reste 💪</p>
 <p>À samedi !</p>`;
   return { subject: "🎉 Training Kids : c'est parti samedi 19 !", html: enveloppe("C'est parti samedi 19 !", corps) };
@@ -100,6 +101,7 @@ function mailBienvenue(r) {
 <p>La <strong>première séance est offerte</strong>, sans engagement : on bouge, on rigole, on découvre — et on voit si ça lui plaît (spoiler : oui 😄).</p>
 <p><strong>Petite chose à faire : dis-nous à quelle séance ${enfant} vient pour son essai !</strong> Réponds simplement à ce mail, ou viens le dire directement sur le groupe WhatsApp des parents :<br>
 <a href="${WHATSAPP}" style="color:#A6D402;font-weight:700;">Rejoindre le groupe WhatsApp</a></p>
+<p>💡 Bon à savoir : <strong>réduction pour les fratries</strong>, et si l'abonnement mensuel ne vous convient pas, possibilité de <strong>payer à la séance par tickets</strong>. On en parle sur place !</p>
 <p>À prévoir : une tenue de sport, des baskets et une gourde. On s'occupe du reste 💪</p>
 <p>À très vite !</p>`;
   return { subject: `🎉 ${enfant} est pré-inscrit(e) au Training Kids !`, html: enveloppe('Bienvenue dans l\'équipe !', corps) };
