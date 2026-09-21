@@ -44,7 +44,6 @@ function infosEnfant(dob) {
     age,
     groupe: grand ? '10-15 ans' : '5-9 ans',
     samedi: grand ? '9h30' : '8h45',
-    mercredi: grand ? '15h00' : '14h15',
   };
 }
 
@@ -80,9 +79,8 @@ function mailLancement(r) {
 <p><strong>Petite chose à faire : dis-nous si ${enfant} sera là samedi !</strong> Réponds simplement à ce mail, ou viens le dire directement sur le groupe WhatsApp des parents :<br>
 <a href="${WHATSAPP}" style="color:#A6D402;font-weight:700;">Rejoindre le groupe WhatsApp</a></p>
 <p>💡 <strong>Les formules :</strong><br>
-&nbsp;&nbsp;• 2 séances par semaine : <strong>39 €/mois</strong><br>
-&nbsp;&nbsp;• 1 séance par semaine : <strong>30 €/mois</strong> — choisis ton jour<br>
-&nbsp;&nbsp;• Fratrie : <strong>30 €/mois par enfant</strong> pour 2 séances par semaine<br>
+&nbsp;&nbsp;• Abonnement : <strong>30 €/mois</strong> — le samedi matin<br>
+&nbsp;&nbsp;• Fratrie : <strong>30 €/mois par enfant</strong><br>
 &nbsp;&nbsp;• Sans abonnement : carnet de <strong>10 séances pour 120 €</strong><br>
 On en parle sur place !</p>
 <p>À prévoir : une tenue de sport, des baskets et une gourde. On s'occupe du reste 💪</p>
@@ -96,16 +94,9 @@ function mailBienvenue(r) {
   const enfant = esc((r.co1_prenom || '').trim()) || 'votre enfant';
   const i = infosEnfant(r.co1_date_naissance);
   const ageTxt = i.age !== null ? ` (${i.age} ans)` : '';
-  // Formule choisie dans le formulaire (stockée dans nom_equipe) : "2 séances/semaine" ou "1 séance/semaine — Mercredi|Samedi"
-  const formule = String(r.nom_equipe || '');
-  const uneSeance = formule.startsWith('1');
-  const jourMer = !uneSeance || formule.includes('Mercredi');
-  const jourSam = !uneSeance || formule.includes('Samedi');
-  const lignesJours = [
-    jourMer ? `&nbsp;&nbsp;• Mercredi après-midi à <strong>${i.mercredi}</strong><br>` : '',
-    jourSam ? `&nbsp;&nbsp;• Samedi matin à <strong>${i.samedi}</strong><br>` : '',
-  ].join('\n');
-  const formuleTxt = formule ? `<p>Formule choisie : <strong>${esc(formule)}</strong> — ${uneSeance ? '30' : '39'} €/mois. Tu pourras changer d'avis sur place, pas de souci.</p>` : '';
+  // Depuis le 21/09/2026 : uniquement le samedi matin (plus de mercredi), 30 €/mois
+  const lignesJours = `&nbsp;&nbsp;• Samedi matin à <strong>${i.samedi}</strong><br>`;
+  const formuleTxt = '';
   const corps = `
 <p>Salut ${parent},</p>
 <p>La pré-inscription de <strong>${enfant}</strong> au Training Kids est bien reçue — bienvenue dans l'équipe ! 🙌</p>
@@ -117,9 +108,8 @@ ${formuleTxt}
 <p><strong>Petite chose à faire : dis-nous à quelle séance ${enfant} vient pour son essai !</strong> Réponds simplement à ce mail, ou viens le dire directement sur le groupe WhatsApp des parents :<br>
 <a href="${WHATSAPP}" style="color:#A6D402;font-weight:700;">Rejoindre le groupe WhatsApp</a></p>
 <p>💡 <strong>Les formules :</strong><br>
-&nbsp;&nbsp;• 2 séances par semaine : <strong>39 €/mois</strong><br>
-&nbsp;&nbsp;• 1 séance par semaine : <strong>30 €/mois</strong> — choisis ton jour<br>
-&nbsp;&nbsp;• Fratrie : <strong>30 €/mois par enfant</strong> pour 2 séances par semaine<br>
+&nbsp;&nbsp;• Abonnement : <strong>30 €/mois</strong> — le samedi matin<br>
+&nbsp;&nbsp;• Fratrie : <strong>30 €/mois par enfant</strong><br>
 &nbsp;&nbsp;• Sans abonnement : carnet de <strong>10 séances pour 120 €</strong><br>
 On en parle sur place !</p>
 <p>À prévoir : une tenue de sport, des baskets et une gourde. On s'occupe du reste 💪</p>

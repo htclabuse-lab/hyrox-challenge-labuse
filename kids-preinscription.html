@@ -72,8 +72,6 @@
   <div class="info-grid">
     <div class="info creneaux">
       <h3>📅 Créneaux</h3>
-      <div class="creneau-line"><span class="dot pink"></span><span>Mercredi après-midi — 5 à 9 ans<br><strong>14h15 à 15h00</strong></span></div>
-      <div class="creneau-line"><span class="dot cyan"></span><span>Mercredi après-midi — 10 à 15 ans<br><strong>15h00 à 16h00</strong></span></div>
       <div class="creneau-line"><span class="dot orange"></span><span>Samedi matin — 5 à 9 ans<br><strong>8h45 à 9h30</strong></span></div>
       <div class="creneau-line"><span class="dot green"></span><span>Samedi matin — 10 à 15 ans<br><strong>9h30 à 10h30</strong></span></div>
     </div>
@@ -83,15 +81,14 @@
     </div>
     <div class="info prix">
       <h3>💰 Tarif</h3>
-      <p><span class="prix-big">39 €</span> <span class="prix-small">/ mois</span></p>
+      <p><span class="prix-big">30 €</span> <span class="prix-small">/ mois</span></p>
       <div class="badges">
-        <span class="badge">2 séances / semaine</span>
+        <span class="badge">1 séance / semaine · samedi matin</span>
         <span class="badge ok">✔ Séance d'essai gratuite</span>
       </div>
-      <p class="desc">L'abonnement à 39€/mois donne accès à 2 séances par semaine selon ta tranche d'âge — mercredi et samedi. Tu viens quand tu peux, sans obligation de présence. C'est toi qui gères ton rythme 💪</p>
+      <p class="desc">L'abonnement à 30€/mois donne accès au cours du samedi matin, selon ta tranche d'âge. Tu viens quand tu peux, sans obligation de présence 💪</p>
       <p class="desc"><strong>Autres formules :</strong><br>
-        • 1 séance par semaine : <strong>30 €/mois</strong> — choisis ton jour<br>
-        • Fratrie : <strong>30 €/mois par enfant</strong> pour 2 séances par semaine<br>
+        • Fratrie : <strong>30 €/mois par enfant</strong><br>
         • Sans abonnement : carnet de <strong>10 séances pour 120 €</strong></p>
     </div>
   </div>
@@ -111,18 +108,6 @@
     <div class="field"><label>Email *</label><input type="email" id="parent_email" placeholder="ex@email.com"></div>
     <div class="field"><label>Téléphone *</label><input type="tel" id="parent_tel" placeholder="0692 …"></div>
 
-    <div class="section-divider">⏱ Formule *</div>
-    <div class="checkboxes">
-      <label><input type="radio" name="formule" value="2 séances/semaine" onchange="toggleJour()"> 2 séances par semaine — 39 €/mois (mercredi + samedi)</label>
-      <label><input type="radio" name="formule" value="1 séance/semaine" onchange="toggleJour()"> 1 séance par semaine — 30 €/mois (choisis ton jour)</label>
-    </div>
-    <div id="jour-block" style="display:none;">
-      <div class="section-divider">📅 Quel jour ? *</div>
-      <div class="checkboxes">
-        <label><input type="radio" name="jour" value="Mercredi"> Mercredi après-midi</label>
-        <label><input type="radio" name="jour" value="Samedi"> Samedi matin</label>
-      </div>
-    </div>
     <p class="form-sub" style="margin-top:10px;">Fratrie (30 €/mois par enfant) et carnet de 10 séances (120 €) : on en parle sur place.</p>
 
     <button type="button" class="btn-submit" id="btn" onclick="submit()">Envoyer ma pré-inscription</button>
@@ -167,17 +152,8 @@
       err('Email invalide.');
       return;
     }
-    const formule = document.querySelector('input[name="formule"]:checked');
-    const jour = document.querySelector('input[name="jour"]:checked');
-    if (!formule) {
-      err('Choisis une formule : 1 ou 2 séances par semaine.');
-      return;
-    }
-    if (formule.value.startsWith('1') && !jour) {
-      err('Choisis ton jour : mercredi ou samedi.');
-      return;
-    }
-    const formuleTxt = formule.value + (formule.value.startsWith('1') ? ' — ' + jour.value : '');
+    // Une seule formule depuis le 21/09/2026 : le samedi matin (plus de mercredi)
+    const formuleTxt = '1 séance/semaine — Samedi';
 
     document.getElementById('btn').disabled = true;
     document.getElementById('btn').textContent = 'Envoi…';
@@ -188,7 +164,7 @@
       email: f.parent_email,
       telephone: f.parent_tel,
       categorie: 'Hyrox Kids Pré-inscription',
-      prix: 39,
+      prix: 30,
       statut_paiement: 'en_attente',
       co1_nom: f.enfant_nom.toUpperCase(),
       co1_prenom: f.enfant_prenom,
@@ -213,10 +189,6 @@
     window.scrollTo({top: 0, behavior: 'smooth'});
   }
 
-  function toggleJour() {
-    const f = document.querySelector('input[name="formule"]:checked');
-    document.getElementById('jour-block').style.display = (f && f.value.startsWith('1')) ? 'block' : 'none';
-  }
   function val(id) { return document.getElementById(id).value.trim(); }
   function err(msg) { document.getElementById('err').textContent = msg; }
 </script>
