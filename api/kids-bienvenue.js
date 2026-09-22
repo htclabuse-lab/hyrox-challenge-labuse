@@ -248,7 +248,11 @@ export default async function handler(req, res) {
         if (!parEmail.has(to)) parEmail.set(to, []);
         parEmail.get(to).push(r);
       }
+      let premier = true;
       for (const [to, grp] of parEmail) {
+        // Resend limite à 10 envois/seconde : on espace de 150 ms (constaté le 22/09/2026).
+        if (!dryRun && !premier) await new Promise(r => setTimeout(r, 150));
+        premier = false;
         const m = mailOuverture(grp);
         const ids = grp.map(r => r.id), enfants = grp.map(r => r.co1_prenom);
         if (!emailValide(to)) { resultats.push({ ids, skipped: 'email invalide' }); continue; }
