@@ -98,6 +98,7 @@
       <button type="button" class="main-tab" data-tab="pack-photo" onclick="showMainTab('pack-photo', this)">📸 Pack photo</button>
       <button type="button" class="main-tab" data-tab="parent-enfant" onclick="showMainTab('parent-enfant', this)">👨‍👧 Parent-Enfant</button>
       <button type="button" class="main-tab" data-tab="benevoles" onclick="showMainTab('benevoles', this)">🙌 Bénévoles</button>
+      <button type="button" class="main-tab" data-tab="kids-inscrits" onclick="showMainTab('kids-inscrits', this)">✅ Inscriptions cours Kids</button>
       <button type="button" class="main-tab" data-tab="kids" onclick="showMainTab('kids', this)">🧒 Pré-inscriptions Kids</button>
     </div>
 
@@ -178,6 +179,11 @@
       <div id="benevoles-content"></div>
     </div>
 
+    <!-- ONGLET INSCRIPTIONS AU COURS KIDS (abonnements Stripe) -->
+    <div class="tab-content" id="tab-kids-inscrits">
+      <div id="kids-inscrits-content"></div>
+    </div>
+
     <!-- ONGLET PRÉ-INSCRIPTIONS KIDS -->
     <div class="tab-content" id="tab-kids">
       <div id="kids-content"></div>
@@ -237,7 +243,7 @@
     'hc2': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
     'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
     'pe':  ['parent-enfant'],
-    'kids': ['kids']
+    'kids': ['kids-inscrits','kids']
   };
 
   function applyEventTabs() {
@@ -367,6 +373,7 @@
     applyEventTabs();
     renderParentEnfant();
     renderKids();
+    renderKidsInscrits();
     loadBenevoles();
   }
 
@@ -446,25 +453,16 @@
     }
   }
 
-  function renderKids() {
+  // Onglet « Inscriptions cours Kids » : les enfants avec un abonnement + la liste d'attente.
+  function renderKidsInscrits() {
     var actifs = allKidsInsc.filter(function(d){ return d.statut_paiement === 'payé' || d.statut_paiement === 'impaye'; });
     var attente = allKidsInsc.filter(function(d){ return d.statut_paiement === 'liste_attente'; }).sort(function(a,b){ return a.id - b.id; });
     var nonFinalises = allKidsInsc.filter(function(d){ return d.statut_paiement === 'en_attente'; });
-    var inscritsCles = {};
-    actifs.forEach(function(d){ inscritsCles[kidsCle(d)] = true; });
     var groupeDe = function(d){ return d.groupe || kidsGroupeParAge(d.co1_date_naissance); };
 
-    var html = '';
-    // ------------------------------------------------- Envoi du mail d'ouverture
-    html += '<div style="background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:1rem;margin-bottom:1.25rem;">';
-    html += '<div style="font-weight:800;color:#FFEE00;font-size:14px;margin-bottom:6px;">📧 Mail « les inscriptions sont ouvertes »</div>';
-    html += '<div style="font-size:12px;color:#888;line-height:1.6;margin-bottom:10px;">Envoie à toutes les familles <strong>pré-inscrites</strong> (' + allKids.length + ' enfant(s)) le mail d\'ouverture : pas de mercredi pour l\'instant, groupe et horaire de leur enfant, lien d\'inscription, 12 places, tarif et préavis. <strong>Un seul mail par famille</strong> (les fratries sont regroupées). La liste des destinataires s\'affiche avant tout envoi.</div>';
-    html += '<button onclick="mailOuvertureKids()" style="background:#FFEE00;color:#0a0a0a;border:none;border-radius:8px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px;">📧 Préparer l\'envoi</button>';
-    html += '<span id="kids-mail-feedback" style="margin-left:12px;font-size:13px;"></span>';
-    html += '</div>';
+    var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + actifs.length + '</strong> enfant(s) inscrit(s) au cours (abonnement en place) — ' + attente.length + ' en liste d\'attente.</div>';
 
-    // ---------------------------------------------------------------- Appel
-    html += '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:15px;">📣 Appel du samedi — enfants avec abonnement</div>';
+    html += '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:15px;">📣 Appel du samedi</div>';
     html += '<div style="font-size:12px;color:#666;margin-bottom:1rem;font-style:italic;">Seuls les enfants dont l\'abonnement est en place apparaissent ici. Le menu « groupe » permet de déplacer un enfant (auto = selon l\'âge).</div>';
     ['petits','grands'].forEach(function(gk) {
       var g = KIDS_GROUPES[gk];
@@ -477,7 +475,6 @@
       html += '</tbody></table></div>';
     });
 
-    // ------------------------------------------------------- Liste d'attente
     html += '<div style="font-weight:800;color:#FFA726;margin:1.5rem 0 0.5rem;font-size:15px;">⏳ Liste d\'attente (' + attente.length + ')</div>';
     if (!attente.length) html += '<div style="color:#666;padding:0.8rem;background:#1a1a1a;border-radius:10px;font-size:13px;">Personne en attente</div>';
     else {
@@ -487,12 +484,27 @@
       html += '</tbody></table></div>';
     }
     if (nonFinalises.length) {
-      html += '<div style="font-size:12px;color:#666;margin-top:0.6rem;">' + nonFinalises.length + ' fiche(s) avec paiement non finalisé (formulaire rempli, Stripe abandonné) : ' + nonFinalises.map(function(d){ return (d.co1_prenom||'') + ' ' + (d.co1_nom||''); }).join(', ') + '</div>';
+      html += '<div style="font-size:12px;color:#666;margin-top:0.8rem;padding:10px;background:#1a1a1a;border-radius:8px;">⚠️ ' + nonFinalises.length + ' formulaire(s) rempli(s) mais paiement non finalisé (abandon sur Stripe) : ' + nonFinalises.map(function(d){ return (d.co1_prenom||'') + ' ' + (d.co1_nom||'') + ' (' + (d.email||'') + ')'; }).join(', ') + '</div>';
     }
+    document.getElementById('kids-inscrits-content').innerHTML = html;
+  }
 
-    // ------------------------------------------------------- Pré-inscriptions
-    html += '<div style="font-weight:800;color:#FFEE00;margin:1.5rem 0 0.5rem;font-size:15px;">📋 Pré-inscriptions (' + allKids.length + ')</div>';
-    html += '<div style="font-size:12px;color:#666;margin-bottom:0.6rem;font-style:italic;">Fiches du formulaire de pré-inscription. « ✅ inscrit » = un abonnement est en place pour cet enfant. Le groupe choisi ici est repris automatiquement quand le parent finalise l\'inscription.</div>';
+  // Onglet « Pré-inscriptions Kids » : le formulaire gratuit + l'envoi du mail d'ouverture.
+  function renderKids() {
+    var actifs = allKidsInsc.filter(function(d){ return d.statut_paiement === 'payé' || d.statut_paiement === 'impaye'; });
+    var inscritsCles = {};
+    actifs.forEach(function(d){ inscritsCles[kidsCle(d)] = true; });
+
+    var html = '';
+    html += '<div style="background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:1rem;margin-bottom:1.25rem;">';
+    html += '<div style="font-weight:800;color:#FFEE00;font-size:14px;margin-bottom:6px;">📧 Mail « les inscriptions sont ouvertes »</div>';
+    html += '<div style="font-size:12px;color:#888;line-height:1.6;margin-bottom:10px;">Envoie à toutes les familles <strong>pré-inscrites</strong> (' + allKids.length + ' enfant(s)) le mail d\'ouverture : pas de mercredi pour l\'instant, groupe et horaire de leur enfant, lien d\'inscription, 12 places, tarif et préavis. <strong>Un seul mail par famille</strong> (les fratries sont regroupées). La liste des destinataires s\'affiche avant tout envoi.</div>';
+    html += '<button onclick="mailOuvertureKids()" style="background:#FFEE00;color:#0a0a0a;border:none;border-radius:8px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px;">📧 Préparer l\'envoi</button>';
+    html += '<span id="kids-mail-feedback" style="margin-left:12px;font-size:13px;"></span>';
+    html += '</div>';
+
+    html += '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:15px;">📋 Pré-inscriptions (' + allKids.length + ')</div>';
+    html += '<div style="font-size:12px;color:#666;margin-bottom:0.6rem;font-style:italic;">Fiches du formulaire de pré-inscription (gratuit). « ✅ inscrit » = un abonnement est en place pour cet enfant. Le groupe choisi ici est repris automatiquement quand le parent finalise l\'inscription.</div>';
     if (!allKids.length) html += '<div style="color:#666;padding:2rem;text-align:center;background:#1a1a1a;border-radius:10px;">Aucune pré-inscription</div>';
     else {
       html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Enfant</th><th>Âge</th><th>Responsable légal</th><th>Tél</th><th>Inscrit ?</th><th>Groupe</th><th>Date</th></tr></thead><tbody>';
