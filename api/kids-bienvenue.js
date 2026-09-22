@@ -148,7 +148,7 @@ function mailOuverture(rows) {
   ).join('\n');
   const montes = enfants.filter(e => e.monte);
   const blocMonte = montes.length
-    ? `<p style="background:#141400;border-left:3px solid #A6D402;padding:10px 12px;margin:1rem 0;"><strong>Changement de créneau :</strong> ${montes.map(e => e.nom).join(' et ')} ${montes.length > 1 ? 'passent' : 'passe'} dans le groupe suivant, à <strong>9h30</strong>. Le coach ${montes.length > 1 ? 'préfère qu\'ils s\'entraînent' : 'préfère qu\'il/elle s\'entraîne'} avec les plus grands, c'est mieux adapté à ${montes.length > 1 ? 'leur' : 'son'} niveau.</p>`
+    ? `<p style="background:#141400;border-left:3px solid #A6D402;padding:10px 12px;margin:1rem 0;"><strong>Changement de créneau :</strong> ${montes.map(e => e.nom).join(' et ')} ${montes.length > 1 ? 'passent' : 'passe'} dans le groupe suivant, à <strong>9h30</strong>. Le coach préfère ${montes.length > 1 ? 'qu\'ils s\'entraînent' : `que ${montes[0].nom} s\'entraîne`} avec les plus grands, c'est mieux adapté à ${montes.length > 1 ? 'leur' : 'son'} niveau.</p>`
     : '';
   const listeNoms = enfants.map(e => e.nom).join(' et ');
   const corps = `
@@ -166,7 +166,8 @@ ${blocMonte}
 
 <p><strong>📝 Comment inscrire ${listeNoms}</strong></p>
 <p>L'inscription se fait <strong>uniquement en ligne</strong>, sur cette page :<br>
-<a href="${PAGE_INSCRIPTION}" style="color:#A6D402;font-weight:700;">👉 Inscrire mon enfant au Training Kids</a></p>
+<a href="${PAGE_INSCRIPTION}" style="display:inline-block;background:#A6D402;color:#0a0a0a;font-weight:800;padding:12px 20px;border-radius:8px;text-decoration:none;margin:8px 0;">👉 Inscrire mon enfant</a><br>
+<span style="font-size:12px;color:#888;">Si le bouton ne marche pas, copie cette adresse dans ton navigateur :<br><a href="${PAGE_INSCRIPTION}" style="color:#A6D402;">${PAGE_INSCRIPTION}</a></span></p>
 <p>Tu y remplis les infos de l'enfant et du parent, tu attestes qu'il peut pratiquer une activité sportive, et tu mets en place le paiement. C'est tout, ça prend 3 minutes.</p>
 <p>⚠️ <strong>Sans inscription en ligne, l'enfant ne pourra pas être accepté au cours</strong>, même s'il est déjà venu à l'essai. On sait que c'est strict, mais c'est la seule façon de savoir qui est là, de respecter les 12 places par groupe et d'être assurés correctement.</p>
 

@@ -412,6 +412,40 @@
     return html + '</tr>';
   }
 
+  // Envoi du mail d'ouverture : dry_run d'abord (liste des destinataires), puis envoi réel après confirmation.
+  async function mailOuvertureKids() {
+    var fb = document.getElementById('kids-mail-feedback');
+    var ids = allKids.map(function(d){ return d.id; });
+    if (!ids.length) { fb.textContent = 'Aucune pré-inscription.'; fb.style.color = '#ff6666'; return; }
+    var pwd = prompt('Mot de passe juges (JUGES_PASSWORD) :');
+    if (!pwd) return;
+    fb.textContent = 'Préparation…'; fb.style.color = '#ffaa00';
+    try {
+      var r = await fetch('/api/kids-bienvenue', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'ouverture', dry_run: true, password: pwd, ids: ids }) });
+      var d = await r.json();
+      if (!r.ok) { fb.textContent = '❌ ' + (d.error || 'Erreur'); fb.style.color = '#ff6666'; return; }
+      var lignes = (d.resultats || []).map(function(x, i) {
+        return (i + 1) + '. ' + (x.to || '—') + '  (' + (x.enfants || []).join(', ') + ')' + (x.skipped ? '  ⚠️ ' + x.skipped : '');
+      });
+      fb.textContent = lignes.length + ' mail(s) prêt(s)'; fb.style.color = '#FFEE00';
+      if (!confirm('ENVOYER POUR DE VRAI ce mail à ' + lignes.length + ' famille(s) ?\n\n' + lignes.join('\n') + '\n\nOK = les mails partent immédiatement.')) {
+        fb.textContent = 'Envoi annulé (rien n\'est parti).'; fb.style.color = '#888'; return;
+      }
+      fb.textContent = 'Envoi en cours…'; fb.style.color = '#ffaa00';
+      var r2 = await fetch('/api/kids-bienvenue', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'ouverture', password: pwd, ids: ids }) });
+      var d2 = await r2.json();
+      if (!r2.ok) { fb.textContent = '❌ ' + (d2.error || 'Erreur'); fb.style.color = '#ff6666'; return; }
+      var ko = (d2.resultats || []).filter(function(x){ return x.sent === false; });
+      fb.textContent = '✅ ' + d2.envoyes + ' mail(s) envoyé(s)' + (ko.length ? ' — ' + ko.length + ' en échec' : '');
+      fb.style.color = ko.length ? '#FFA726' : '#4ade80';
+      if (ko.length) alert('Échecs :\n' + ko.map(function(x){ return (x.to || '') + ' : ' + x.error; }).join('\n'));
+    } catch (e) {
+      fb.textContent = '❌ Erreur réseau : ' + e.message; fb.style.color = '#ff6666';
+    }
+  }
+
   function renderKids() {
     var actifs = allKidsInsc.filter(function(d){ return d.statut_paiement === 'payé' || d.statut_paiement === 'impaye'; });
     var attente = allKidsInsc.filter(function(d){ return d.statut_paiement === 'liste_attente'; }).sort(function(a,b){ return a.id - b.id; });
@@ -421,6 +455,14 @@
     var groupeDe = function(d){ return d.groupe || kidsGroupeParAge(d.co1_date_naissance); };
 
     var html = '';
+    // ------------------------------------------------- Envoi du mail d'ouverture
+    html += '<div style="background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:1rem;margin-bottom:1.25rem;">';
+    html += '<div style="font-weight:800;color:#FFEE00;font-size:14px;margin-bottom:6px;">📧 Mail « les inscriptions sont ouvertes »</div>';
+    html += '<div style="font-size:12px;color:#888;line-height:1.6;margin-bottom:10px;">Envoie à toutes les familles <strong>pré-inscrites</strong> (' + allKids.length + ' enfant(s)) le mail d\'ouverture : pas de mercredi pour l\'instant, groupe et horaire de leur enfant, lien d\'inscription, 12 places, tarif et préavis. <strong>Un seul mail par famille</strong> (les fratries sont regroupées). La liste des destinataires s\'affiche avant tout envoi.</div>';
+    html += '<button onclick="mailOuvertureKids()" style="background:#FFEE00;color:#0a0a0a;border:none;border-radius:8px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px;">📧 Préparer l\'envoi</button>';
+    html += '<span id="kids-mail-feedback" style="margin-left:12px;font-size:13px;"></span>';
+    html += '</div>';
+
     // ---------------------------------------------------------------- Appel
     html += '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:15px;">📣 Appel du samedi — enfants avec abonnement</div>';
     html += '<div style="font-size:12px;color:#666;margin-bottom:1rem;font-style:italic;">Seuls les enfants dont l\'abonnement est en place apparaissent ici. Le menu « groupe » permet de déplacer un enfant (auto = selon l\'âge).</div>';
