@@ -97,17 +97,13 @@
   <div class="info-grid">
     <div class="info creneaux">
       <h3>📅 Créneaux — samedi matin</h3>
-      <div class="creneau-line"><span class="dot orange"></span><span>5 à 9 ans<br><strong>8h45 à 9h30</strong></span></div>
-      <div class="creneau-line"><span class="dot green"></span><span>10 à 15 ans<br><strong>9h30 à 10h30</strong></span></div>
-      <p class="desc">Le coach peut placer un enfant dans l'autre groupe selon son niveau — on te prévient si c'est le cas.</p>
+      <div class="creneau-line"><span class="dot orange"></span><span>Groupe 1 — 5 à 8 ans<br><strong>8h45 à 9h30</strong></span></div>
+      <div class="creneau-line"><span class="dot green"></span><span>Groupe 2 — à partir de 9 ans<br><strong>9h30 à 10h30</strong></span></div>
+      <p class="desc">Le groupe est attribué automatiquement selon la date de naissance. Le coach peut ajuster selon le niveau — on te prévient si c'est le cas.</p>
     </div>
     <div class="info places">
       <h3>⚠️ Places limitées</h3>
       <p><strong>12 enfants par groupe.</strong> La place est réservée quand l'abonnement est en place ; ensuite, liste d'attente.</p>
-      <div class="places-live" id="places-live" style="display:none;">
-        <div class="place-box"><div class="n" id="libres-petits">—</div><div class="l">places libres 5-9 ans</div></div>
-        <div class="place-box"><div class="n" id="libres-grands">—</div><div class="l">places libres 10-15 ans</div></div>
-      </div>
     </div>
     <div class="info prix">
       <h3>💰 Tarif</h3>
@@ -159,17 +155,6 @@
     document.getElementById('form-block').style.display = 'none';
   }
   if (params.get('annule') === '1') document.getElementById('msg-annule').style.display = 'block';
-
-  // Places libres en direct
-  fetch('/api/kids-checkout').then(r => r.json()).then(j => {
-    if (!j || !j.places) return;
-    ['petits', 'grands'].forEach(k => {
-      const el = document.getElementById('libres-' + k);
-      el.textContent = j.places[k].libres;
-      if (j.places[k].libres <= 0) { el.textContent = 'Complet'; el.classList.add('full'); el.style.fontSize = '16px'; }
-    });
-    document.getElementById('places-live').style.display = 'grid';
-  }).catch(() => {});
 
   async function submit() {
     err('');

@@ -370,7 +370,7 @@
     loadBenevoles();
   }
 
-  var KIDS_GROUPES = { petits: { label: '5-9 ans', heure: '8h45' }, grands: { label: '10-15 ans', heure: '9h30' } };
+  var KIDS_GROUPES = { petits: { label: 'Groupe 1 · 5-8 ans', heure: '8h45' }, grands: { label: 'Groupe 2 · dès 9 ans', heure: '9h30' } };
   var KIDS_PLACES = 12;
 
   function kidsAge(dob) {
@@ -378,14 +378,14 @@
     var p = dob.split('-').map(Number), t = new Date();
     return t.getFullYear() - p[0] - ((t.getMonth() + 1 < p[1] || (t.getMonth() + 1 === p[1] && t.getDate() < p[2])) ? 1 : 0);
   }
-  function kidsGroupeParAge(dob) { var a = kidsAge(dob); return a !== null && a >= 10 ? 'grands' : 'petits'; }
+  function kidsGroupeParAge(dob) { var a = kidsAge(dob); return a !== null && a >= 9 ? 'grands' : 'petits'; }
   function kidsCle(d) { return ((d.co1_prenom||'').trim() + '|' + (d.co1_nom||'').trim()).toLowerCase(); }
   function kidsSelectGroupe(d) {
     var g = d.groupe || '';
     return '<select onchange="setKidsGroupe(' + d.id + ', this.value)" style="background:#0a0a0a;color:#fff;border:1px solid #444;border-radius:6px;padding:4px;font-size:12px;">'
       + '<option value=""' + (g === '' ? ' selected' : '') + '>auto (' + KIDS_GROUPES[kidsGroupeParAge(d.co1_date_naissance)].heure + ')</option>'
-      + '<option value="petits"' + (g === 'petits' ? ' selected' : '') + '>5-9 ans · 8h45</option>'
-      + '<option value="grands"' + (g === 'grands' ? ' selected' : '') + '>10-15 ans · 9h30</option></select>';
+      + '<option value="petits"' + (g === 'petits' ? ' selected' : '') + '>Groupe 1 · 8h45</option>'
+      + '<option value="grands"' + (g === 'grands' ? ' selected' : '') + '>Groupe 2 · 9h30</option></select>';
   }
   async function setKidsGroupe(id, g) {
     var r = await db.from('Inscriptions').update({ groupe: g || null }).eq('id', id);

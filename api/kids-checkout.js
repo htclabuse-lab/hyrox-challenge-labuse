@@ -79,14 +79,14 @@ export default async function handler(req, res) {
         : `${f.enfant_prenom} est déjà sur liste d'attente. On te recontacte dès qu'une place se libère.` });
     }
 
-    // Groupe : celui fixé par le coach sur la pré-inscription s'il existe, sinon selon l'âge.
-    let groupe = groupeParAge(f.enfant_dob);
+    // Groupe : celui fixé par le coach sur la pré-inscription s'il existe, sinon selon l'âge
+    // (groupe 2 à partir de 9 ans). Pas de choix par le parent.
     const { data: pre } = await db.from('Inscriptions')
       .select('groupe')
       .eq('categorie', CATEGORIE_PREINSCRIPTION)
       .ilike('co1_prenom', f.enfant_prenom).ilike('co1_nom', f.enfant_nom)
       .not('groupe', 'is', null).limit(1);
-    if (pre && pre.length && GROUPES[pre[0].groupe]) groupe = pre[0].groupe;
+    const groupe = (pre && pre.length && GROUPES[pre[0].groupe]) ? pre[0].groupe : groupeParAge(f.enfant_dob);
 
     const places = await placesParGroupe(db);
     const plein = places[groupe].libres <= 0;
