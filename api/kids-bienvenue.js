@@ -19,16 +19,17 @@ import { createClient } from '@supabase/supabase-js';
 //     fournis, rien d'autre. `dry_run: true` liste les destinataires sans
 //     rien envoyer.
 //
-//  3. mode 'mercredi' (mot de passe JUGES_PASSWORD requis) — même principe que
+//  3. mode 'ouverture' (mot de passe JUGES_PASSWORD requis) — même principe que
 //     'lancement' (ids explicites, dry_run) mais UN mail par email de parent
-//     (une fratrie = un seul mail listant les enfants) : annonce que le cours
-//     du mercredi n'ouvre pas, invite à confirmer le samedi.
+//     (une fratrie = un seul mail listant les enfants) : ouverture des
+//     inscriptions payantes, pas de mercredi pour l'instant, groupes et règles.
 // ============================================================================
 
 const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
 const FROM = 'Training Kids — Crossfit La Buse <noreply@htclabuse.fr>';
 const REPLY_TO = 'htclabuse@gmail.com';
 const WHATSAPP = 'https://chat.whatsapp.com/GjaYPWaX5tK7QXMXfHZoBr?mode=gi_t';
+const PAGE_INSCRIPTION = 'https://hyrox-challenge-labuse.vercel.app/kids-inscription.html';
 const CATEGORIE_KIDS = 'Hyrox Kids Pré-inscription';
 const FENETRE_AUTO_MIN = 15;
 const MARQUEUR = 'mail_bienvenue_envoye';
@@ -44,10 +45,10 @@ function infosEnfant(dob) {
     const t = new Date();
     age = t.getFullYear() - y - ((t.getMonth() + 1 < m || (t.getMonth() + 1 === m && t.getDate() < d)) ? 1 : 0);
   }
-  const grand = age !== null && age >= 10;
+  const grand = age !== null && age >= 9;
   return {
     age,
-    groupe: grand ? '10-15 ans' : '5-9 ans',
+    groupe: grand ? 'Groupe 2' : 'Groupe 1',
     samedi: grand ? '9h30' : '8h45',
   };
 }
@@ -77,8 +78,8 @@ function mailLancement(r) {
 <p>Salut ${parent},</p>
 <p>Super nouvelle : les cours Training Kids démarrent <strong>ce samedi 19 septembre</strong> à Crossfit La Buse, et <strong>${enfant}</strong> est sur la liste ! 🙌</p>
 <p>📅 <strong>Premier cours — samedi 19 septembre</strong><br>
-&nbsp;&nbsp;• 5-9 ans : 8h45 à 9h30<br>
-&nbsp;&nbsp;• 10-15 ans : 9h30 à 10h30<br>
+&nbsp;&nbsp;• Groupe 1 : 8h45 à 9h30<br>
+&nbsp;&nbsp;• Groupe 2 : 9h30 à 10h30<br>
 &nbsp;&nbsp;👉 Pour ${enfant}${ageTxt}, c'est le créneau de <strong>${i.samedi}</strong>.</p>
 <p>Cette première séance est une <strong>séance d'essai, gratuite et sans engagement</strong> : on bouge, on rigole, on découvre — et on voit si ça lui plaît (spoiler : oui 😄).</p>
 <p><strong>Petite chose à faire : dis-nous si ${enfant} sera là samedi !</strong> Réponds simplement à ce mail, ou viens le dire directement sur le groupe WhatsApp des parents :<br>
@@ -105,7 +106,7 @@ function mailBienvenue(r) {
   const corps = `
 <p>Salut ${parent},</p>
 <p>La pré-inscription de <strong>${enfant}</strong> au Training Kids est bien reçue — bienvenue dans l'équipe ! 🙌</p>
-<p>📅 <strong>Les cours de ${enfant}${ageTxt} — groupe ${i.groupe}</strong><br>
+<p>📅 <strong>Les cours de ${enfant}${ageTxt} — ${i.groupe}</strong><br>
 ${lignesJours}
 &nbsp;&nbsp;à Crossfit La Buse, Saint-Paul. ${enfant} vient quand il/elle peut, sans obligation de présence.</p>
 ${formuleTxt}
@@ -122,34 +123,67 @@ On en parle sur place !</p>
   return { subject: `🎉 ${enfant} est pré-inscrit(e) au Training Kids !`, html: enveloppe('Bienvenue dans l\'équipe !', corps) };
 }
 
-// Mail « le mercredi n'ouvrira pas » (mode mercredi, texte validé par Stéphanie le 22/09/2026).
-// `rows` = toutes les fiches d'un même parent (fratrie possible).
-function mailMercredi(rows) {
+// Mail « ouverture des inscriptions » (mode ouverture, texte validé par Stéphanie le 22/09/2026).
+// `rows` = toutes les fiches d'un même parent (fratrie possible) : un seul mail pour la famille.
+function mailOuverture(rows) {
   const r0 = rows[0];
   const parent = esc((r0.prenom || '').trim()) || 'à vous';
-  const enfants = rows.map(r => ({ nom: esc((r.co1_prenom || '').trim()) || 'votre enfant', i: infosEnfant(r.co1_date_naissance) }));
-  const plusieurs = enfants.length > 1;
+  const enfants = rows.map(r => {
+    const i = infosEnfant(r.co1_date_naissance);
+    // Groupe 2 dès 9 ans ; le coach peut avoir placé l'enfant ailleurs (colonne `groupe`).
+    const auto = (i.age !== null && i.age >= 9) ? 'grands' : 'petits';
+    const g = (r.groupe === 'petits' || r.groupe === 'grands') ? r.groupe : auto;
+    return {
+      nom: esc((r.co1_prenom || '').trim()) || 'votre enfant',
+      age: i.age,
+      groupe: g,
+      label: g === 'grands' ? 'Groupe 2' : 'Groupe 1',
+      heure: g === 'grands' ? '9h30' : '8h45',
+      // Monté chez les grands alors que son âge ne l'imposait pas : on lui explique.
+      monte: g === 'grands' && auto === 'petits',
+    };
+  });
+  const lignesEnfants = enfants.map(e =>
+    `&nbsp;&nbsp;👉 <strong>${e.nom}</strong>${e.age !== null ? ` (${e.age} ans)` : ''} est dans le <strong>${e.label}</strong>, de <strong>${e.heure}</strong>.<br>`
+  ).join('\n');
+  const montes = enfants.filter(e => e.monte);
+  const blocMonte = montes.length
+    ? `<p style="background:#141400;border-left:3px solid #A6D402;padding:10px 12px;margin:1rem 0;"><strong>Changement de créneau :</strong> ${montes.map(e => e.nom).join(' et ')} ${montes.length > 1 ? 'passent' : 'passe'} dans le groupe suivant, à <strong>9h30</strong>. Le coach ${montes.length > 1 ? 'préfère qu\'ils s\'entraînent' : 'préfère qu\'il/elle s\'entraîne'} avec les plus grands, c'est mieux adapté à ${montes.length > 1 ? 'leur' : 'son'} niveau.</p>`
+    : '';
   const listeNoms = enfants.map(e => e.nom).join(' et ');
-  const lignesCreneaux = enfants.map(e => {
-    const ageTxt = e.i.age !== null ? ` (${e.i.age} ans)` : '';
-    return `&nbsp;&nbsp;👉 Pour <strong>${e.nom}</strong>${ageTxt}, c'est le créneau de <strong>${e.i.samedi}</strong>.<br>`;
-  }).join('\n');
-  // Fratrie inscrite en 2 séances/semaine (mercredi + samedi) : le tarif est à revoir, pas de ligne tarif standard.
-  const deuxSeances = rows.some(r => String(r.nom_equipe || '').startsWith('2'));
-  const tarif = deuxSeances
-    ? `<p>Tu avais inscrit ${listeNoms} pour les deux jours avec le tarif fratrie. Comme le mercredi tombe, on ne va pas te laisser avec le même prix pour moitié moins de cours : Stéphanie revient vers toi personnellement pour ajuster le tarif.</p>`
-    : `<p>Le tarif est de <strong>30 €/mois</strong> pour le samedi, sans engagement de durée. Le carnet de 10 séances (120 €) reste possible.</p>`;
   const corps = `
 <p>Salut ${parent},</p>
-<p>Petit changement de programme : le cours du <strong>mercredi après-midi n'ouvrira finalement pas</strong>. Les cours Training Kids ont lieu <strong>uniquement le samedi matin</strong> à Crossfit La Buse :</p>
-<p>&nbsp;&nbsp;• 5-9 ans : 8h45 à 9h30<br>
-&nbsp;&nbsp;• 10-15 ans : 9h30 à 10h30<br>
-${lignesCreneaux}</p>
-<p>Comme tu avais coché le mercredi, on a besoin de savoir si ${listeNoms} ${plusieurs ? 'viennent' : 'vient'} le samedi à la place. <strong>Réponds simplement à ce mail</strong> (ou sur le groupe WhatsApp) pour nous dire oui ou non :<br>
+<p>Merci pour ces premières séances d'essai, les enfants ont bien bougé 💪<br>Voici tout ce qu'il faut savoir pour la suite.</p>
+
+<p><strong>📅 Pour le moment, les cours ont lieu uniquement le samedi matin</strong></p>
+<p>Le créneau du mercredi après-midi <strong>n'ouvre pas pour l'instant</strong> : pas assez d'enfants dessus pour le lancer. Si ça évolue dans l'année, on vous préviendra en premier.</p>
+<p>Rendez-vous donc le samedi, à Crossfit La Buse :<br>
+&nbsp;&nbsp;• Groupe 1 — les plus jeunes : <strong>8h45 à 9h30</strong><br>
+&nbsp;&nbsp;• Groupe 2 — les plus grands : <strong>9h30 à 10h30</strong><br>
+${lignesEnfants}</p>
+<p style="font-size:13px;color:#aaa;">Les groupes sont faits par le coach selon l'âge et le niveau de chacun.</p>
+${blocMonte}
+
+<p><strong>📝 Comment inscrire ${listeNoms}</strong></p>
+<p>L'inscription se fait <strong>uniquement en ligne</strong>, sur cette page :<br>
+<a href="${PAGE_INSCRIPTION}" style="color:#A6D402;font-weight:700;">👉 Inscrire mon enfant au Training Kids</a></p>
+<p>Tu y remplis les infos de l'enfant et du parent, tu attestes qu'il peut pratiquer une activité sportive, et tu mets en place le paiement. C'est tout, ça prend 3 minutes.</p>
+<p>⚠️ <strong>Sans inscription en ligne, l'enfant ne pourra pas être accepté au cours</strong>, même s'il est déjà venu à l'essai. On sait que c'est strict, mais c'est la seule façon de savoir qui est là, de respecter les 12 places par groupe et d'être assurés correctement.</p>
+
+<p><strong>⚠️ 12 places par groupe</strong></p>
+<p>Ce sont les <strong>12 premiers inscrits</strong> de chaque groupe qui ont leur place. Au-delà, l'inscription bascule automatiquement en <strong>liste d'attente</strong> (rien n'est payé) et on te rappelle dès qu'une place se libère dans l'année.</p>
+
+<p><strong>💰 Le tarif</strong><br>
+&nbsp;&nbsp;• <strong>30 €/mois</strong>, prélevés automatiquement le 1er de chaque mois<br>
+&nbsp;&nbsp;• <strong>Sans engagement de durée.</strong> Pour arrêter : un simple mail à <a href="mailto:${REPLY_TO}" style="color:#A6D402;">${REPLY_TO}</a> <strong>avant le 25 du mois</strong>, et le mois suivant n'est pas prélevé<br>
+&nbsp;&nbsp;• Le premier mois est calculé au prorata des jours restants<br>
+&nbsp;&nbsp;• Sans abonnement : carnet de 10 séances pour 120 €, à voir sur place</p>
+
+<p>À prévoir chaque samedi : une tenue de sport, des baskets et une gourde.</p>
+<p>Une question ? Réponds à ce mail, ou viens sur le groupe WhatsApp des parents :<br>
 <a href="${WHATSAPP}" style="color:#A6D402;font-weight:700;">Rejoindre le groupe WhatsApp</a></p>
-${tarif}
-<p>Désolés pour ce changement, et à samedi on espère 💪</p>`;
-  return { subject: "Training Kids : le cours du mercredi n'ouvrira pas", html: enveloppe("Pas de cours le mercredi", corps) };
+<p>À samedi !</p>`;
+  return { subject: 'Training Kids — les inscriptions sont ouvertes', html: enveloppe('Les inscriptions sont ouvertes', corps) };
 }
 
 async function envoyer(resendKey, to, { subject, html }) {
@@ -172,7 +206,7 @@ export default async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   const body = req.body || {};
-  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'mercredi' ? 'mercredi' : 'auto';
+  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : 'auto';
 
   try {
     // ------------------------------------------------------------ mode auto
@@ -193,7 +227,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, id, sent_to: r.email.trim(), resend_id: resendId });
     }
 
-    // --------------------------------------- modes manuels (lancement, mercredi)
+    // -------------------------------------- modes manuels (lancement, ouverture)
     if (!body.password || body.password !== process.env.JUGES_PASSWORD) {
       return res.status(401).json({ error: 'Non autorisé' });
     }
@@ -205,7 +239,7 @@ export default async function handler(req, res) {
     if (error) return res.status(500).json({ error: error.message });
 
     const resultats = [];
-    if (mode === 'mercredi') {
+    if (mode === 'ouverture') {
       // Un mail par parent : regroupe les fiches par email (fratrie)
       const parEmail = new Map();
       for (const r of rows) {
@@ -214,7 +248,7 @@ export default async function handler(req, res) {
         parEmail.get(to).push(r);
       }
       for (const [to, grp] of parEmail) {
-        const m = mailMercredi(grp);
+        const m = mailOuverture(grp);
         const ids = grp.map(r => r.id), enfants = grp.map(r => r.co1_prenom);
         if (!emailValide(to)) { resultats.push({ ids, skipped: 'email invalide' }); continue; }
         if (dryRun) { resultats.push({ ids, to, enfants, subject: m.subject, dry_run: true }); continue; }
