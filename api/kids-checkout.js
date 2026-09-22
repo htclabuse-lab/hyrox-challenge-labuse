@@ -12,9 +12,11 @@ import {
 //  POST → enregistre la fiche (catégorie "Hyrox Kids Inscription") puis :
 //         - groupe plein  → statut 'liste_attente', mail liste d'attente, pas de paiement
 //         - sinon         → statut 'en_attente' + session Stripe Checkout en
-//                           ABONNEMENT mensuel (30 €/mois, prélevé le 1er, premier
-//                           mois au prorata). Le webhook api/kids-webhook.js passe
-//                           la fiche en 'payé' quand l'abonnement est en place.
+//                           ABONNEMENT mensuel (30 €/mois, prélevé le 1er).
+//                           RIEN n'est prélevé le jour de l'inscription : période
+//                           d'essai jusqu'au 1er du mois suivant (trial_end), donc
+//                           pas de prorata. Le webhook api/kids-webhook.js passe la
+//                           fiche en 'payé' quand l'abonnement est en place.
 //
 // Compte Stripe : celui de la société Hyrox (clés STRIPE_KIDS_*), distinct du
 // compte CrossFit utilisé pour les Hyrox Challenge (STRIPE_SECRET_KEY).
@@ -22,9 +24,10 @@ import {
 
 const STRIPE_KEY_ENV = 'STRIPE_KIDS_SECRET_KEY';
 
+// 1er du mois suivant, 04h00 UTC = 08h00 à La Réunion.
+// Sert de fin de période d'essai : premier prélèvement ce jour-là, rien avant.
 function premierDuMoisSuivant() {
   const t = new Date();
-  // 1er du mois suivant, 04h00 UTC = 08h00 à La Réunion
   return Math.floor(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 1, 4, 0, 0) / 1000);
 }
 
@@ -141,8 +144,8 @@ export default async function handler(req, res) {
         },
       }],
       subscription_data: {
-        billing_cycle_anchor: premierDuMoisSuivant(),
-        proration_behavior: 'create_prorations',
+        // Aucun prélèvement à l'inscription : le premier tombe le 1er du mois suivant.
+        trial_end: premierDuMoisSuivant(),
         metadata: { inscription_id: String(id), enfant: `${f.enfant_prenom} ${f.enfant_nom}`, groupe },
       },
       metadata: { inscription_id: String(id), enfant: `${f.enfant_prenom} ${f.enfant_nom}`, groupe },
