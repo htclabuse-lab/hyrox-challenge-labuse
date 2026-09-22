@@ -18,6 +18,11 @@ import { createClient } from '@supabase/supabase-js';
 //     volontairement aucun mode « tous » : on envoie exactement aux ids
 //     fournis, rien d'autre. `dry_run: true` liste les destinataires sans
 //     rien envoyer.
+//
+//  3. mode 'mercredi' (mot de passe JUGES_PASSWORD requis) — même principe que
+//     'lancement' (ids explicites, dry_run) mais UN mail par email de parent
+//     (une fratrie = un seul mail listant les enfants) : annonce que le cours
+//     du mercredi n'ouvre pas, invite à confirmer le samedi.
 // ============================================================================
 
 const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
@@ -117,6 +122,36 @@ On en parle sur place !</p>
   return { subject: `🎉 ${enfant} est pré-inscrit(e) au Training Kids !`, html: enveloppe('Bienvenue dans l\'équipe !', corps) };
 }
 
+// Mail « le mercredi n'ouvrira pas » (mode mercredi, texte validé par Stéphanie le 22/09/2026).
+// `rows` = toutes les fiches d'un même parent (fratrie possible).
+function mailMercredi(rows) {
+  const r0 = rows[0];
+  const parent = esc((r0.prenom || '').trim()) || 'à vous';
+  const enfants = rows.map(r => ({ nom: esc((r.co1_prenom || '').trim()) || 'votre enfant', i: infosEnfant(r.co1_date_naissance) }));
+  const plusieurs = enfants.length > 1;
+  const listeNoms = enfants.map(e => e.nom).join(' et ');
+  const lignesCreneaux = enfants.map(e => {
+    const ageTxt = e.i.age !== null ? ` (${e.i.age} ans)` : '';
+    return `&nbsp;&nbsp;👉 Pour <strong>${e.nom}</strong>${ageTxt}, c'est le créneau de <strong>${e.i.samedi}</strong>.<br>`;
+  }).join('\n');
+  // Fratrie inscrite en 2 séances/semaine (mercredi + samedi) : le tarif est à revoir, pas de ligne tarif standard.
+  const deuxSeances = rows.some(r => String(r.nom_equipe || '').startsWith('2'));
+  const tarif = deuxSeances
+    ? `<p>Tu avais inscrit ${listeNoms} pour les deux jours avec le tarif fratrie. Comme le mercredi tombe, on ne va pas te laisser avec le même prix pour moitié moins de cours : Stéphanie revient vers toi personnellement pour ajuster le tarif.</p>`
+    : `<p>Le tarif est de <strong>30 €/mois</strong> pour le samedi, sans engagement de durée. Le carnet de 10 séances (120 €) reste possible.</p>`;
+  const corps = `
+<p>Salut ${parent},</p>
+<p>Petit changement de programme : le cours du <strong>mercredi après-midi n'ouvrira finalement pas</strong>. Les cours Training Kids ont lieu <strong>uniquement le samedi matin</strong> à Crossfit La Buse :</p>
+<p>&nbsp;&nbsp;• 5-9 ans : 8h45 à 9h30<br>
+&nbsp;&nbsp;• 10-15 ans : 9h30 à 10h30<br>
+${lignesCreneaux}</p>
+<p>Comme tu avais coché le mercredi, on a besoin de savoir si ${listeNoms} ${plusieurs ? 'viennent' : 'vient'} le samedi à la place. <strong>Réponds simplement à ce mail</strong> (ou sur le groupe WhatsApp) pour nous dire oui ou non :<br>
+<a href="${WHATSAPP}" style="color:#A6D402;font-weight:700;">Rejoindre le groupe WhatsApp</a></p>
+${tarif}
+<p>Désolés pour ce changement, et à samedi on espère 💪</p>`;
+  return { subject: "Training Kids : le cours du mercredi n'ouvrira pas", html: enveloppe("Pas de cours le mercredi", corps) };
+}
+
 async function envoyer(resendKey, to, { subject, html }) {
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -137,7 +172,7 @@ export default async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   const body = req.body || {};
-  const mode = body.mode === 'lancement' ? 'lancement' : 'auto';
+  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'mercredi' ? 'mercredi' : 'auto';
 
   try {
     // ------------------------------------------------------------ mode auto
@@ -158,7 +193,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, id, sent_to: r.email.trim(), resend_id: resendId });
     }
 
-    // ------------------------------------------------------- mode lancement
+    // --------------------------------------- modes manuels (lancement, mercredi)
     if (!body.password || body.password !== process.env.JUGES_PASSWORD) {
       return res.status(401).json({ error: 'Non autorisé' });
     }
@@ -170,7 +205,28 @@ export default async function handler(req, res) {
     if (error) return res.status(500).json({ error: error.message });
 
     const resultats = [];
-    for (const r of rows) {
+    if (mode === 'mercredi') {
+      // Un mail par parent : regroupe les fiches par email (fratrie)
+      const parEmail = new Map();
+      for (const r of rows) {
+        const to = String(r.email || '').trim().toLowerCase();
+        if (!parEmail.has(to)) parEmail.set(to, []);
+        parEmail.get(to).push(r);
+      }
+      for (const [to, grp] of parEmail) {
+        const m = mailMercredi(grp);
+        const ids = grp.map(r => r.id), enfants = grp.map(r => r.co1_prenom);
+        if (!emailValide(to)) { resultats.push({ ids, skipped: 'email invalide' }); continue; }
+        if (dryRun) { resultats.push({ ids, to, enfants, subject: m.subject, dry_run: true }); continue; }
+        try {
+          const resendId = await envoyer(resendKey, to, m);
+          resultats.push({ ids, to, enfants, sent: true, resend_id: resendId });
+        } catch (e) {
+          resultats.push({ ids, to, enfants, sent: false, error: e.message });
+        }
+      }
+    }
+    for (const r of (mode === 'lancement' ? rows : [])) {
       const to = String(r.email || '').trim();
       const m = mailLancement(r);
       if (!emailValide(to)) { resultats.push({ id: r.id, skipped: 'email invalide' }); continue; }
@@ -184,7 +240,7 @@ export default async function handler(req, res) {
     }
     const manquants = ids.filter(i => !rows.some(r => r.id === i));
     return res.status(200).json({
-      success: true, mode: 'lancement', dry_run: dryRun,
+      success: true, mode, dry_run: dryRun,
       demandes: ids.length, trouves: rows.length, envoyes: resultats.filter(x => x.sent).length,
       ids_introuvables_ou_non_kids: manquants, resultats,
     });

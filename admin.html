@@ -86,7 +86,7 @@
       <div class="stat" id="stat-solo"><div class="stat-val" id="total-solo">—</div><div class="stat-label">Solo</div></div>
       <div class="stat" id="stat-duo"><div class="stat-val" id="total-duo">—</div><div class="stat-label">Duo</div></div>
       <div class="stat" id="stat-pack"><div class="stat-val" id="total-pack">—</div><div class="stat-label">📸 Pack photo</div></div>
-      <div class="stat" id="stat-kids" style="display:none;"><div class="stat-val" id="total-kids">—</div><div class="stat-label">🧒 Pré-inscriptions Kids</div></div>
+      <div class="stat" id="stat-kids" style="display:none;"><div class="stat-val" id="total-kids">—</div><div class="stat-label">🧒 Kids inscrits (abonnement)</div></div>
     </div>
 
     <div class="main-tabs">
@@ -217,7 +217,7 @@
     'hc2': 'HC Challenge #2 · 12 juillet 2026',
     'pe':  'Parent-Enfant · 27 juin 2026',
     'hc3': 'HC Challenge #3 · 15 novembre 2026',
-    'kids': 'Training Kids · cours du mercredi et du samedi · dès le 19 septembre 2026'
+    'kids': 'Training Kids · cours du samedi matin · depuis le 19 septembre 2026'
   };
 
   function eventData() {
@@ -347,14 +347,16 @@
     document.getElementById('pwd').value = '';
   }
 
-  var allKids = [];
+  var allKids = [];      // pré-inscriptions (formulaire kids-preinscription.html)
+  var allKidsInsc = [];  // inscriptions avec abonnement (kids-inscription.html + Stripe)
   async function loadData() {
     var { data, error } = await db.from('Inscriptions').select('*').order('created_at', { ascending: false });
     if (error) { console.error(error); return; }
     var all = data || [];
-    // Sépare les pré-inscriptions Hyrox Kids des autres inscriptions
+    // Sépare les fiches Training Kids (pré-inscriptions et inscriptions) des courses
     allKids = all.filter(function(d){ return d.categorie === 'Hyrox Kids Pré-inscription'; });
-    allData = all.filter(function(d){ return d.categorie !== 'Hyrox Kids Pré-inscription'; });
+    allKidsInsc = all.filter(function(d){ return d.categorie === 'Hyrox Kids Inscription'; });
+    allData = all.filter(function(d){ return d.categorie !== 'Hyrox Kids Pré-inscription' && d.categorie !== 'Hyrox Kids Inscription'; });
     renderStats();
     renderInscription();
     renderCategories();
@@ -368,34 +370,91 @@
     loadBenevoles();
   }
 
-  function renderKids() {
-    var list = allKids;
-    var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + list.length + '</strong> pré-inscription(s) au cours Training Kids — démarrage 16 septembre 2026</div>';
-    html += '<div style="font-size:12px;color:#666;margin:-0.5rem 0 1rem;font-style:italic;">Colonne « Formule / jour » : choix fait dans le formulaire (depuis le 16/09). Les 4 premières fiches (juin) affichent leurs anciens créneaux préférés.</div>';
+  var KIDS_GROUPES = { petits: { label: '5-9 ans', heure: '8h45' }, grands: { label: '10-15 ans', heure: '9h30' } };
+  var KIDS_PLACES = 12;
 
-    html += '<div style="font-weight:800;color:#FFEE00;margin:1rem 0 0.5rem;font-size:15px;">📋 Liste détaillée</div>';
-    if (list.length === 0) {
-      html += '<div style="color:#666;padding:2rem;text-align:center;background:#1a1a1a;border-radius:10px;">Aucune pré-inscription pour le moment</div>';
-    } else {
-      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Enfant</th><th>Âge</th><th>Responsable légal</th><th>Email</th><th>Téléphone</th><th>Formule / jour</th><th>Date</th></tr></thead><tbody>';
-      list.forEach(function(d, i) {
-        var date = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
-        var enfDob = d.co1_date_naissance;
-        var age = enfDob ? (new Date().getFullYear() - parseInt(enfDob.split('-')[0])) + ' ans' : '—';
-        var creneauxBadges = (d.nom_equipe||'').split(',').filter(Boolean).map(function(c) {
-          return '<span style="background:#0d1400;color:#FFEE00;padding:2px 6px;border-radius:4px;font-size:11px;margin-right:3px;display:inline-block;margin-bottom:2px;">' + c.trim() + '</span>';
-        }).join('');
-        html += '<tr>';
-        html += '<td style="color:#666;">' + (i+1) + '</td>';
-        html += '<td><strong style="color:#fff;">' + (d.co1_prenom||'').trim() + ' ' + (d.co1_nom||'').trim() + '</strong><br><span style="font-size:11px;color:#888;">' + (enfDob||'—') + '</span></td>';
-        html += '<td style="color:#FFEE00;font-weight:700;">' + age + '</td>';
-        html += '<td>' + (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong></td>';
-        html += '<td style="font-size:12px;">' + (d.email||'—') + '</td>';
-        html += '<td style="font-size:12px;">' + (d.telephone||'—') + '</td>';
-        html += '<td>' + (creneauxBadges||'—') + '</td>';
-        html += '<td style="font-size:12px;">' + date + '</td>';
-        html += '</tr>';
-      });
+  function kidsAge(dob) {
+    if (!dob) return null;
+    var p = dob.split('-').map(Number), t = new Date();
+    return t.getFullYear() - p[0] - ((t.getMonth() + 1 < p[1] || (t.getMonth() + 1 === p[1] && t.getDate() < p[2])) ? 1 : 0);
+  }
+  function kidsGroupeParAge(dob) { var a = kidsAge(dob); return a !== null && a >= 10 ? 'grands' : 'petits'; }
+  function kidsCle(d) { return ((d.co1_prenom||'').trim() + '|' + (d.co1_nom||'').trim()).toLowerCase(); }
+  function kidsSelectGroupe(d) {
+    var g = d.groupe || '';
+    return '<select onchange="setKidsGroupe(' + d.id + ', this.value)" style="background:#0a0a0a;color:#fff;border:1px solid #444;border-radius:6px;padding:4px;font-size:12px;">'
+      + '<option value=""' + (g === '' ? ' selected' : '') + '>auto (' + KIDS_GROUPES[kidsGroupeParAge(d.co1_date_naissance)].heure + ')</option>'
+      + '<option value="petits"' + (g === 'petits' ? ' selected' : '') + '>5-9 ans · 8h45</option>'
+      + '<option value="grands"' + (g === 'grands' ? ' selected' : '') + '>10-15 ans · 9h30</option></select>';
+  }
+  async function setKidsGroupe(id, g) {
+    var r = await db.from('Inscriptions').update({ groupe: g || null }).eq('id', id);
+    if (r.error) { alert('Erreur : ' + r.error.message); return; }
+    loadData();
+  }
+  function kidsStatutBadge(st) {
+    var m = { 'payé': ['✅ payé', '#4ade80'], 'impaye': ['⚠️ prélèvement échoué', '#FFA726'], 'liste_attente': ['⏳ liste d\'attente', '#FFA726'], 'resilie': ['✖ résilié', '#888'], 'en_attente': ['paiement non finalisé', '#666'] };
+    var b = m[st] || [st || '—', '#888'];
+    return '<span style="color:' + b[1] + ';font-size:12px;font-weight:700;">' + b[0] + '</span>';
+  }
+  function kidsLigne(d, i, opts) {
+    var age = kidsAge(d.co1_date_naissance);
+    var html = '<tr>';
+    html += '<td style="color:#666;">' + (i+1) + '</td>';
+    html += '<td><strong style="color:#fff;">' + (d.co1_prenom||'').trim() + ' ' + (d.co1_nom||'').trim() + '</strong><br><span style="font-size:11px;color:#888;">' + (d.co1_date_naissance||'—') + '</span></td>';
+    html += '<td style="color:#FFEE00;font-weight:700;">' + (age !== null ? age + ' ans' : '—') + '</td>';
+    html += '<td>' + (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong><br><span style="font-size:11px;color:#888;">' + (d.email||'—') + '</span></td>';
+    html += '<td style="font-size:12px;white-space:nowrap;">' + (d.telephone ? '<a href="tel:' + d.telephone + '" style="color:#fff;">' + d.telephone + '</a>' : '—') + '</td>';
+    if (opts.statut) html += '<td>' + kidsStatutBadge(d.statut_paiement) + '</td>';
+    if (opts.inscrit !== undefined) html += '<td>' + (opts.inscrit ? '<span style="color:#4ade80;font-weight:700;">✅ inscrit</span>' : '<span style="color:#666;">—</span>') + '</td>';
+    html += '<td>' + kidsSelectGroupe(d) + '</td>';
+    html += '<td style="font-size:12px;">' + (d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—') + '</td>';
+    return html + '</tr>';
+  }
+
+  function renderKids() {
+    var actifs = allKidsInsc.filter(function(d){ return d.statut_paiement === 'payé' || d.statut_paiement === 'impaye'; });
+    var attente = allKidsInsc.filter(function(d){ return d.statut_paiement === 'liste_attente'; }).sort(function(a,b){ return a.id - b.id; });
+    var nonFinalises = allKidsInsc.filter(function(d){ return d.statut_paiement === 'en_attente'; });
+    var inscritsCles = {};
+    actifs.forEach(function(d){ inscritsCles[kidsCle(d)] = true; });
+    var groupeDe = function(d){ return d.groupe || kidsGroupeParAge(d.co1_date_naissance); };
+
+    var html = '';
+    // ---------------------------------------------------------------- Appel
+    html += '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:15px;">📣 Appel du samedi — enfants avec abonnement</div>';
+    html += '<div style="font-size:12px;color:#666;margin-bottom:1rem;font-style:italic;">Seuls les enfants dont l\'abonnement est en place apparaissent ici. Le menu « groupe » permet de déplacer un enfant (auto = selon l\'âge).</div>';
+    ['petits','grands'].forEach(function(gk) {
+      var g = KIDS_GROUPES[gk];
+      var list = actifs.filter(function(d){ return groupeDe(d) === gk; }).sort(function(a,b){ return (a.co1_prenom||'').localeCompare(b.co1_prenom||''); });
+      var col = list.length >= KIDS_PLACES ? '#C0392B' : '#4ade80';
+      html += '<div style="font-weight:700;color:#fff;margin:1rem 0 0.4rem;">' + g.heure + ' — ' + g.label + ' <span style="color:' + col + ';">' + list.length + ' / ' + KIDS_PLACES + '</span></div>';
+      if (!list.length) { html += '<div style="color:#666;padding:0.8rem;background:#1a1a1a;border-radius:10px;font-size:13px;">Personne pour le moment</div>'; return; }
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Enfant</th><th>Âge</th><th>Parent</th><th>Tél</th><th>Statut</th><th>Groupe</th><th>Inscrit le</th></tr></thead><tbody>';
+      list.forEach(function(d, i){ html += kidsLigne(d, i, { statut: true }); });
+      html += '</tbody></table></div>';
+    });
+
+    // ------------------------------------------------------- Liste d'attente
+    html += '<div style="font-weight:800;color:#FFA726;margin:1.5rem 0 0.5rem;font-size:15px;">⏳ Liste d\'attente (' + attente.length + ')</div>';
+    if (!attente.length) html += '<div style="color:#666;padding:0.8rem;background:#1a1a1a;border-radius:10px;font-size:13px;">Personne en attente</div>';
+    else {
+      html += '<div style="font-size:12px;color:#666;margin-bottom:0.6rem;font-style:italic;">Quand une place se libère : appelle le parent, il refait l\'inscription sur kids-inscription.html (le paiement passe tant que la place est libre).</div>';
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Enfant</th><th>Âge</th><th>Parent</th><th>Tél</th><th>Statut</th><th>Groupe</th><th>Depuis le</th></tr></thead><tbody>';
+      attente.forEach(function(d, i){ html += kidsLigne(d, i, { statut: true }); });
+      html += '</tbody></table></div>';
+    }
+    if (nonFinalises.length) {
+      html += '<div style="font-size:12px;color:#666;margin-top:0.6rem;">' + nonFinalises.length + ' fiche(s) avec paiement non finalisé (formulaire rempli, Stripe abandonné) : ' + nonFinalises.map(function(d){ return (d.co1_prenom||'') + ' ' + (d.co1_nom||''); }).join(', ') + '</div>';
+    }
+
+    // ------------------------------------------------------- Pré-inscriptions
+    html += '<div style="font-weight:800;color:#FFEE00;margin:1.5rem 0 0.5rem;font-size:15px;">📋 Pré-inscriptions (' + allKids.length + ')</div>';
+    html += '<div style="font-size:12px;color:#666;margin-bottom:0.6rem;font-style:italic;">Fiches du formulaire de pré-inscription. « ✅ inscrit » = un abonnement est en place pour cet enfant. Le groupe choisi ici est repris automatiquement quand le parent finalise l\'inscription.</div>';
+    if (!allKids.length) html += '<div style="color:#666;padding:2rem;text-align:center;background:#1a1a1a;border-radius:10px;">Aucune pré-inscription</div>';
+    else {
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Enfant</th><th>Âge</th><th>Responsable légal</th><th>Tél</th><th>Inscrit ?</th><th>Groupe</th><th>Date</th></tr></thead><tbody>';
+      allKids.forEach(function(d, i){ html += kidsLigne(d, i, { inscrit: !!inscritsCles[kidsCle(d)] }); });
       html += '</tbody></table></div>';
     }
     document.getElementById('kids-content').innerHTML = html;
@@ -539,7 +598,7 @@
     document.getElementById('stat-pack').style.display = (isPE || isKids) ? 'none' : '';
     document.getElementById('stat-kids').style.display = isKids ? '' : 'none';
     document.getElementById('label-inscrits').textContent = isPE ? 'Binômes inscrits' : 'Inscriptions';
-    document.getElementById('total-kids').textContent = allKids.length;
+    document.getElementById('total-kids').textContent = allKidsInsc.filter(function(d){ return d.statut_paiement === 'payé' || d.statut_paiement === 'impaye'; }).length;
   }
 
   function renderPackPhoto() {

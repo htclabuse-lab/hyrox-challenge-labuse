@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRAINING KIDS — Inscription</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 640px; margin: 0 auto; }
+    .hero { background: #0a0a0a; padding: 1.5rem 1rem; text-align: center; margin-bottom: 1rem; border-radius: 14px; border: 2px solid #FFEE00; }
+    .hero h1 { font-size: 38px; font-weight: 900; letter-spacing: 2px; line-height: 1; margin-bottom: 8px; }
+    .hero h1 span { color: #FFEE00; }
+    .hero .sub { font-size: 14px; color: #aaa; margin-bottom: 12px; }
+    .hero .slogan { color: #FFEE00; font-weight: 800; font-size: 14px; letter-spacing: 1.5px; margin-top: 8px; line-height: 1.4; }
+    .hero .date { background: #C0392B; color: #fff; display: inline-block; padding: 6px 14px; border-radius: 6px; font-weight: 800; margin-top: 12px; font-size: 14px; }
+    .info-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .info { background: #1a1a1a; border-radius: 12px; padding: 1rem; border-left: 4px solid #ff3399; }
+    .info.creneaux { border-left-color: #FFA726; }
+    .info.places { border-left-color: #C0392B; }
+    .info.prix { border-left-color: #FFEE00; }
+    .info h3 { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+    .info p { font-size: 14px; line-height: 1.6; }
+    .creneau-line { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: 13px; line-height: 1.5; }
+    .creneau-line .dot { margin-top: 5px; }
+    .creneau-line strong { color: #fff; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot.pink { background: #ff3399; } .dot.cyan { background: #00d8ff; } .dot.orange { background: #FFA726; } .dot.green { background: #4ade80; }
+    .prix-big { font-size: 32px; font-weight: 900; color: #FFEE00; }
+    .prix-small { font-size: 14px; color: #aaa; }
+    .form-card { background: #1a1a1a; border-radius: 14px; padding: 1.5rem; border: 1px solid #333; }
+    .form-card h2 { font-size: 18px; color: #FFEE00; margin-bottom: 6px; }
+    .form-card .form-sub { font-size: 12px; color: #888; margin-bottom: 1rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 15px; }
+    .field input:focus { border-color: #FFEE00; outline: none; }
+    .section-divider { font-size: 12px; color: #FFEE00; text-transform: uppercase; letter-spacing: 1px; margin: 1rem 0 0.6rem; padding-top: 1rem; border-top: 1px solid #2a2a2a; font-weight: 700; }
+    .checkboxes label { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #333; border-radius: 8px; margin-bottom: 6px; cursor: pointer; font-size: 13px; }
+    .checkboxes label:has(input:checked) { border-color: #FFEE00; background: #1a1a0a; }
+    .checkboxes input { width: 20px; height: 20px; accent-color: #FFEE00; }
+    .btn-submit { width: 100%; padding: 16px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 1px; margin-top: 1rem; }
+    .btn-submit:hover { background: #e6d800; }
+    .btn-submit:disabled { background: #444; color: #888; cursor: wait; }
+    .success { background: #0a3a0a; border: 2px solid #4caf50; border-radius: 14px; padding: 2rem; text-align: center; }
+    .success-icon { font-size: 64px; margin-bottom: 12px; }
+    .success h2 { color: #4caf50; font-size: 22px; margin-bottom: 10px; }
+    .success p { color: #ccc; font-size: 14px; line-height: 1.6; }
+    .hero .tagline { font-size: 16px; font-style: italic; color: #fff; margin-bottom: 6px; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .badge { background: #2a2a2a; border: 1px solid #444; color: #ddd; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge.ok { border-color: #4ade80; color: #4ade80; }
+    .info .desc { font-size: 13px; color: #bbb; line-height: 1.6; margin-top: 12px; padding-top: 12px; border-top: 1px solid #2a2a2a; }
+    .contact { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 1rem; margin-top: 1rem; text-align: center; }
+    .contact-line { font-size: 14px; color: #ddd; padding: 4px 0; }
+    .contact a { color: #FFEE00; text-decoration: none; font-weight: 700; }
+    .footer-slogan { text-align: center; font-size: 13px; font-weight: 800; color: #888; letter-spacing: 1px; margin: 1.2rem 0 0.5rem; }
+    .error { color: #C0392B; font-size: 13px; margin-top: 8px; }
+
+    .places-live { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .place-box { background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 10px; text-align: center; }
+    .place-box .n { font-size: 26px; font-weight: 900; color: #4ade80; }
+    .place-box .n.full { color: #C0392B; }
+    .place-box .l { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .rules { font-size: 13px; color: #bbb; line-height: 1.6; }
+    .rules li { margin: 4px 0 4px 1rem; }
+    .checkboxes label.long { align-items: flex-start; line-height: 1.5; }
+    .checkboxes label.long input { margin-top: 2px; flex-shrink: 0; }
+    .warn { background: #2a1a00; border: 1px solid #FFA726; border-radius: 10px; padding: 12px; font-size: 13px; color: #ffd9a0; margin-bottom: 1rem; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>TRAINING <span>KIDS</span></h1>
+    <div class="tagline">Hyrox, CrossFit…</div>
+    <div class="sub">📍 Crossfit La Buse — Saint-Paul, La Réunion</div>
+    <div class="slogan">BOUGE. DÉPASSE-TOI. AMUSE-TOI.</div>
+    <div class="date">Tous les samedis matin</div>
+  </div>
+
+  <div id="msg-annule" class="warn" style="display:none;">Le paiement a été annulé : <strong>la place n'est pas réservée</strong>. Tu peux recommencer ci-dessous quand tu veux.</div>
+
+  <div id="success-block" class="success" style="display:none;margin-bottom:1rem;">
+    <div class="success-icon">🎉</div>
+    <h2>Inscription confirmée !</h2>
+    <p>L'abonnement est en place et <strong>la place est réservée</strong>. Un mail de confirmation arrive avec le créneau exact.</p>
+    <p style="font-size:12px;color:#888;margin-top:14px;">À samedi 💪</p>
+  </div>
+
+  <div id="attente-block" class="success" style="display:none;margin-bottom:1rem;background:#2a1a00;border-color:#FFA726;">
+    <div class="success-icon">⏳</div>
+    <h2 style="color:#FFA726;">Groupe complet — liste d'attente</h2>
+    <p id="attente-txt">Ton enfant est sur liste d'attente. Rien n'a été payé. On te recontacte dès qu'une place se libère.</p>
+  </div>
+
+  <div class="info-grid">
+    <div class="info creneaux">
+      <h3>📅 Créneaux — samedi matin</h3>
+      <div class="creneau-line"><span class="dot orange"></span><span>5 à 9 ans<br><strong>8h45 à 9h30</strong></span></div>
+      <div class="creneau-line"><span class="dot green"></span><span>10 à 15 ans<br><strong>9h30 à 10h30</strong></span></div>
+      <p class="desc">Le coach peut placer un enfant dans l'autre groupe selon son niveau — on te prévient si c'est le cas.</p>
+    </div>
+    <div class="info places">
+      <h3>⚠️ Places limitées</h3>
+      <p><strong>12 enfants par groupe.</strong> La place est réservée quand l'abonnement est en place ; ensuite, liste d'attente.</p>
+      <div class="places-live" id="places-live" style="display:none;">
+        <div class="place-box"><div class="n" id="libres-petits">—</div><div class="l">places libres 5-9 ans</div></div>
+        <div class="place-box"><div class="n" id="libres-grands">—</div><div class="l">places libres 10-15 ans</div></div>
+      </div>
+    </div>
+    <div class="info prix">
+      <h3>💰 Tarif</h3>
+      <p><span class="prix-big">30 €</span> <span class="prix-small">/ mois</span></p>
+      <div class="badges">
+        <span class="badge">Prélevé le 1er du mois</span>
+        <span class="badge ok">✔ Sans engagement de durée</span>
+      </div>
+      <p class="desc">Le premier mois est calculé au prorata des jours restants. Pour arrêter : un mail à <a href="mailto:htclabuse@gmail.com" style="color:#FFEE00;">htclabuse@gmail.com</a> <strong>avant le 25 du mois</strong>, et le mois suivant n'est pas prélevé.<br>Sans abonnement : carnet de 10 séances pour 120 €, sur place.</p>
+    </div>
+  </div>
+
+  <div id="form-block" class="form-card">
+    <h2>📝 Inscription</h2>
+    <p class="form-sub">Paiement sécurisé par Stripe. Une fiche par enfant.</p>
+
+    <div class="section-divider">👧 Enfant</div>
+    <div class="field"><label>Prénom de l'enfant *</label><input type="text" id="enfant_prenom" placeholder="Ex : Léa"></div>
+    <div class="field"><label>Nom de l'enfant *</label><input type="text" id="enfant_nom" placeholder="Ex : DURAND"></div>
+    <div class="field"><label>Date de naissance *</label><input type="date" id="enfant_dob"></div>
+
+    <div class="section-divider">👤 Responsable légal</div>
+    <div class="field"><label>Prénom *</label><input type="text" id="parent_prenom"></div>
+    <div class="field"><label>Nom *</label><input type="text" id="parent_nom"></div>
+    <div class="field"><label>Email *</label><input type="email" id="parent_email" placeholder="ex@email.com"></div>
+    <div class="field"><label>Téléphone *</label><input type="tel" id="parent_tel" placeholder="0692 …"></div>
+
+    <div class="section-divider">✅ Attestations *</div>
+    <div class="checkboxes">
+      <label class="long"><input type="checkbox" id="sante"> <span>J'atteste que mon enfant <strong>ne présente aucune contre-indication médicale</strong> à la pratique d'une activité sportive, et j'autorise l'équipe à prendre toute mesure d'urgence nécessaire en cas de besoin.</span></label>
+      <label class="long"><input type="checkbox" id="regles"> <span>J'ai compris les conditions : <strong>30 €/mois prélevés le 1er</strong>, sans engagement de durée ; arrêt sur simple mail <strong>avant le 25 du mois</strong> ; <strong>12 places par groupe</strong>, place réservée quand l'abonnement est en place ; sans inscription en ligne, l'enfant ne peut pas être accepté au cours.</span></label>
+    </div>
+
+    <button type="button" class="btn-submit" id="btn" onclick="submit()">Valider et passer au paiement</button>
+    <div class="error" id="err"></div>
+  </div>
+
+  <div class="contact">
+    <div class="contact-line">📞 Infos : Romu — <a href="tel:+262693927859">06 93 92 78 59</a></div>
+    <div class="contact-line">✉️ <a href="mailto:htclabuse@gmail.com">htclabuse@gmail.com</a></div>
+  </div>
+  <div class="footer-slogan">DES KIDS AUJOURD'HUI, DES CHAMPIONS DEMAIN !</div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  if (params.get('succes') === '1') {
+    document.getElementById('success-block').style.display = 'block';
+    document.getElementById('form-block').style.display = 'none';
+  }
+  if (params.get('annule') === '1') document.getElementById('msg-annule').style.display = 'block';
+
+  // Places libres en direct
+  fetch('/api/kids-checkout').then(r => r.json()).then(j => {
+    if (!j || !j.places) return;
+    ['petits', 'grands'].forEach(k => {
+      const el = document.getElementById('libres-' + k);
+      el.textContent = j.places[k].libres;
+      if (j.places[k].libres <= 0) { el.textContent = 'Complet'; el.classList.add('full'); el.style.fontSize = '16px'; }
+    });
+    document.getElementById('places-live').style.display = 'grid';
+  }).catch(() => {});
+
+  async function submit() {
+    err('');
+    const f = {
+      enfant_prenom: val('enfant_prenom'), enfant_nom: val('enfant_nom'), enfant_dob: val('enfant_dob'),
+      parent_prenom: val('parent_prenom'), parent_nom: val('parent_nom'), parent_email: val('parent_email'), parent_tel: val('parent_tel'),
+      sante: document.getElementById('sante').checked,
+      regles: document.getElementById('regles').checked,
+    };
+    if (!f.enfant_prenom || !f.enfant_nom || !f.enfant_dob || !f.parent_prenom || !f.parent_nom || !f.parent_email || !f.parent_tel) { err('Tous les champs marqués * sont requis.'); return; }
+    if (!f.parent_email.includes('@')) { err('Email invalide.'); return; }
+    if (!f.sante) { err("Coche l'attestation de santé pour continuer."); return; }
+    if (!f.regles) { err('Coche les conditions pour continuer.'); return; }
+
+    const btn = document.getElementById('btn');
+    btn.disabled = true; btn.textContent = 'Un instant…';
+    try {
+      const r = await fetch('/api/kids-checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'Erreur ' + r.status);
+      if (j.liste_attente) {
+        document.getElementById('attente-txt').innerHTML = '<strong>' + esc(f.enfant_prenom) + '</strong> est sur liste d\'attente' + (j.position ? ' en position <strong>' + j.position + '</strong>' : '') + '. Rien n\'a été payé. On te recontacte dès qu\'une place se libère — un mail de confirmation arrive.';
+        document.getElementById('attente-block').style.display = 'block';
+        document.getElementById('form-block').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (j.url) { location.href = j.url; return; }
+      throw new Error('Réponse inattendue');
+    } catch (e) {
+      err(e.message);
+      btn.disabled = false; btn.textContent = 'Valider et passer au paiement';
+    }
+  }
+  function val(id) { return document.getElementById(id).value.trim(); }
+  function err(msg) { document.getElementById('err').textContent = msg; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+</script>
+</body>
+</html>
