@@ -405,7 +405,7 @@
     var n = (d.seances_restantes === null || d.seances_restantes === undefined) ? 0 : d.seances_restantes;
     var col = n <= 2 ? '#C0392B' : '#FFEE00';
     var h = '<span style="background:#1a1a0a;border:1px solid ' + col + ';color:' + col + ';padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap;">🎟️ carnet · ' + n + ' séance(s)</span>';
-    if (n > 0) h += ' <button onclick="kidsDecompte(' + d.id + ')" title="Décompter une séance (présence du jour)" style="background:#FFEE00;color:#0a0a0a;border:none;border-radius:6px;padding:3px 8px;font-weight:800;cursor:pointer;font-size:11px;margin-left:4px;">−1</button>';
+    if (n > 0) h += ' <button onclick="kidsDecompte(' + d.id + ')" title="Décompter une séance À LA MAIN — uniquement si l\'enfant est venu SANS avoir réservé en ligne (une réservation décompte déjà la séance)." style="background:#2a2a2a;color:#ddd;border:1px solid #555;border-radius:6px;padding:3px 8px;font-weight:800;cursor:pointer;font-size:11px;margin-left:4px;">−1</button>';
     else h += ' <span style="font-size:11px;color:#C0392B;">à renouveler</span>';
     return h;
   }
@@ -415,7 +415,7 @@
     if (!d) return;
     var n = d.seances_restantes || 0;
     if (n <= 0) return;
-    if (!confirm('Décompter une séance pour ' + (d.co1_prenom||'') + ' ' + (d.co1_nom||'') + ' ?\n\nIl restera ' + (n - 1) + ' séance(s) sur son carnet.')) return;
+    if (!confirm('Décompter une séance À LA MAIN pour ' + (d.co1_prenom||'') + ' ' + (d.co1_nom||'') + ' ?\n\n⚠️ À faire uniquement si l\'enfant est venu SANS avoir réservé en ligne : une réservation décompte déjà la séance automatiquement.\n\nIl restera ' + (n - 1) + ' séance(s) sur son carnet.')) return;
     var r = await db.from('Inscriptions').update({ seances_restantes: n - 1 }).eq('id', id);
     if (r.error) { alert('Erreur : ' + r.error.message); return; }
     loadData();
@@ -532,7 +532,7 @@
 
     html += '<div id="kids-resa-bloc"></div>';
     html += '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:15px;">📣 Appel du samedi</div>';
-    html += '<div style="font-size:12px;color:#666;margin-bottom:1rem;font-style:italic;">Seuls les enfants dont l\'abonnement est en place apparaissent ici. Le menu « groupe » permet de déplacer un enfant (auto = selon l\'âge).</div>';
+    html += '<div style="font-size:12px;color:#666;margin-bottom:1rem;font-style:italic;">Seuls les enfants dont le paiement est passé apparaissent ici. Le menu « groupe » permet de déplacer un enfant (auto = selon l\'âge). Colonne « Formule » : abonnement, ou 🎟️ carnet avec les séances restantes — le bouton −1 ne sert que si un enfant au carnet vient sans avoir réservé en ligne.</div>';
     ['petits','grands'].forEach(function(gk) {
       var g = KIDS_GROUPES[gk];
       var list = actifs.filter(function(d){ return groupeDe(d) === gk; }).sort(function(a,b){ return (a.co1_prenom||'').localeCompare(b.co1_prenom||''); });
