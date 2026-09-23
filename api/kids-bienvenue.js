@@ -23,6 +23,10 @@ import { createClient } from '@supabase/supabase-js';
 //     'lancement' (ids explicites, dry_run) mais UN mail par email de parent
 //     (une fratrie = un seul mail listant les enfants) : ouverture des
 //     inscriptions payantes, pas de mercredi pour l'instant, groupes et règles.
+//
+//  4. mode 'travaux' (mot de passe JUGES_PASSWORD requis) — même mécanique :
+//     salle en travaux, pas de cours d'ici fin septembre, reprise le samedi
+//     3 octobre, et rien n'est prélevé pour septembre.
 // ============================================================================
 
 const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
@@ -187,6 +191,24 @@ ${blocMonte}
   return { subject: 'Training Kids — les inscriptions sont ouvertes', html: enveloppe('Les inscriptions sont ouvertes', corps) };
 }
 
+// Mail « salle en travaux, reprise le 3 octobre » (mode travaux, validé par Stéphanie le 23/09/2026).
+function mailTravaux(rows) {
+  const r0 = rows[0];
+  const parent = esc((r0.prenom || '').trim()) || 'à vous';
+  const enfants = rows.map(r => esc((r.co1_prenom || '').trim()) || 'votre enfant');
+  const listeNoms = enfants.join(' et ');
+  const plusieurs = enfants.length > 1;
+  const corps = `
+<p>Salut ${parent},</p>
+<p>Petit contretemps : <strong>la salle est en travaux</strong>, il n'y aura donc <strong>pas de cours d'ici la fin du mois</strong>. Les Training Kids reprennent le <strong>samedi 3 octobre</strong>, aux horaires habituels.</p>
+<p><strong>Rien n'est prélevé pour septembre</strong> — pas un centime. Si tu inscris ${listeNoms} dès maintenant, tu enregistres simplement ta carte et le premier prélèvement de 30 € aura lieu le <strong>1er octobre</strong>, quand les cours reprennent.</p>
+<p>Tu peux donc ${plusieurs ? 'les' : 'l\''}inscrire tranquillement dès aujourd'hui, ça réserve ${plusieurs ? 'leurs places' : 'sa place'} :<br>
+<a href="${PAGE_INSCRIPTION}" style="display:inline-block;background:#A6D402;color:#0a0a0a;font-weight:800;padding:12px 20px;border-radius:8px;text-decoration:none;margin:8px 0;">👉 Inscrire mon enfant</a><br>
+<span style="font-size:12px;color:#888;">Si le bouton ne marche pas, copie cette adresse dans ton navigateur :<br><a href="${PAGE_INSCRIPTION}" style="color:#A6D402;">${PAGE_INSCRIPTION}</a></span></p>
+<p>Désolés pour ce décalage, on a hâte de ${plusieurs ? 'les' : 'le/la'} retrouver le 3 octobre 💪</p>`;
+  return { subject: 'Training Kids — reprise le samedi 3 octobre', html: enveloppe('Reprise le samedi 3 octobre', corps) };
+}
+
 async function envoyer(resendKey, to, { subject, html }) {
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -207,7 +229,7 @@ export default async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   const body = req.body || {};
-  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : 'auto';
+  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : body.mode === 'travaux' ? 'travaux' : 'auto';
 
   try {
     // ------------------------------------------------------------ mode auto
@@ -240,7 +262,7 @@ export default async function handler(req, res) {
     if (error) return res.status(500).json({ error: error.message });
 
     const resultats = [];
-    if (mode === 'ouverture') {
+    if (mode === 'ouverture' || mode === 'travaux') {
       // Un mail par parent : regroupe les fiches par email (fratrie)
       const parEmail = new Map();
       for (const r of rows) {
@@ -253,7 +275,7 @@ export default async function handler(req, res) {
         // Resend limite à 10 envois/seconde : on espace de 150 ms (constaté le 22/09/2026).
         if (!dryRun && !premier) await new Promise(r => setTimeout(r, 150));
         premier = false;
-        const m = mailOuverture(grp);
+        const m = mode === 'travaux' ? mailTravaux(grp) : mailOuverture(grp);
         const ids = grp.map(r => r.id), enfants = grp.map(r => r.co1_prenom);
         if (!emailValide(to)) { resultats.push({ ids, skipped: 'email invalide' }); continue; }
         if (dryRun) { resultats.push({ ids, to, enfants, subject: m.subject, dry_run: true }); continue; }
