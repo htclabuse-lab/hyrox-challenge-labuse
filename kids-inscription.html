@@ -107,12 +107,12 @@
     </div>
     <div class="info prix">
       <h3>💰 Tarif</h3>
-      <p><span class="prix-big">30 €</span> <span class="prix-small">/ mois</span></p>
+      <p><span class="prix-big">30 €</span> <span class="prix-small">/ mois</span> &nbsp;<span class="prix-small">ou</span>&nbsp; <span class="prix-big">120 €</span> <span class="prix-small">les 10 séances</span></p>
       <div class="badges">
         <span class="badge">Prélevé le 1er du mois</span>
         <span class="badge ok">✔ Sans engagement de durée</span>
       </div>
-      <p class="desc"><strong>Rien n'est prélevé aujourd'hui</strong> : le premier prélèvement a lieu le 1er du mois prochain. Pour arrêter : un mail à <a href="mailto:htclabuse@gmail.com" style="color:#FFEE00;">htclabuse@gmail.com</a> <strong>avant le 25 du mois</strong>, et le mois suivant n'est pas prélevé.<br>Sans abonnement : carnet de 10 séances pour 120 €, sur place.</p>
+      <p class="desc"><strong>Abonnement : rien n'est prélevé aujourd'hui</strong>, le premier prélèvement a lieu le 1er du mois prochain. Pour arrêter : un mail à <a href="mailto:htclabuse@gmail.com" style="color:#FFEE00;">htclabuse@gmail.com</a> <strong>avant le 25 du mois</strong>, et le mois suivant n'est pas prélevé.<br><br><strong>Carnet de 10 séances (120 €)</strong> : réglé en une fois, pour les enfants qui ne viennent pas toutes les semaines. Il ne réserve pas de place à l'année — l'enfant vient dans la limite des places disponibles ce samedi-là.</p>
     </div>
   </div>
 
@@ -130,6 +130,12 @@
     <div class="field"><label>Nom *</label><input type="text" id="parent_nom"></div>
     <div class="field"><label>Email *</label><input type="email" id="parent_email" placeholder="ex@email.com"></div>
     <div class="field"><label>Téléphone *</label><input type="tel" id="parent_tel" placeholder="0692 …"></div>
+
+    <div class="section-divider">💳 Formule *</div>
+    <div class="checkboxes">
+      <label class="long"><input type="radio" name="formule" value="abonnement" checked> <span><strong>Abonnement — 30 €/mois</strong><br><span style="color:#888;font-size:12px;">Un cours par semaine. Rien prélevé aujourd'hui, premier prélèvement le 1er du mois prochain. Sans engagement de durée.</span></span></label>
+      <label class="long" id="label-carnet"><input type="radio" name="formule" value="carnet"> <span><strong>Carnet de 10 séances — 120 €</strong><br><span style="color:#888;font-size:12px;">Réglé maintenant, en une fois. Pour venir de temps en temps. Ne réserve pas de place à l'année.</span></span></label>
+    </div>
 
     <div class="section-divider">✅ Attestations *</div>
     <div class="checkboxes">
@@ -156,11 +162,22 @@
   }
   if (params.get('annule') === '1') document.getElementById('msg-annule').style.display = 'block';
 
+  // Le carnet n'est plus proposé quand les groupes se remplissent.
+  fetch('/api/kids-checkout').then(r => r.json()).then(j => {
+    if (!j || !j.places) return;
+    const possible = Object.keys(j.places).some(k => j.places[k].carnet_possible);
+    if (!possible) {
+      const l = document.getElementById('label-carnet');
+      if (l) l.style.display = 'none';
+    }
+  }).catch(() => {});
+
   async function submit() {
     err('');
     const f = {
       enfant_prenom: val('enfant_prenom'), enfant_nom: val('enfant_nom'), enfant_dob: val('enfant_dob'),
       parent_prenom: val('parent_prenom'), parent_nom: val('parent_nom'), parent_email: val('parent_email'), parent_tel: val('parent_tel'),
+      formule: (document.querySelector('input[name="formule"]:checked') || {}).value || 'abonnement',
       sante: document.getElementById('sante').checked,
       regles: document.getElementById('regles').checked,
     };

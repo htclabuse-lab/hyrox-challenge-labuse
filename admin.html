@@ -399,6 +399,28 @@
     if (r.error) { alert('Erreur : ' + r.error.message); return; }
     loadData();
   }
+  // Formule d'une inscription : abonnement, ou carnet avec son compteur de séances.
+  function kidsFormuleCell(d) {
+    if (d.nom_equipe !== 'Carnet') return '<span style="font-size:12px;color:#888;">Abonnement</span>';
+    var n = (d.seances_restantes === null || d.seances_restantes === undefined) ? 0 : d.seances_restantes;
+    var col = n <= 2 ? '#C0392B' : '#FFEE00';
+    var h = '<span style="background:#1a1a0a;border:1px solid ' + col + ';color:' + col + ';padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap;">🎟️ carnet · ' + n + ' séance(s)</span>';
+    if (n > 0) h += ' <button onclick="kidsDecompte(' + d.id + ')" title="Décompter une séance (présence du jour)" style="background:#FFEE00;color:#0a0a0a;border:none;border-radius:6px;padding:3px 8px;font-weight:800;cursor:pointer;font-size:11px;margin-left:4px;">−1</button>';
+    else h += ' <span style="font-size:11px;color:#C0392B;">à renouveler</span>';
+    return h;
+  }
+
+  async function kidsDecompte(id) {
+    var d = allKidsInsc.filter(function(x){ return x.id === id; })[0];
+    if (!d) return;
+    var n = d.seances_restantes || 0;
+    if (n <= 0) return;
+    if (!confirm('Décompter une séance pour ' + (d.co1_prenom||'') + ' ' + (d.co1_nom||'') + ' ?\n\nIl restera ' + (n - 1) + ' séance(s) sur son carnet.')) return;
+    var r = await db.from('Inscriptions').update({ seances_restantes: n - 1 }).eq('id', id);
+    if (r.error) { alert('Erreur : ' + r.error.message); return; }
+    loadData();
+  }
+
   function kidsStatutBadge(st) {
     var m = { 'payé': ['✅ payé', '#4ade80'], 'impaye': ['⚠️ prélèvement échoué', '#FFA726'], 'liste_attente': ['⏳ liste d\'attente', '#FFA726'], 'resilie': ['✖ résilié', '#888'], 'en_attente': ['paiement non finalisé', '#666'] };
     var b = m[st] || [st || '—', '#888'];
@@ -413,6 +435,7 @@
     html += '<td>' + (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong><br><span style="font-size:11px;color:#888;">' + (d.email||'—') + '</span></td>';
     html += '<td style="font-size:12px;white-space:nowrap;">' + (d.telephone ? '<a href="tel:' + d.telephone + '" style="color:#fff;">' + d.telephone + '</a>' : '—') + '</td>';
     if (opts.statut) html += '<td>' + kidsStatutBadge(d.statut_paiement) + '</td>';
+    if (opts.formule) html += '<td>' + kidsFormuleCell(d) + '</td>';
     if (opts.inscrit !== undefined) html += '<td>' + (opts.inscrit ? '<span style="color:#4ade80;font-weight:700;">✅ inscrit</span>' : '<span style="color:#666;">—</span>') + '</td>';
     html += '<td>' + kidsSelectGroupe(d) + '</td>';
     html += '<td style="font-size:12px;">' + (d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—') + '</td>';
@@ -467,11 +490,15 @@
     ['petits','grands'].forEach(function(gk) {
       var g = KIDS_GROUPES[gk];
       var list = actifs.filter(function(d){ return groupeDe(d) === gk; }).sort(function(a,b){ return (a.co1_prenom||'').localeCompare(b.co1_prenom||''); });
-      var col = list.length >= KIDS_PLACES ? '#C0392B' : '#4ade80';
-      html += '<div style="font-weight:700;color:#fff;margin:1rem 0 0.4rem;">' + g.heure + ' — ' + g.label + ' <span style="color:' + col + ';">' + list.length + ' / ' + KIDS_PLACES + '</span></div>';
+      var nbAbo = list.filter(function(d){ return d.nom_equipe !== 'Carnet'; }).length;
+      var nbCarnet = list.length - nbAbo;
+      var col = nbAbo >= KIDS_PLACES ? '#C0392B' : '#4ade80';
+      html += '<div style="font-weight:700;color:#fff;margin:1rem 0 0.4rem;">' + g.heure + ' — ' + g.label
+        + ' <span style="color:' + col + ';">' + nbAbo + ' / ' + KIDS_PLACES + ' abonnement(s)</span>'
+        + (nbCarnet ? ' <span style="color:#FFEE00;font-size:13px;">+ ' + nbCarnet + ' carnet(s)</span>' : '') + '</div>';
       if (!list.length) { html += '<div style="color:#666;padding:0.8rem;background:#1a1a1a;border-radius:10px;font-size:13px;">Personne pour le moment</div>'; return; }
-      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Enfant</th><th>Âge</th><th>Parent</th><th>Tél</th><th>Statut</th><th>Groupe</th><th>Inscrit le</th></tr></thead><tbody>';
-      list.forEach(function(d, i){ html += kidsLigne(d, i, { statut: true }); });
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Enfant</th><th>Âge</th><th>Parent</th><th>Tél</th><th>Statut</th><th>Formule</th><th>Groupe</th><th>Inscrit le</th></tr></thead><tbody>';
+      list.forEach(function(d, i){ html += kidsLigne(d, i, { statut: true, formule: true }); });
       html += '</tbody></table></div>';
     });
 

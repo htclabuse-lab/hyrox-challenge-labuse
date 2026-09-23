@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
-import { SUPABASE_URL, CATEGORIE_INSCRIPTION, mailConfirmation, envoyerMail } from '../lib/kids.js';
+import { SUPABASE_URL, CATEGORIE_INSCRIPTION, FORMULE_CARNET, SEANCES_CARNET, mailConfirmation, envoyerMail } from '../lib/kids.js';
 
 // ============================================================================
 // Webhook Stripe du compte Hyrox (cours Training Kids). Endpoint à déclarer
@@ -40,7 +40,7 @@ export default async function handler(req, res) {
     // ------------------------------------------------ abonnement mis en place
     if (event.type === 'checkout.session.completed') {
       const s = event.data.object;
-      if (s.mode !== 'subscription') return res.status(200).json({ received: true, ignored: 'pas un abonnement' });
+      if (s.mode !== 'subscription' && s.mode !== 'payment') return res.status(200).json({ received: true, ignored: 'mode ' + s.mode });
       const id = parseInt(s.client_reference_id || s.metadata?.inscription_id, 10);
       if (!id) { console.warn('kids-webhook : pas d\'inscription_id', s.id); return res.status(200).json({ received: true }); }
 
@@ -48,11 +48,14 @@ export default async function handler(req, res) {
       if (!r) { console.warn('kids-webhook : fiche introuvable', id); return res.status(200).json({ received: true }); }
       const dejaPaye = r.statut_paiement === 'payé';
 
-      await db.from('Inscriptions').update({
+      const maj = {
         statut_paiement: 'payé',
         stripe_customer_id: typeof s.customer === 'string' ? s.customer : (s.customer?.id || null),
         stripe_subscription_id: typeof s.subscription === 'string' ? s.subscription : (s.subscription?.id || null),
-      }).eq('id', id);
+      };
+      // Carnet : paiement unique, on crédite les séances (sans écraser un carnet déjà entamé).
+      if (r.nom_equipe === FORMULE_CARNET && !dejaPaye) maj.seances_restantes = SEANCES_CARNET;
+      await db.from('Inscriptions').update(maj).eq('id', id);
 
       if (!dejaPaye && resendKey && r.email) {
         try { await envoyerMail(resendKey, r.email, mailConfirmation(r)); }
