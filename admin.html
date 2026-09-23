@@ -477,6 +477,51 @@
   }
 
   // Onglet « Inscriptions cours Kids » : les enfants avec un abonnement + la liste d'attente.
+  // Réservations des carnets (table protégée : lecture via l'API, avec le mot de passe juges).
+  var KIDS_RESA = null;
+  async function chargerResaKids() {
+    var pwd = prompt('Mot de passe juges (pour afficher les réservations des carnets) :');
+    if (!pwd) return;
+    var el = document.getElementById('kids-resa-bloc');
+    el.innerHTML = '<div style="color:#888;font-size:13px;padding:0.5rem 0;">Chargement…</div>';
+    try {
+      var r = await fetch('/api/kids-reservation', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'admin', password: pwd }) });
+      var d = await r.json();
+      if (!r.ok) { el.innerHTML = '<div style="color:#ff6666;font-size:13px;">❌ ' + (d.error || 'Erreur') + '</div>'; return; }
+      KIDS_RESA = d;
+      renderResaKids();
+    } catch (e) {
+      el.innerHTML = '<div style="color:#ff6666;font-size:13px;">❌ ' + e.message + '</div>';
+    }
+  }
+
+  function renderResaKids() {
+    var el = document.getElementById('kids-resa-bloc');
+    if (!el) return;
+    if (!KIDS_RESA) {
+      el.innerHTML = '<div style="background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:1rem;margin-bottom:1.25rem;">'
+        + '<div style="font-weight:800;color:#FFEE00;font-size:14px;margin-bottom:6px;">🎟️ Carnets — qui vient samedi ?</div>'
+        + '<div style="font-size:12px;color:#888;margin-bottom:10px;">Les enfants au carnet réservent leur séance en ligne. Clique pour voir qui est attendu.</div>'
+        + '<button onclick="chargerResaKids()" style="background:#FFEE00;color:#0a0a0a;border:none;border-radius:8px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px;">Afficher les réservations</button></div>';
+      return;
+    }
+    var h = '<div style="background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:1rem;margin-bottom:1.25rem;">';
+    h += '<div style="font-weight:800;color:#FFEE00;font-size:14px;margin-bottom:10px;">🎟️ Carnets — qui vient samedi ?</div>';
+    KIDS_RESA.samedis.forEach(function(d) {
+      var l = KIDS_RESA.reservations[d] || [];
+      var dt = new Date(d + 'T12:00:00Z').toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', timeZone:'UTC' });
+      h += '<div style="padding:6px 0;border-top:1px solid #2a2a2a;font-size:13px;">';
+      h += '<strong style="color:#fff;">' + dt + '</strong> — ';
+      h += l.length ? l.map(function(x){ return '<span style="color:#FFEE00;">' + x.enfant + '</span> <span style="color:#666;font-size:11px;">(' + (KIDS_GROUPES[x.groupe]||{}).heure + ')</span>'; }).join(', ')
+                    : '<span style="color:#666;">personne</span>';
+      h += '</div>';
+    });
+    h += '<button onclick="chargerResaKids()" style="margin-top:10px;background:#2a2a2a;color:#ddd;border:1px solid #444;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;font-size:12px;">↻ Rafraîchir</button>';
+    h += '</div>';
+    el.innerHTML = h;
+  }
+
   function renderKidsInscrits() {
     var actifs = allKidsInsc.filter(function(d){ return d.statut_paiement === 'payé' || d.statut_paiement === 'impaye'; });
     var attente = allKidsInsc.filter(function(d){ return d.statut_paiement === 'liste_attente'; }).sort(function(a,b){ return a.id - b.id; });
@@ -485,6 +530,7 @@
 
     var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + actifs.length + '</strong> enfant(s) inscrit(s) au cours (abonnement en place) — ' + attente.length + ' en liste d\'attente.</div>';
 
+    html += '<div id="kids-resa-bloc"></div>';
     html += '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:15px;">📣 Appel du samedi</div>';
     html += '<div style="font-size:12px;color:#666;margin-bottom:1rem;font-style:italic;">Seuls les enfants dont l\'abonnement est en place apparaissent ici. Le menu « groupe » permet de déplacer un enfant (auto = selon l\'âge).</div>';
     ['petits','grands'].forEach(function(gk) {
@@ -514,6 +560,7 @@
       html += '<div style="font-size:12px;color:#666;margin-top:0.8rem;padding:10px;background:#1a1a1a;border-radius:8px;">⚠️ ' + nonFinalises.length + ' formulaire(s) rempli(s) mais paiement non finalisé (abandon sur Stripe) : ' + nonFinalises.map(function(d){ return (d.co1_prenom||'') + ' ' + (d.co1_nom||'') + ' (' + (d.email||'') + ')'; }).join(', ') + '</div>';
     }
     document.getElementById('kids-inscrits-content').innerHTML = html;
+    renderResaKids();
   }
 
   // Onglet « Pré-inscriptions Kids » : le formulaire gratuit + l'envoi du mail d'ouverture.

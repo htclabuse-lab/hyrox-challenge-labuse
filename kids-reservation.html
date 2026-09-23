@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TRAINING KIDS — Réserver une séance</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 640px; margin: 0 auto; }
+    .hero { background: #0a0a0a; padding: 1.5rem 1rem; text-align: center; margin-bottom: 1rem; border-radius: 14px; border: 2px solid #FFEE00; }
+    .hero h1 { font-size: 38px; font-weight: 900; letter-spacing: 2px; line-height: 1; margin-bottom: 8px; }
+    .hero h1 span { color: #FFEE00; }
+    .hero .sub { font-size: 14px; color: #aaa; margin-bottom: 12px; }
+    .hero .slogan { color: #FFEE00; font-weight: 800; font-size: 14px; letter-spacing: 1.5px; margin-top: 8px; line-height: 1.4; }
+    .hero .date { background: #C0392B; color: #fff; display: inline-block; padding: 6px 14px; border-radius: 6px; font-weight: 800; margin-top: 12px; font-size: 14px; }
+    .info-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .info { background: #1a1a1a; border-radius: 12px; padding: 1rem; border-left: 4px solid #ff3399; }
+    .info.creneaux { border-left-color: #FFA726; }
+    .info.places { border-left-color: #C0392B; }
+    .info.prix { border-left-color: #FFEE00; }
+    .info h3 { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+    .info p { font-size: 14px; line-height: 1.6; }
+    .creneau-line { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: 13px; line-height: 1.5; }
+    .creneau-line .dot { margin-top: 5px; }
+    .creneau-line strong { color: #fff; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot.pink { background: #ff3399; } .dot.cyan { background: #00d8ff; } .dot.orange { background: #FFA726; } .dot.green { background: #4ade80; }
+    .prix-big { font-size: 32px; font-weight: 900; color: #FFEE00; }
+    .prix-small { font-size: 14px; color: #aaa; }
+    .form-card { background: #1a1a1a; border-radius: 14px; padding: 1.5rem; border: 1px solid #333; }
+    .form-card h2 { font-size: 18px; color: #FFEE00; margin-bottom: 6px; }
+    .form-card .form-sub { font-size: 12px; color: #888; margin-bottom: 1rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 15px; }
+    .field input:focus { border-color: #FFEE00; outline: none; }
+    .section-divider { font-size: 12px; color: #FFEE00; text-transform: uppercase; letter-spacing: 1px; margin: 1rem 0 0.6rem; padding-top: 1rem; border-top: 1px solid #2a2a2a; font-weight: 700; }
+    .checkboxes label { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid #333; border-radius: 8px; margin-bottom: 6px; cursor: pointer; font-size: 13px; }
+    .checkboxes label:has(input:checked) { border-color: #FFEE00; background: #1a1a0a; }
+    .checkboxes input { width: 20px; height: 20px; accent-color: #FFEE00; }
+    .btn-submit { width: 100%; padding: 16px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 1px; margin-top: 1rem; }
+    .btn-submit:hover { background: #e6d800; }
+    .btn-submit:disabled { background: #444; color: #888; cursor: wait; }
+    .success { background: #0a3a0a; border: 2px solid #4caf50; border-radius: 14px; padding: 2rem; text-align: center; }
+    .success-icon { font-size: 64px; margin-bottom: 12px; }
+    .success h2 { color: #4caf50; font-size: 22px; margin-bottom: 10px; }
+    .success p { color: #ccc; font-size: 14px; line-height: 1.6; }
+    .hero .tagline { font-size: 16px; font-style: italic; color: #fff; margin-bottom: 6px; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .badge { background: #2a2a2a; border: 1px solid #444; color: #ddd; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge.ok { border-color: #4ade80; color: #4ade80; }
+    .info .desc { font-size: 13px; color: #bbb; line-height: 1.6; margin-top: 12px; padding-top: 12px; border-top: 1px solid #2a2a2a; }
+    .contact { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 1rem; margin-top: 1rem; text-align: center; }
+    .contact-line { font-size: 14px; color: #ddd; padding: 4px 0; }
+    .contact a { color: #FFEE00; text-decoration: none; font-weight: 700; }
+    .footer-slogan { text-align: center; font-size: 13px; font-weight: 800; color: #888; letter-spacing: 1px; margin: 1.2rem 0 0.5rem; }
+    .error { color: #C0392B; font-size: 13px; margin-top: 8px; }
+
+    .places-live { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .place-box { background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 10px; text-align: center; }
+    .place-box .n { font-size: 26px; font-weight: 900; color: #4ade80; }
+    .place-box .n.full { color: #C0392B; }
+    .place-box .l { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .rules { font-size: 13px; color: #bbb; line-height: 1.6; }
+    .rules li { margin: 4px 0 4px 1rem; }
+    .checkboxes label.long { align-items: flex-start; line-height: 1.5; }
+    .checkboxes label.long input { margin-top: 2px; flex-shrink: 0; }
+    .warn { background: #2a1a00; border: 1px solid #FFA726; border-radius: 10px; padding: 12px; font-size: 13px; color: #ffd9a0; margin-bottom: 1rem; line-height: 1.5; }
+
+    .seance { display:flex; align-items:center; justify-content:space-between; gap:10px; background:#0a0a0a; border:1px solid #333; border-radius:10px; padding:12px; margin-bottom:8px; }
+    .seance.reserve { border-color:#4ade80; background:#0a1a0a; }
+    .seance.complet { opacity:.5; }
+    .seance .d { font-size:14px; font-weight:700; color:#fff; }
+    .seance .p { font-size:12px; color:#888; margin-top:2px; }
+    .btn-mini { border:none; border-radius:8px; padding:8px 14px; font-weight:800; font-size:12px; cursor:pointer; white-space:nowrap; }
+    .btn-mini.go { background:#FFEE00; color:#0a0a0a; }
+    .btn-mini.off { background:#2a2a2a; color:#888; cursor:not-allowed; }
+    .btn-mini.ann { background:#2a1a1a; color:#ff8888; border:1px solid #663333; }
+    .compteur { background:#1a1a0a; border:1px solid #FFEE00; color:#FFEE00; border-radius:999px; padding:4px 12px; font-size:12px; font-weight:800; display:inline-block; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>TRAINING <span>KIDS</span></h1>
+    <div class="tagline">Réserver une séance</div>
+    <div class="sub">📍 Crossfit La Buse — Saint-Paul</div>
+  </div>
+
+  <div class="info prix" style="margin-bottom:1rem;">
+    <h3>🎟️ Carnet de 10 séances</h3>
+    <p class="desc" style="border:none;padding:0;margin:0;">Cette page est réservée aux enfants inscrits avec un <strong>carnet</strong>. Les enfants en abonnement n'ont rien à réserver : leur place est gardée chaque samedi.<br><br>Réserve la séance à laquelle ton enfant viendra. Une séance est décomptée à la réservation, et rendue si tu annules avant le <strong>vendredi 20h</strong>.</p>
+  </div>
+
+  <div id="form-block" class="form-card">
+    <h2>Retrouver mon carnet</h2>
+    <p class="form-sub">Les mêmes informations que lors de l'inscription.</p>
+    <div class="field"><label>Email du responsable légal *</label><input type="email" id="email" placeholder="ex@email.com"></div>
+    <div class="field"><label>Prénom de l'enfant *</label><input type="text" id="enfant" placeholder="Ex : Léa"></div>
+    <button type="button" class="btn-submit" id="btn" onclick="chercher()">Voir mes séances</button>
+    <div class="error" id="err"></div>
+  </div>
+
+  <div id="resultat"></div>
+
+  <div class="contact">
+    <div class="contact-line">📞 Une question : <a href="tel:+262693927859">06 93 92 78 59</a></div>
+    <div class="contact-line">✉️ <a href="mailto:htclabuse@gmail.com">htclabuse@gmail.com</a></div>
+  </div>
+  <div class="footer-slogan">DES KIDS AUJOURD'HUI, DES CHAMPIONS DEMAIN !</div>
+</div>
+
+<script>
+  var FICHES = [];
+
+  function jolieDate(d) {
+    var p = d.split('-');
+    var dt = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2], 12));
+    return dt.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'UTC' });
+  }
+
+  async function api(body) {
+    var r = await fetch('/api/kids-reservation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    var j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'Erreur ' + r.status);
+    return j;
+  }
+
+  async function chercher() {
+    err('');
+    var email = document.getElementById('email').value.trim();
+    var enfant = document.getElementById('enfant').value.trim();
+    if (!email || !enfant) { err('Remplis les deux champs.'); return; }
+    var btn = document.getElementById('btn');
+    btn.disabled = true; btn.textContent = 'Recherche…';
+    try {
+      var j = await api({ action: 'lookup', email: email, enfant_prenom: enfant });
+      FICHES = j.fiches;
+      document.getElementById('form-block').style.display = 'none';
+      rendre();
+    } catch (e) { err(e.message); }
+    btn.disabled = false; btn.textContent = 'Voir mes séances';
+  }
+
+  function rendre() {
+    var h = '';
+    FICHES.forEach(function (f, fi) {
+      h += '<div class="form-card" style="margin-bottom:1rem;">';
+      h += '<h2>' + esc(f.enfant) + '</h2>';
+      h += '<p class="form-sub">' + esc(f.groupe_label) + ' — samedi ' + esc(f.horaire) + '</p>';
+      h += '<div class="compteur">🎟️ ' + f.seances_restantes + ' séance(s) restante(s)</div>';
+      if (f.seances_restantes <= 0) h += '<p class="form-sub" style="color:#C0392B;margin-top:10px;">Ton carnet est terminé. Écris-nous pour le renouveler avant de réserver.</p>';
+      h += '<div style="margin-top:1rem;">';
+      f.samedis.forEach(function (s) {
+        var cls = 'seance' + (s.reserve ? ' reserve' : (s.places_restantes <= 0 ? ' complet' : ''));
+        h += '<div class="' + cls + '">';
+        h += '<div><div class="d">' + jolieDate(s.date) + '</div><div class="p">' + (s.reserve ? '✅ Réservé' : (s.places_restantes <= 0 ? 'Complet' : s.places_restantes + ' place(s) restante(s)')) + '</div></div>';
+        if (s.reserve) {
+          h += s.annulable
+            ? '<button class="btn-mini ann" onclick="action(' + fi + ',\'cancel\',\'' + s.date + '\')">Annuler</button>'
+            : '<button class="btn-mini off" disabled>Trop tard</button>';
+        } else if (s.places_restantes <= 0 || f.seances_restantes <= 0) {
+          h += '<button class="btn-mini off" disabled>Indisponible</button>';
+        } else {
+          h += '<button class="btn-mini go" onclick="action(' + fi + ',\'book\',\'' + s.date + '\')">Réserver</button>';
+        }
+        h += '</div>';
+      });
+      h += '</div><div class="error" id="err-' + fi + '"></div></div>';
+    });
+    document.getElementById('resultat').innerHTML = h;
+  }
+
+  async function action(fi, act, date) {
+    var f = FICHES[fi];
+    var zone = document.getElementById('err-' + fi);
+    zone.textContent = '';
+    try {
+      await api({ action: act, id: f.id, date: date });
+      var j = await api({ action: 'lookup', email: document.getElementById('email').value.trim(), enfant_prenom: document.getElementById('enfant').value.trim() });
+      FICHES = j.fiches;
+      rendre();
+    } catch (e) { zone.textContent = e.message; }
+  }
+
+  function err(m) { document.getElementById('err').textContent = m; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+</script>
+</body>
+</html>
