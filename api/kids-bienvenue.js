@@ -24,6 +24,10 @@ import { createClient } from '@supabase/supabase-js';
 //     (une fratrie = un seul mail listant les enfants) : ouverture des
 //     inscriptions payantes, pas de mercredi pour l'instant, groupes et règles.
 //
+//  5. mode 'rappel' (mot de passe JUGES_PASSWORD requis) — relance des familles
+//     pré-inscrites qui n'ont pas encore finalisé leur inscription en ligne,
+//     à quelques jours du premier cours.
+//
 //  4. mode 'travaux' (mot de passe JUGES_PASSWORD requis) — même mécanique :
 //     salle en travaux, pas de cours d'ici fin septembre, reprise le samedi
 //     3 octobre, et rien n'est prélevé pour septembre.
@@ -209,6 +213,31 @@ function mailTravaux(rows) {
   return { subject: 'Training Kids — reprise le samedi 3 octobre', html: enveloppe('Reprise le samedi 3 octobre', corps) };
 }
 
+// Mail de relance « premier cours samedi, inscription pas encore faite » (mode rappel).
+function mailRappel(rows) {
+  const r0 = rows[0];
+  const parent = esc((r0.prenom || '').trim()) || 'à vous';
+  const enfants = rows.map(r => esc((r.co1_prenom || '').trim()) || 'votre enfant');
+  const listeNoms = enfants.join(' et ');
+  const plusieurs = enfants.length > 1;
+  const corps = `
+<p>Salut ${parent},</p>
+<p><strong>Le premier cours, c'est ce samedi 3 octobre !</strong> 🎉</p>
+<p>En regardant la liste, je vois que l'inscription de ${listeNoms} n'est pas encore finalisée. Comme les places sont limitées à 12 par groupe et que ${plusieurs ? 'ils ne pourront pas être acceptés' : 'il/elle ne pourra pas être accepté(e)'} au cours sans inscription en ligne, je préfère te le rappeler 😊</p>
+<p>Ça prend 3 minutes :<br>
+<a href="${PAGE_INSCRIPTION}" style="display:inline-block;background:#A6D402;color:#0a0a0a;font-weight:800;padding:12px 20px;border-radius:8px;text-decoration:none;margin:8px 0;">👉 Inscrire mon enfant</a><br>
+<span style="font-size:12px;color:#888;">Si le bouton ne marche pas, copie cette adresse dans ton navigateur :<br><a href="${PAGE_INSCRIPTION}" style="color:#A6D402;">${PAGE_INSCRIPTION}</a></span></p>
+<p>💰 <strong>30 €/mois</strong>, prélevés le 1er de chaque mois, sans engagement de durée — ou <strong>carnet de 10 séances à 120 €</strong> si ${plusieurs ? 'ils viennent' : 'il/elle vient'} de temps en temps.</p>
+<p>⏰ <strong>Samedi 3 octobre</strong> à Crossfit La Buse :<br>
+&nbsp;&nbsp;• Groupe 1 : <strong>8h45 à 9h30</strong><br>
+&nbsp;&nbsp;• Groupe 2 : <strong>9h30 à 10h30</strong><br>
+<span style="font-size:13px;color:#aaa;">Si tu ne sais plus dans quel groupe est ${listeNoms}, réponds-moi et je te le confirme.</span></p>
+<p>À prévoir : une tenue de sport, des baskets et une gourde.</p>
+<p>Si tu as changé d'avis ou si quelque chose bloque, dis-le-moi simplement, ça libère la place pour une autre famille 😊</p>
+<p>À samedi j'espère 💪</p>`;
+  return { subject: 'Training Kids — premier cours samedi, il manque ton inscription', html: enveloppe('Premier cours samedi 3 octobre', corps) };
+}
+
 async function envoyer(resendKey, to, { subject, html }) {
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -229,7 +258,7 @@ export default async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   const body = req.body || {};
-  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : body.mode === 'travaux' ? 'travaux' : 'auto';
+  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : body.mode === 'travaux' ? 'travaux' : body.mode === 'rappel' ? 'rappel' : 'auto';
 
   try {
     // ------------------------------------------------------------ mode auto
@@ -262,7 +291,7 @@ export default async function handler(req, res) {
     if (error) return res.status(500).json({ error: error.message });
 
     const resultats = [];
-    if (mode === 'ouverture' || mode === 'travaux') {
+    if (mode === 'ouverture' || mode === 'travaux' || mode === 'rappel') {
       // Un mail par parent : regroupe les fiches par email (fratrie)
       const parEmail = new Map();
       for (const r of rows) {
@@ -275,7 +304,7 @@ export default async function handler(req, res) {
         // Resend limite à 10 envois/seconde : on espace de 150 ms (constaté le 22/09/2026).
         if (!dryRun && !premier) await new Promise(r => setTimeout(r, 150));
         premier = false;
-        const m = mode === 'travaux' ? mailTravaux(grp) : mailOuverture(grp);
+        const m = mode === 'travaux' ? mailTravaux(grp) : mode === 'rappel' ? mailRappel(grp) : mailOuverture(grp);
         const ids = grp.map(r => r.id), enfants = grp.map(r => r.co1_prenom);
         if (!emailValide(to)) { resultats.push({ ids, skipped: 'email invalide' }); continue; }
         if (dryRun) { resultats.push({ ids, to, enfants, subject: m.subject, dry_run: true }); continue; }
