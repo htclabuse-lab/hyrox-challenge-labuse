@@ -75,6 +75,7 @@
     <div class="event-tabs">
       <button type="button" class="event-tab" onclick="switchEvent('hc2', this)">🏃 HC #2 · 12 juil.</button>
       <button type="button" class="event-tab" onclick="switchEvent('pe', this)">👨‍👧 Parent-Enfant · 27 juin</button>
+      <button type="button" class="event-tab" onclick="switchEvent('pe2', this)">👨‍👧 Parent-Enfant #2 · 14 nov.</button>
       <button type="button" class="event-tab active" onclick="switchEvent('hc3', this)">🔥 HC #3 · 15 nov.</button>
       <button type="button" class="event-tab" onclick="switchEvent('kids', this)">🧒 Training Kids · cours</button>
     </div>
@@ -202,13 +203,17 @@
   var currentSubCat = 'all';
   var currentEvent = 'hc3'; // Défaut sur HC #3 (event actif)
 
+  var PE2_DEPUIS = '2026-09-01'; // fiches Parent-Enfant créées après = 2e édition (14 nov.)
+
   // Filtres par événement
   var EVENT_FILTERS = {
     'hc2': function(d) {
       var h = d.heure_depart || '';
       return d.categorie !== 'Parent-Enfant' && h >= '2026-07-12' && h < '2026-07-13';
     },
-    'pe': function(d) { return d.categorie === 'Parent-Enfant'; },
+    // Parent-Enfant : même catégorie pour les deux éditions, séparées par la date d'inscription
+    'pe': function(d) { return d.categorie === 'Parent-Enfant' && (d.created_at || '') < PE2_DEPUIS; },
+    'pe2': function(d) { return d.categorie === 'Parent-Enfant' && (d.created_at || '') >= PE2_DEPUIS; },
     'hc3': function(d) {
       var h = d.heure_depart || '';
       // HC #3 = inscription HC (Solo/Duo) qui n'est PAS dans HC #2 ni Parent-Enfant
@@ -222,6 +227,7 @@
   var EVENT_LABELS = {
     'hc2': 'HC Challenge #2 · 12 juillet 2026',
     'pe':  'Parent-Enfant · 27 juin 2026',
+    'pe2': 'Parent-Enfant #2 · samedi 14 novembre 2026',
     'hc3': 'HC Challenge #3 · 15 novembre 2026',
     'kids': 'Training Kids · cours du samedi matin · depuis le 19 septembre 2026'
   };
@@ -243,6 +249,7 @@
     'hc2': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
     'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
     'pe':  ['parent-enfant'],
+    'pe2': ['parent-enfant'],
     'kids': ['kids-inscrits','kids']
   };
 
@@ -274,6 +281,7 @@
     renderTshirts();
     renderInventaire();
     renderPackPhoto();
+    renderParentEnfant();
   }
 
   var CAT_ORDER = [
@@ -724,7 +732,7 @@
     var relEl = document.getElementById('total-relais'); if (relEl) relEl.textContent = d.filter(function(r){ return r.categorie && r.categorie.toLowerCase().includes('relais'); }).length;
 
     // Parent-Enfant : pas de Solo/Duo/pack photo. Training Kids : uniquement le compteur Kids.
-    var isPE = (currentEvent === 'pe');
+    var isPE = (currentEvent === 'pe' || currentEvent === 'pe2');
     var isKids = (currentEvent === 'kids');
     document.getElementById('stat-inscrits').style.display = isKids ? 'none' : '';
     document.getElementById('stat-athletes').style.display = isKids ? 'none' : '';
@@ -980,7 +988,7 @@ function isParentEnfant(d) {
   }
 
   function renderParentEnfant() {
-    var list = allData.filter(isParentEnfant);
+    var list = allData.filter(isParentEnfant).filter(EVENT_FILTERS[currentEvent === 'pe2' ? 'pe2' : 'pe']);
 
     // --- Map numéros de passage (basé sur ordre check-in : vague + nom alphabétique) ---
     var sortedAll = list.slice().sort(function(a,b){
@@ -1023,7 +1031,7 @@ function isParentEnfant(d) {
     }
 
     // --- Vagues du samedi 27 juin ---
-    var waveHtml = statsHtml + '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:16px;">⏱ Vagues — samedi 27 juin 2026</div>';
+    var waveHtml = statsHtml + '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:16px;">⏱ Vagues — ' + (currentEvent === 'pe2' ? 'samedi 14 novembre 2026' : 'samedi 27 juin 2026') + '</div>';
     waveHtml += '<div style="font-size:12px;color:#888;margin-bottom:1rem;">Triées par âge enfant (plus âgés d\'abord) · 4 binômes par vague · départ toutes les 10 minutes dès 13h00</div>';
     var byWave = {};
     list.forEach(function(d) {
@@ -1090,11 +1098,11 @@ function isParentEnfant(d) {
 
     // --- Liste des binômes ---
     var html = waveHtml + '<div style="font-weight:800;color:#FFEE00;margin:2rem 0 0.5rem;font-size:16px;">📋 Liste complète des binômes</div>';
-    html += '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + list.length + '</strong> binôme(s) Parent-Enfant — épreuve du samedi 27 juin 2026 dès 13h00</div>';
+    html += '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + list.length + '</strong> binôme(s) Parent-Enfant — ' + (currentEvent === 'pe2' ? 'épreuve du samedi 14 novembre 2026' : 'épreuve du samedi 27 juin 2026 dès 13h00') + '</div>';
     if (list.length === 0) {
       html += '<div style="color:#666;padding:2rem;text-align:center;">Aucune inscription Parent-Enfant pour le moment</div>';
     } else {
-      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Parent</th><th>T-shirt parent</th><th>Enfant</th><th>T-shirt enfant</th><th>Statut</th><th>Date</th></tr></thead><tbody>';
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Parent</th><th>T-shirt parent</th><th>Enfant</th><th>T-shirt enfant</th><th>Format</th><th>Payé</th><th>Statut</th><th>Date</th></tr></thead><tbody>';
       list.forEach(function(d, i) {
         var dt = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
         html += '<tr>';
@@ -1103,6 +1111,8 @@ function isParentEnfant(d) {
         html += '<td>' + (d.tshirt_taille||'—') + ' ' + (d.tshirt_coupe||'') + '</td>';
         html += '<td><strong style="color:#fff;">' + (d.co1_nom||'—') + '</strong> ' + (d.co1_prenom||'') + '</td>';
         html += '<td>' + (d.co1_tshirt||'—') + '</td>';
+        html += '<td style="font-size:12px;">' + (d.niveau||'—') + '</td>';
+        html += '<td style="font-size:12px;">' + (d.statut_paiement === 'paye' && d.prix != null ? String(d.prix).replace('.', ',') + ' €' : '—') + '</td>';
         html += '<td>' + getStatut(d.statut_paiement) + '</td>';
         html += '<td style="font-size:12px;">' + dt + '</td>';
         html += '</tr>';

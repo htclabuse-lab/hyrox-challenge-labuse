@@ -1,9 +1,10 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, CATEGORIE_INSCRIPTION, FORMULE_CARNET, SEANCES_CARNET, mailConfirmation, envoyerMail } from '../lib/kids.js';
+import { TYPE_STRIPE as TYPE_PARENT_ENFANT, traiterPaiement as traiterPaiementParentEnfant } from '../lib/parent-enfant.js';
 
 // ============================================================================
-// Webhook Stripe du compte Hyrox (cours Training Kids). Endpoint à déclarer
+// Webhook Stripe du compte Hyrox (cours Training Kids + Hyrox Parents / Enfants #2). Endpoint à déclarer
 // dans le dashboard Stripe : https://<domaine>/api/kids-webhook
 // Événements : checkout.session.completed, customer.subscription.deleted,
 //              invoice.payment_failed, invoice.paid
@@ -40,6 +41,10 @@ export default async function handler(req, res) {
     // ------------------------------------------------ abonnement mis en place
     if (event.type === 'checkout.session.completed') {
       const s = event.data.object;
+      // Hyrox Parents / Enfants (2e édition) : même compte Stripe, traité à part.
+      if (s.metadata?.type === TYPE_PARENT_ENFANT) {
+        return res.status(200).json({ received: true, ...(await traiterPaiementParentEnfant(db, s, resendKey)) });
+      }
       if (s.mode !== 'subscription' && s.mode !== 'payment') return res.status(200).json({ received: true, ignored: 'mode ' + s.mode });
       const id = parseInt(s.client_reference_id || s.metadata?.inscription_id, 10);
       if (!id) { console.warn('kids-webhook : pas d\'inscription_id', s.id); return res.status(200).json({ received: true }); }

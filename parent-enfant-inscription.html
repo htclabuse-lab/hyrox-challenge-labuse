@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HYROX PARENTS / ENFANTS — Inscription</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 640px; margin: 0 auto; }
+    .hero { padding: 1.5rem 1rem; text-align: center; margin-bottom: 1rem; border-radius: 14px; border: 2px solid transparent; background: linear-gradient(#0a0a0a,#0a0a0a) padding-box, linear-gradient(90deg,#ff3399,#FFA726,#FFEE00,#4ade80,#00d8ff) border-box; }
+    .hero h1 { font-size: 34px; font-weight: 900; letter-spacing: 2px; line-height: 1.05; margin-bottom: 8px; }
+    .hero h1 span { color: #FFEE00; }
+    .hero .edition { display: inline-block; background: #a3e635; color: #0a0a0a; font-weight: 900; font-size: 13px; padding: 4px 12px; border-radius: 6px; transform: rotate(-2deg); margin-bottom: 10px; }
+    .hero .sub { font-size: 14px; color: #aaa; }
+    .hero .date { background: #ff3399; color: #fff; display: inline-block; padding: 6px 14px; border-radius: 6px; font-weight: 800; margin-top: 12px; font-size: 14px; }
+    .hero .slogan { color: #FFEE00; font-weight: 800; font-size: 14px; letter-spacing: 1.5px; margin-top: 10px; }
+    .info-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .info { background: #1a1a1a; border-radius: 12px; padding: 1rem; border-left: 4px solid #ff3399; }
+    .info.formats { border-left-color: #00d8ff; }
+    .info.stations { border-left-color: #FFA726; }
+    .info.prix { border-left-color: #FFEE00; }
+    .info h3 { font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+    .info p { font-size: 14px; line-height: 1.6; }
+    .fmt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .fmt { background: #0a0a0a; border: 2px solid #00d8ff; border-radius: 10px; padding: 10px; text-align: center; }
+    .fmt.xl { border-color: #FFA726; }
+    .fmt .t { font-weight: 900; font-size: 15px; }
+    .fmt .d { font-size: 22px; font-weight: 900; color: #00d8ff; }
+    .fmt.xl .d { color: #FFA726; }
+    .fmt .s { font-size: 11px; color: #aaa; }
+    .st { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid #262626; font-size: 13px; line-height: 1.45; }
+    .st:last-child { border-bottom: none; }
+    .st .n { width: 24px; height: 24px; border-radius: 50%; background: #FFA726; color: #0a0a0a; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; }
+    .st .x { color: #aaa; }
+    .prix-big { font-size: 32px; font-weight: 900; color: #FFEE00; }
+    .prix-small { font-size: 14px; color: #aaa; }
+    .form-card { background: #1a1a1a; border-radius: 14px; padding: 1.5rem; border: 1px solid #333; }
+    .form-card h2 { font-size: 18px; color: #FFEE00; margin-bottom: 6px; }
+    .form-card .form-sub { font-size: 12px; color: #888; margin-bottom: 1rem; }
+    .field { margin-bottom: 1rem; }
+    .field label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .field input, .field select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 15px; }
+    .field input:focus, .field select:focus { border-color: #FFEE00; outline: none; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .section-divider { font-size: 12px; color: #FFEE00; text-transform: uppercase; letter-spacing: 1px; margin: 1rem 0 0.6rem; padding-top: 1rem; border-top: 1px solid #2a2a2a; font-weight: 700; }
+    .checkboxes label { display: flex; align-items: flex-start; gap: 10px; padding: 10px; border: 1px solid #333; border-radius: 8px; margin-bottom: 6px; cursor: pointer; font-size: 13px; line-height: 1.5; }
+    .checkboxes label:has(input:checked) { border-color: #FFEE00; background: #1a1a0a; }
+    .checkboxes input { width: 20px; height: 20px; accent-color: #FFEE00; margin-top: 1px; flex-shrink: 0; }
+    .btn-submit { width: 100%; padding: 16px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 1px; margin-top: 1rem; }
+    .btn-submit:hover { background: #e6d800; }
+    .btn-submit:disabled { background: #444; color: #888; cursor: wait; }
+    .success { background: #0a3a0a; border: 2px solid #4caf50; border-radius: 14px; padding: 2rem; text-align: center; margin-bottom: 1rem; }
+    .success-icon { font-size: 64px; margin-bottom: 12px; }
+    .success h2 { color: #4caf50; font-size: 22px; margin-bottom: 10px; }
+    .success p { color: #ccc; font-size: 14px; line-height: 1.6; }
+    .warn { background: #2a1a00; border: 1px solid #FFA726; border-radius: 10px; padding: 12px; font-size: 13px; color: #ffd9a0; margin-bottom: 1rem; line-height: 1.5; }
+    .contact { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 1rem; margin-top: 1rem; text-align: center; }
+    .contact-line { font-size: 14px; color: #ddd; padding: 4px 0; }
+    .contact a { color: #FFEE00; text-decoration: none; font-weight: 700; }
+    .footer-slogan { text-align: center; font-size: 13px; font-weight: 800; color: #888; letter-spacing: 1px; margin: 1.2rem 0 0.5rem; }
+    .error { color: #ff6b5b; font-size: 13px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <h1>HYROX<br><span>PARENTS / ENFANTS</span></h1>
+    <div class="edition">2ÈME ÉDITION KIDS</div>
+    <div class="sub">📍 Crossfit La Buse — Saint-Paul, La Réunion</div>
+    <div class="date">Samedi 14 novembre 2026</div>
+    <div class="slogan">ON FAIT ÉQUIPE EN FAMILLE</div>
+  </div>
+
+  <div id="msg-annule" class="warn" style="display:none;">Le paiement a été annulé : <strong>l'inscription n'est pas validée</strong>. Tu peux recommencer ci-dessous quand tu veux.</div>
+
+  <div id="success-block" class="success" style="display:none;">
+    <div class="success-icon">🎉</div>
+    <h2>Inscription confirmée !</h2>
+    <p>Le paiement est passé et <strong>votre binôme est inscrit</strong>. Un mail de confirmation arrive (pense à regarder dans les spams).</p>
+  </div>
+
+  <div class="info-grid">
+    <div class="info">
+      <h3>👨‍👧 Le principe</h3>
+      <p><strong>1 parent + 1 enfant</strong>, de <strong>5 à 15 ans</strong>. Un parcours Hyrox adapté, à faire ensemble.<br><span style="color:#aaa;font-size:13px;">⏰ L'horaire de passage sera communiqué plus tard.</span></p>
+    </div>
+    <div class="info formats">
+      <h3>🏃 Deux formats au choix</h3>
+      <div class="fmt-grid">
+        <div class="fmt"><div class="t">STANDARD</div><div class="d">200 m</div><div class="s">de course entre chaque station</div></div>
+        <div class="fmt xl"><div class="t">XL</div><div class="d">400 m</div><div class="s">de course entre chaque station</div></div>
+      </div>
+    </div>
+    <div class="info stations">
+      <h3>🏋️ 7 stations, identiques pour les deux formats</h3>
+      <div class="st"><span class="n">1</span><span><strong>SkiErg</strong> — 200 m <span class="x">· 500 m à deux (en relais)</span></span></div>
+      <div class="st"><span class="n">2</span><span><strong>Sled Push</strong> — 50 m <span class="x">· enfant : sled vide · parent : enfant assis sur le sled</span></span></div>
+      <div class="st"><span class="n">3</span><span><strong>Burpees Broad Jump</strong> — 40 m <span class="x">· pour tous</span></span></div>
+      <div class="st"><span class="n">4</span><span><strong>Rowing</strong> — 500 m <span class="x">· à deux (en relais)</span></span></div>
+      <div class="st"><span class="n">5</span><span><strong>Farmers Carry</strong> — 50 m <span class="x">· enfant : 2 × 2,5 kg · parent : 2 × 12 kg, simultané</span></span></div>
+      <div class="st"><span class="n">6</span><span><strong>Sandbag Lunges</strong> — 100 m <span class="x">· enfant : sans charge · parent : 10 kg</span></span></div>
+      <div class="st"><span class="n">7</span><span><strong>Wall Ball / Squat</strong> — 50 reps <span class="x">· enfant : 2 kg · parent : 4 kg</span></span></div>
+    </div>
+    <div class="info prix">
+      <h3>💰 Tarif</h3>
+      <p><span class="prix-big">68 €</span> <span class="prix-small">par binôme (parent + enfant), t-shirts compris</span></p>
+    </div>
+  </div>
+
+  <div id="form-block" class="form-card">
+    <h2>📝 Inscription du binôme</h2>
+    <p class="form-sub">Paiement sécurisé par Stripe. Une inscription par binôme.</p>
+
+    <div class="section-divider">👤 Parent</div>
+    <div class="row2">
+      <div class="field"><label>Prénom *</label><input type="text" id="parent_prenom"></div>
+      <div class="field"><label>Nom *</label><input type="text" id="parent_nom"></div>
+    </div>
+    <div class="field"><label>Email *</label><input type="email" id="parent_email" placeholder="ex@email.com"></div>
+    <div class="row2">
+      <div class="field"><label>Téléphone *</label><input type="tel" id="parent_tel" placeholder="0692 …"></div>
+      <div class="field"><label>Date de naissance *</label><input type="date" id="parent_dob"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>T-shirt : coupe *</label>
+        <select id="parent_genre" onchange="majTaillesParent()"><option value="">—</option><option>Homme</option><option>Femme</option></select></div>
+      <div class="field"><label>T-shirt : taille *</label><select id="parent_taille"><option value="">—</option></select></div>
+    </div>
+
+    <div class="section-divider">🧒 Enfant (5 à 15 ans)</div>
+    <div class="row2">
+      <div class="field"><label>Prénom *</label><input type="text" id="enfant_prenom"></div>
+      <div class="field"><label>Nom *</label><input type="text" id="enfant_nom"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Date de naissance *</label><input type="date" id="enfant_dob"></div>
+      <div class="field"><label>T-shirt *</label>
+        <select id="enfant_tshirt">
+          <option value="">—</option>
+          <optgroup label="Tailles enfant"><option>4 ans</option><option>6 ans</option><option>8 ans</option><option>10 ans</option><option>12 ans</option><option>14 ans</option></optgroup>
+          <optgroup label="Tailles adulte"><option>XS Homme</option><option>S Homme</option><option>M Homme</option><option>L Homme</option><option>XL Homme</option><option>XXL Homme</option><option>XS Femme</option><option>S Femme</option><option>M Femme</option><option>L Femme</option><option>XL Femme</option></optgroup>
+        </select></div>
+    </div>
+
+    <div class="section-divider">🏃 Format *</div>
+    <div class="checkboxes">
+      <label><input type="radio" name="format" value="standard"> <span><strong>Standard</strong> — 200 m de course entre chaque station</span></label>
+      <label><input type="radio" name="format" value="xl"> <span><strong>XL</strong> — 400 m de course entre chaque station</span></label>
+    </div>
+
+    <div class="section-divider">🚨 Contact en cas d'urgence</div>
+    <p style="font-size:12px;color:#888;margin:-4px 0 10px;">Une personne joignable le jour J qui ne participe pas à la course.</p>
+    <div class="row2">
+      <div class="field"><label>Prénom *</label><input type="text" id="urg_prenom"></div>
+      <div class="field"><label>Nom *</label><input type="text" id="urg_nom"></div>
+    </div>
+    <div class="field"><label>Téléphone *</label><input type="tel" id="urg_tel" placeholder="0692 …"></div>
+
+    <div class="section-divider">✅ Attestation *</div>
+    <div class="checkboxes">
+      <label><input type="checkbox" id="sante"> <span>J'atteste que <strong>mon enfant et moi ne présentons aucune contre-indication médicale</strong> à la pratique sportive. En tant que responsable légal, j'autorise mon enfant à participer et l'organisation à prendre toute mesure d'urgence nécessaire.</span></label>
+    </div>
+
+    <button type="button" class="btn-submit" id="btn" onclick="envoyer()">Valider et passer au paiement</button>
+    <div class="error" id="err"></div>
+  </div>
+
+  <div class="contact">
+    <div class="contact-line">📞 Infos : Stéphanie — <a href="https://wa.me/262692565102" target="_blank" rel="noopener">06 92 56 51 02 (WhatsApp)</a></div>
+    <div class="contact-line">✉️ <a href="mailto:htclabuse@gmail.com">htclabuse@gmail.com</a></div>
+  </div>
+  <div class="footer-slogan">CE SAMEDI, ON FAIT ÉQUIPE EN FAMILLE !</div>
+</div>
+
+<script>
+  const params = new URLSearchParams(location.search);
+  if (params.get('succes') === '1') {
+    document.getElementById('success-block').style.display = 'block';
+    document.getElementById('form-block').style.display = 'none';
+  }
+  if (params.get('annule') === '1') document.getElementById('msg-annule').style.display = 'block';
+
+  const TAILLES = { Homme: ['S','M','L','XL','XXL'], Femme: ['S','M','L','XL'] };
+  function majTaillesParent() {
+    const g = val('parent_genre');
+    document.getElementById('parent_taille').innerHTML = '<option value="">—</option>' + (TAILLES[g] || []).map(t => '<option>' + t + '</option>').join('');
+  }
+
+  // Âge de l'enfant le jour de l'épreuve (14/11/2026).
+  function ageLeJour(dob) {
+    const [y, m, d] = dob.split('-').map(Number);
+    if (!y) return null;
+    return 2026 - y - ((11 < m || (11 === m && 14 < d)) ? 1 : 0);
+  }
+
+  async function envoyer() {
+    err('');
+    const ids = ['parent_prenom','parent_nom','parent_email','parent_tel','parent_dob','parent_genre','parent_taille',
+                 'enfant_prenom','enfant_nom','enfant_dob','enfant_tshirt','urg_prenom','urg_nom','urg_tel'];
+    const f = {};
+    ids.forEach(id => f[id] = val(id));
+    f.format = (document.querySelector('input[name="format"]:checked') || {}).value || '';
+    f.sante = document.getElementById('sante').checked;
+    if (ids.some(id => !f[id])) { err('Tous les champs marqués * sont requis.'); return; }
+    if (!f.parent_email.includes('@')) { err('Email invalide.'); return; }
+    const age = ageLeJour(f.enfant_dob);
+    if (age === null || age < 5 || age > 15) { err("L'enfant doit avoir entre 5 et 15 ans le samedi 14 novembre 2026."); return; }
+    if (!f.format) { err('Choisis un format : Standard ou XL.'); return; }
+    if (!f.sante) { err("Coche l'attestation pour continuer."); return; }
+
+    const btn = document.getElementById('btn');
+    btn.disabled = true; btn.textContent = 'Un instant…';
+    try {
+      const r = await fetch('/api/pe-checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || 'Erreur ' + r.status);
+      if (j.url) { location.href = j.url; return; }
+      throw new Error('Réponse inattendue');
+    } catch (e) {
+      err(e.message);
+      btn.disabled = false; btn.textContent = 'Valider et passer au paiement';
+    }
+  }
+  function val(id) { return document.getElementById(id).value.trim(); }
+  function err(msg) { document.getElementById('err').textContent = msg; }
+</script>
+</body>
+</html>
