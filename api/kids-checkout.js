@@ -26,7 +26,10 @@ import {
 const STRIPE_KEY_ENV = 'STRIPE_KIDS_SECRET_KEY';
 
 // 1er du mois suivant, 04h00 UTC = 08h00 à La Réunion.
-// Sert de fin de période d'essai : premier prélèvement ce jour-là, rien avant.
+// Sert d'ancre de facturation : premier prélèvement ce jour-là, rien avant.
+// (On utilise billing_cycle_anchor + proration_behavior 'none' plutôt qu'un
+// trial_end, car Stripe refuse un trial_end à moins de 48 h — ce qui bloquait
+// les inscriptions les 29 et 30 septembre 2026.)
 function premierDuMoisSuivant() {
   const t = new Date();
   return Math.floor(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 1, 4, 0, 0) / 1000);
@@ -158,8 +161,10 @@ export default async function handler(req, res) {
             recurring: { interval: 'month' },
             product_data: { name: 'Training Kids — abonnement mensuel', description: desc } } }],
           subscription_data: {
-            // Aucun prélèvement à l'inscription : le premier tombe le 1er du mois suivant.
-            trial_end: premierDuMoisSuivant(),
+            // Aucun prélèvement à l'inscription : le premier tombe le 1er du mois suivant,
+            // sans prorata pour les jours restants du mois en cours.
+            billing_cycle_anchor: premierDuMoisSuivant(),
+            proration_behavior: 'none',
             metadata: { inscription_id: String(id), enfant: `${f.enfant_prenom} ${f.enfant_nom}`, groupe },
           },
         });
