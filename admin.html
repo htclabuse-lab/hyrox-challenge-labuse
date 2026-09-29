@@ -401,6 +401,13 @@
   }
   // Formule d'une inscription : abonnement, ou carnet avec son compteur de séances.
   function kidsFormuleCell(d) {
+    var n = String(d.niveau || '');
+    // Cas gérés à la main : inscription offerte, ou paiement en espèces.
+    if (n.indexOf('offerte') !== -1) return '<span style="background:#0d1400;border:1px solid #4ade80;color:#4ade80;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;">🎁 offert</span>';
+    if (n.indexOf('especes') !== -1) {
+      var det = n.split(':').slice(1).join(':') || 'espèces';
+      return '<span style="background:#1a1400;border:1px solid #FFA726;color:#FFA726;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;" title="' + det.replace(/"/g,'') + '">💶 espèces</span><br><span style="font-size:10px;color:#888;">' + det + '</span>';
+    }
     if (d.nom_equipe !== 'Carnet') return '<span style="font-size:12px;color:#888;">Abonnement</span>';
     var n = (d.seances_restantes === null || d.seances_restantes === undefined) ? 0 : d.seances_restantes;
     var col = n <= 2 ? '#C0392B' : '#FFEE00';
