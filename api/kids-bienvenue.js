@@ -233,6 +233,7 @@ function mailRappel(rows) {
 &nbsp;&nbsp;• Groupe 2 : <strong>9h30 à 10h30</strong><br>
 <span style="font-size:13px;color:#aaa;">Si tu ne sais plus dans quel groupe est ${listeNoms}, réponds-moi et je te le confirme.</span></p>
 <p>À prévoir : une tenue de sport, des baskets et une gourde.</p>
+<p style="background:#141400;border-left:3px solid #A6D402;padding:10px 12px;margin:1rem 0;">🏅 <strong>Et bonne nouvelle :</strong> on prépare un prochain <strong>Hyrox Parent-Enfant</strong>, une course à faire à deux. Les enfants inscrits au Training Kids bénéficieront d'un <strong>tarif réduit</strong> sur cet événement. On vous en dit plus très vite !</p>
 <p>Si tu as changé d'avis ou si quelque chose bloque, dis-le-moi simplement, ça libère la place pour une autre famille 😊</p>
 <p>À samedi j'espère 💪</p>`;
   return { subject: 'Training Kids — premier cours samedi, il manque ton inscription', html: enveloppe('Premier cours samedi 3 octobre', corps) };
