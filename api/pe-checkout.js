@@ -18,10 +18,14 @@ const TAILLES_ENFANT = ['6 ans', '8 ans', '10 ans', '12 ans', '14 ans',
   'S Femme', 'M Femme', 'L Femme', 'XL Femme'];
 const TAILLES_ADULTE = { Homme: ['S', 'M', 'L', 'XL', 'XXL'], Femme: ['S', 'M', 'L', 'XL'] };
 
+// Inscriptions pas encore ouvertes (décision de Stéphanie, 30/09/2026) : passer à true pour ouvrir.
+const INSCRIPTIONS_OUVERTES = false;
+
 function nettoie(s, max = 80) { return String(s || '').trim().slice(0, max); }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' });
+  if (!INSCRIPTIONS_OUVERTES) return res.status(403).json({ error: 'Les inscriptions ne sont pas encore ouvertes.' });
   const serviceKey = process.env.SUPABASE_SERVICE_KEY;
   const stripeKey = process.env.STRIPE_KIDS_SECRET_KEY;
   if (!serviceKey || !stripeKey) return res.status(500).json({ error: 'Configuration serveur incomplète' });
