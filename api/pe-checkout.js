@@ -13,9 +13,9 @@ import { CATEGORIE, EDITION_2_DEPUIS, TYPE_STRIPE, PRIX, DATE_LABEL, AGE_MIN, AG
 //         Le webhook api/kids-webhook.js passe la fiche en 'paye'.
 // ============================================================================
 
-const TAILLES_ENFANT = ['4 ans', '6 ans', '8 ans', '10 ans', '12 ans', '14 ans',
-  'XS Homme', 'S Homme', 'M Homme', 'L Homme', 'XL Homme', 'XXL Homme',
-  'XS Femme', 'S Femme', 'M Femme', 'L Femme', 'XL Femme'];
+const TAILLES_ENFANT = ['6 ans', '8 ans', '10 ans', '12 ans', '14 ans',
+  'S Homme', 'M Homme', 'L Homme', 'XL Homme', 'XXL Homme',
+  'S Femme', 'M Femme', 'L Femme', 'XL Femme'];
 const TAILLES_ADULTE = { Homme: ['S', 'M', 'L', 'XL', 'XXL'], Femme: ['S', 'M', 'L', 'XL'] };
 
 function nettoie(s, max = 80) { return String(s || '').trim().slice(0, max); }
