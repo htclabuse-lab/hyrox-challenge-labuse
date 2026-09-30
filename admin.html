@@ -257,7 +257,7 @@
     'hc2': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
     'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
     'pe':  ['parent-enfant'],
-    'pe2': ['parent-enfant'],
+    'pe2': ['parent-enfant','pack-photo'],
     'kids': ['kids-inscrits','kids']
   };
 
@@ -746,7 +746,7 @@
     document.getElementById('stat-athletes').style.display = isKids ? 'none' : '';
     document.getElementById('stat-solo').style.display = (isPE || isKids) ? 'none' : '';
     document.getElementById('stat-duo').style.display  = (isPE || isKids) ? 'none' : '';
-    document.getElementById('stat-pack').style.display = (isPE || isKids) ? 'none' : '';
+    document.getElementById('stat-pack').style.display = ((isPE && currentEvent !== 'pe2') || isKids) ? 'none' : '';
     document.getElementById('stat-kids').style.display = isKids ? '' : 'none';
     document.getElementById('label-inscrits').textContent = isPE ? 'Binômes inscrits' : 'Inscriptions';
     document.getElementById('total-kids').textContent = allKidsInsc.filter(function(d){ return d.statut_paiement === 'payé' || d.statut_paiement === 'impaye'; }).length;
@@ -1110,7 +1110,7 @@ function isParentEnfant(d) {
     if (list.length === 0) {
       html += '<div style="color:#666;padding:2rem;text-align:center;">Aucune inscription Parent-Enfant pour le moment</div>';
     } else {
-      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Parent</th><th>T-shirt parent</th><th>Enfant</th><th>T-shirt enfant</th><th>Format</th><th>Payé</th><th>Statut</th><th>Date</th></tr></thead><tbody>';
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Parent</th><th>T-shirt parent</th><th>Enfant</th><th>T-shirt enfant</th><th>Format</th><th>📸</th><th>Payé</th><th>Statut</th><th>Date</th></tr></thead><tbody>';
       list.forEach(function(d, i) {
         var dt = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
         html += '<tr>';
@@ -1120,6 +1120,7 @@ function isParentEnfant(d) {
         html += '<td><strong style="color:#fff;">' + (d.co1_nom||'—') + '</strong> ' + (d.co1_prenom||'') + '</td>';
         html += '<td>' + (d.co1_tshirt||'—') + '</td>';
         html += '<td style="font-size:12px;">' + (d.niveau||'—') + '</td>';
+        html += '<td>' + (d.pack_photo ? '📸' : '') + '</td>';
         html += '<td style="font-size:12px;">' + (d.statut_paiement === 'paye' && d.prix != null ? String(d.prix).replace('.', ',') + ' €' : '—') + '</td>';
         html += '<td>' + getStatut(d.statut_paiement) + '</td>';
         html += '<td style="font-size:12px;">' + dt + '</td>';

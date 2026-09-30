@@ -105,6 +105,7 @@
     <div class="info prix">
       <h3>💰 Tarif</h3>
       <p><span class="prix-big">68 €</span> <span class="prix-small">par binôme (parent + enfant), t-shirts compris</span></p>
+      <p style="font-size:13px;color:#ccc;margin-top:8px;">📸 En option : <strong style="color:#fff;">pack photo +20 €</strong> par binôme.</p>
     </div>
   </div>
 
@@ -163,6 +164,11 @@
     </div>
     <div class="field"><label>Téléphone *</label><input type="tel" id="urg_tel" placeholder="0692 …"></div>
 
+    <div class="section-divider">📸 Option</div>
+    <div class="checkboxes">
+      <label><input type="checkbox" id="pack_photo"> <span><strong>Pack photo — +20 €</strong><br><span style="color:#888;font-size:12px;">Les photos de votre binôme pendant la course.</span></span></label>
+    </div>
+
     <div class="section-divider">✅ Attestation *</div>
     <div class="checkboxes">
       <label><input type="checkbox" id="sante"> <span>J'atteste que <strong>mon enfant et moi ne présentons aucune contre-indication médicale</strong> à la pratique sportive. En tant que responsable légal, j'autorise mon enfant à participer et l'organisation à prendre toute mesure d'urgence nécessaire.</span></label>
@@ -208,6 +214,7 @@
     ids.forEach(id => f[id] = val(id));
     f.format = (document.querySelector('input[name="format"]:checked') || {}).value || '';
     f.sante = document.getElementById('sante').checked;
+    f.pack_photo = document.getElementById('pack_photo').checked;
     if (ids.some(id => !f[id])) { err('Tous les champs marqués * sont requis.'); return; }
     if (!f.parent_email.includes('@')) { err('Email invalide.'); return; }
     const age = ageLeJour(f.enfant_dob);

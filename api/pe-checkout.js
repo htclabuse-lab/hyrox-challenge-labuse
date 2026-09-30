@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, emailValide } from '../lib/kids.js';
-import { CATEGORIE, EDITION_2_DEPUIS, TYPE_STRIPE, PRIX, DATE_LABEL, AGE_MIN, AGE_MAX, FORMATS, ageLeJour } from '../lib/parent-enfant.js';
+import { CATEGORIE, EDITION_2_DEPUIS, TYPE_STRIPE, PRIX, PRIX_PACK_PHOTO, DATE_LABEL, AGE_MIN, AGE_MAX, FORMATS, ageLeJour } from '../lib/parent-enfant.js';
 
 // ============================================================================
 // Inscription Hyrox Parents / Enfants — 2e édition (page parent-enfant-inscription.html).
@@ -19,7 +19,8 @@ const TAILLES_ENFANT = ['6 ans', '8 ans', '10 ans', '12 ans', '14 ans',
 const TAILLES_ADULTE = { Homme: ['S', 'M', 'L', 'XL', 'XXL'], Femme: ['S', 'M', 'L', 'XL'] };
 
 // Inscriptions pas encore ouvertes (décision de Stéphanie, 30/09/2026) : passer à true pour ouvrir.
-const INSCRIPTIONS_OUVERTES = false;
+// Les versions de test (Preview Vercel, clés Stripe de test) restent ouvertes pour pouvoir tester.
+const INSCRIPTIONS_OUVERTES = false || process.env.VERCEL_ENV === 'preview';
 
 function nettoie(s, max = 80) { return String(s || '').trim().slice(0, max); }
 
@@ -61,6 +62,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: `L'enfant doit avoir entre ${AGE_MIN} et ${AGE_MAX} ans le ${DATE_LABEL}.` });
   }
   if (b.sante !== true) return res.status(400).json({ error: "L'attestation de santé est obligatoire." });
+  const pack = b.pack_photo === true;
 
   try {
     // Même enfant déjà inscrit et payé sur cette édition ? Pas de doublon.
@@ -75,7 +77,7 @@ export default async function handler(req, res) {
     const fiche = {
       nom: f.parent_nom, prenom: f.parent_prenom, email: f.parent_email, telephone: f.parent_tel,
       date_naissance: f.parent_dob, genre: f.parent_genre,
-      categorie: CATEGORIE, prix: PRIX, statut_paiement: 'en_attente',
+      categorie: CATEGORIE, prix: PRIX + (pack ? PRIX_PACK_PHOTO : 0), statut_paiement: 'en_attente', pack_photo: pack,
       niveau: FORMATS[f.format].label,
       tshirt_coupe: f.parent_genre, tshirt_taille: f.parent_taille,
       co1_prenom: f.enfant_prenom, co1_nom: f.enfant_nom, co1_date_naissance: f.enfant_dob, co1_tshirt: f.enfant_tshirt,
@@ -97,7 +99,9 @@ export default async function handler(req, res) {
       metadata: { type: TYPE_STRIPE, inscription_id: String(id), enfant: `${f.enfant_prenom} ${f.enfant_nom}`, format: f.format },
       line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: PRIX * 100,
         product_data: { name: 'Hyrox Parents / Enfants — 2e édition',
-          description: `${f.parent_prenom} ${f.parent_nom} + ${f.enfant_prenom} ${f.enfant_nom} — ${FORMATS[f.format].label} — ${DATE_LABEL}` } } }],
+          description: `${f.parent_prenom} ${f.parent_nom} + ${f.enfant_prenom} ${f.enfant_nom} — ${FORMATS[f.format].label} — ${DATE_LABEL}` } } },
+        ...(pack ? [{ quantity: 1, price_data: { currency: 'eur', unit_amount: PRIX_PACK_PHOTO * 100,
+          product_data: { name: 'Pack photo — Hyrox Parents / Enfants', description: 'Photos du binôme' } } }] : [])],
       success_url: `${origin}/parent-enfant-inscription.html?succes=1`,
       cancel_url: `${origin}/parent-enfant-inscription.html?annule=1`,
     });

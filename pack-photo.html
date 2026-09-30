@@ -96,7 +96,8 @@
     }
     var rows = (res.data || []).filter(function (r) {
       return (r.created_at || '') >= OUVERTURE_HC3
-        && (r.categorie || '').toLowerCase().indexOf('kids') === -1;
+        && (r.categorie || '').toLowerCase().indexOf('kids') === -1
+        && r.categorie !== 'Parent-Enfant'; // le Parent-Enfant a sa propre page : pe-pack-photo.html
     });
 
     if (rows.length === 0) {
