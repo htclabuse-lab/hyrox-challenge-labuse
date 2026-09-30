@@ -158,7 +158,6 @@
     <div class="hero-logo"><img src="logo.jpg" alt="HTC La Buse"></div>
     <div class="hero-title">Hyrox Challenge <span>La Buse</span></div>
     <div class="hero-sub">Hyrox Training Club La Buse — Saint-Paul, La Réunion</div>
-    <div class="hero-desc">Viens tester tes limites ! Deux formats accessibles à tous : Hyrox 1000 et Hyrox 500. Solo ou Duo — que tu sois débutant ou confirmé, viens vivre une expérience intense, fun et accessible 🔥</div>
     <!-- Les deux événements de novembre : une carte chacun, bouton d'inscription dans la carte -->
     <div class="hero-events">
       <div class="hero-event hc">
@@ -180,7 +179,8 @@
 <!-- NAV -->
 <div class="nav">
   <button type="button" class="nav-btn active" id="nav-accueil" onclick="showTab('accueil')">Accueil</button>
-  <button type="button" class="nav-btn" id="nav-epreuves" onclick="showTab('epreuves')">Épreuves</button>
+  <button type="button" class="nav-btn" id="nav-hc" style="flex:none;padding:16px 12px;" onclick="showTab('hc')">🔥 Hyrox Challenge</button>
+  <button type="button" class="nav-btn" id="nav-pe" style="flex:none;padding:16px 12px;" onclick="showTab('pe')">👨‍👧 Parents / Enfants</button>
   <button type="button" class="nav-btn" id="nav-avenir" onclick="showTab('avenir')">À venir</button>
   <button type="button" class="nav-btn" id="nav-passes" onclick="showTab('passes')">Passés</button>
   <button type="button" class="nav-btn" id="nav-elite" onclick="window.location.href='elite12.html'">🏆 ELITE 12</button>
@@ -195,7 +195,7 @@
       <div class="section-title">Les <span>catégories</span></div>
       <div class="cat-card"><div><div class="cat-name">Solo</div><div class="cat-sub">Homme / Femme · RX ou Scaled</div></div><div class="cat-prix">55 €</div></div>
       <div class="cat-card"><div><div class="cat-name">Duo</div><div class="cat-sub">Homme / Femme / Mixte · RX ou Scaled</div></div><div class="cat-prix">110 €</div></div>
-      <a href="parent-enfant-inscription.html" class="cat-card" style="text-decoration:none;color:inherit;"><div><div class="cat-name">Parent-Enfant #2</div><div class="cat-sub">1 parent + 1 enfant (5-15 ans) · samedi 14 novembre 2026 · <span style="color:#FFEE00;font-weight:700;">s'inscrire →</span></div></div><div class="cat-prix">68 €</div></a>
+      <div class="cat-card" style="border:2px solid transparent;background:linear-gradient(#111,#111) padding-box,linear-gradient(90deg,#ff3399,#FFA726,#FFEE00,#a3e635,#00d8ff) border-box;"><div><div class="cat-name">Parents / Enfants</div><div class="cat-sub">1 parent + 1 enfant (5-15 ans) · samedi 14 novembre 2026</div></div><div class="cat-prix">68 €</div></div>
 
       <!-- BIG BANNER PRIX TOUT COMPRIS -->
       <div style="background:linear-gradient(135deg,#FFEE00,#FFA726);color:#0a0a0a;padding:18px 20px;border-radius:14px;margin-top:14px;text-align:center;box-shadow:0 4px 20px rgba(255,238,0,0.15);">
@@ -203,7 +203,15 @@
         <div style="font-size:16px;font-weight:700;line-height:1.4;">On absorbe les frais de plateforme pour toi.<br><span style="font-size:13px;font-weight:500;opacity:0.85;">Aucun surcoût au moment de payer.</span></div>
       </div>
 
-      <div class="cta-banner" style="margin-top:14px;border-color:#FFEE00;">
+    </div>
+
+  </div>
+
+  <!-- HYROX CHALLENGE #3 -->
+  <div class="tab-content" id="tab-hc">
+    <div class="section-title">Hyrox Challenge <span>La Buse #3</span></div>
+    <p style="font-size:15px;color:#ccc;line-height:1.6;margin-bottom:1rem;">Viens tester tes limites ! Deux formats accessibles à tous : Hyrox 1000 et Hyrox 500. Solo ou Duo — que tu sois débutant ou confirmé, viens vivre une expérience intense, fun et accessible 🔥</p>
+      <div class="cta-banner" style="margin:0 0 1.5rem;border-color:#FFEE00;">
         <div style="font-size:13px;color:#FFEE00;text-transform:uppercase;letter-spacing:2px;font-weight:800;margin-bottom:10px;">🔥 Prochain événement</div>
         <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:4px;">HYROX Challenge La Buse #3</div>
         <div style="font-size:16px;font-weight:800;color:#FFEE00;margin-bottom:12px;">📅 Dimanche 15 novembre 2026</div>
@@ -211,10 +219,9 @@
         <a class="hero-cta" href="inscription.html" style="margin-top:0;">🔥 Inscriptions ici</a>
         <div style="margin-top:14px;font-size:13px;color:#888;">Déjà inscrit·e ? <a href="pack-photo.html" style="color:#FFEE00;font-weight:700;text-decoration:none;">📸 Ajoute ton pack photo →</a></div>
       </div>
-    </div>
 
     <!-- INCLUS · 3 blocs uniformisés -->
-    <div class="section-title" style="margin-top:1.5rem;">Ce qui est <span>inclus</span></div>
+    <div class="section-title" style="margin-top:0.5rem;">Ce qui est <span>inclus</span></div>
 
     <div style="background:#111;border:1px solid #222;border-left:4px solid #3498DB;border-radius:10px;padding:16px 18px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;">
       <div style="font-size:32px;line-height:1;flex-shrink:0;">👕</div>
@@ -262,11 +269,7 @@
       <img src="photo9.jpg" alt="">
     </div>
 
-  </div>
-
-  <!-- ÉPREUVES -->
-  <div class="tab-content" id="tab-epreuves">
-
+    <div class="section-title" style="margin-top:1.5rem;">Les <span>épreuves</span></div>
     <!-- ENCADRÉ HYROX CHALLENGE (jaune) -->
     <div style="border:3px solid #FFEE00;border-radius:16px;padding:1.25rem;margin-bottom:1.5rem;background:rgba(255,238,0,0.02);">
       <div style="font-size:13px;color:#FFEE00;font-weight:900;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:14px;">🏆 HYROX Challenge — Format officiel</div>
@@ -308,19 +311,66 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- ENCADRÉ PARENT-ENFANT (multicolore) -->
-    <div style="padding:3px;border-radius:16px;background:linear-gradient(90deg,#ff5e5b,#ffbe0b,#8ac926,#1982c4,#c77dff);margin-bottom:1.5rem;">
-      <div style="background:#0a0a0a;border-radius:14px;padding:1.25rem;">
-        <div style="font-size:13px;color:#fff;font-weight:900;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:14px;">👨‍👧 Format Parent-Enfant</div>
-        <div style="font-size:14px;color:#ccc;line-height:1.6;margin-bottom:10px;">1 parent + 1 enfant (5-15 ans) — un format fun et accessible pour partager l'expérience Hyrox en famille. <strong style="color:#FFEE00;">2e édition le samedi 14 novembre 2026.</strong></div>
-        <div style="background:#0d0d0d;border-radius:8px;padding:12px 14px;">
-          <div style="font-size:12px;color:#ffbe0b;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">🏃 7 stations adaptées + 200 m (Standard) ou 400 m (XL) de course entre chaque</div>
-          <div style="font-size:13px;color:#aaa;line-height:1.7;">SkiErg, Sled Push, Burpee, Row, Farmer's Carry, Sandbag, Wall Balls — poids et distances ajustés pour l'enfant. Toujours en binôme, on avance ensemble à chaque station.</div>
-        </div>
-      </div>
+  <!-- HYROX PARENTS / ENFANTS #2 -->
+  <div class="tab-content" id="tab-pe">
+    <div class="section-title">Hyrox <span>Parents / Enfants #2</span></div>
+    <p style="font-size:15px;color:#ccc;line-height:1.6;margin-bottom:1rem;">Un parcours Hyrox adapté, à faire en binôme : <strong style="color:#fff;">1 parent + 1 enfant de 5 à 15 ans</strong>. Un format fun et accessible pour partager l'expérience Hyrox en famille 👨‍👧</p>
+
+    <div class="cta-banner" style="margin:0 0 1.5rem;border:3px solid transparent;background:linear-gradient(#0a0a0a,#0a0a0a) padding-box,linear-gradient(90deg,#ff3399,#FFA726,#FFEE00,#a3e635,#00d8ff) border-box;">
+      <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:4px;">📅 Samedi 14 novembre 2026</div>
+      <div style="font-size:14px;color:#ccc;margin-bottom:6px;">Crossfit La Buse — Saint-Paul · horaire communiqué plus tard</div>
+      <div style="font-size:16px;font-weight:800;color:#FFEE00;margin-bottom:14px;">68 € par binôme</div>
+      <a class="hero-cta" href="parent-enfant-inscription.html" style="margin-top:0;background:#ff3399;color:#fff;">👨‍👧 Inscriptions ici</a>
     </div>
 
+    <div class="section-title">Les <span>cadeaux</span> 🎁</div>
+    <div style="background:#111;border:1px solid #222;border-left:4px solid #ff3399;border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;gap:14px;align-items:center;">
+      <div style="font-size:30px;line-height:1;flex-shrink:0;">👕</div>
+      <div><div style="font-size:15px;font-weight:900;color:#ff3399;">T-shirt pour le parent et l'enfant</div><div style="font-size:13px;color:#ccc;line-height:1.5;margin-top:2px;">Taille au choix à l'inscription.</div></div>
+    </div>
+    <div style="background:#111;border:1px solid #222;border-left:4px solid #FFA726;border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;gap:14px;align-items:center;">
+      <div style="font-size:30px;line-height:1;flex-shrink:0;">🏅</div>
+      <div><div style="font-size:15px;font-weight:900;color:#FFA726;">Patch finisher</div></div>
+    </div>
+    <div style="background:#111;border:1px solid #222;border-left:4px solid #a3e635;border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;gap:14px;align-items:center;">
+      <div style="font-size:30px;line-height:1;flex-shrink:0;">🧲</div>
+      <div><div style="font-size:15px;font-weight:900;color:#a3e635;">Magnet personnalisé</div></div>
+    </div>
+    <div style="background:#111;border:1px solid #222;border-left:4px solid #00d8ff;border-radius:10px;padding:14px 18px;margin-bottom:10px;display:flex;gap:14px;align-items:center;">
+      <div style="font-size:30px;line-height:1;flex-shrink:0;">🍬</div>
+      <div><div style="font-size:15px;font-weight:900;color:#00d8ff;">Bonbons</div></div>
+    </div>
+
+    <div class="section-title" style="margin-top:1.5rem;">Deux <span>formats</span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem;">
+      <div style="background:#111;border:2px solid #00d8ff;border-radius:12px;padding:14px;text-align:center;"><div style="font-weight:900;color:#fff;">STANDARD</div><div style="font-size:24px;font-weight:900;color:#00d8ff;">200 m</div><div style="font-size:12px;color:#aaa;">de course entre chaque station</div></div>
+      <div style="background:#111;border:2px solid #FFA726;border-radius:12px;padding:14px;text-align:center;"><div style="font-weight:900;color:#fff;">XL</div><div style="font-size:24px;font-weight:900;color:#FFA726;">400 m</div><div style="font-size:12px;color:#aaa;">de course entre chaque station</div></div>
+    </div>
+
+    <div class="section-title">Les <span>épreuves</span></div>
+    <div style="padding:3px;border-radius:16px;background:linear-gradient(90deg,#ff3399,#FFA726,#FFEE00,#a3e635,#00d8ff);margin-bottom:1.5rem;">
+      <div style="background:#0a0a0a;border-radius:14px;padding:1.25rem;">
+      <div class="format-block" style="margin-bottom:0;">
+        <div class="format-block-title">7 stations — identiques pour les deux formats</div>
+        <div class="epreuve-row"><span class="epreuve-nom">1 · SkiErg</span><span class="epreuve-detail">200 m</span></div>
+        <div style="font-size:12px;color:#999;margin:-2px 0 8px;">500 m à deux (en relais)</div>
+        <div class="epreuve-row"><span class="epreuve-nom">2 · Sled Push</span><span class="epreuve-detail">50 m</span></div>
+        <div style="font-size:12px;color:#999;margin:-2px 0 8px;">Enfant : sled vide · Parent : enfant assis sur le sled</div>
+        <div class="epreuve-row"><span class="epreuve-nom">3 · Burpees Broad Jump</span><span class="epreuve-detail">40 m</span></div>
+        <div style="font-size:12px;color:#999;margin:-2px 0 8px;">Pour tous</div>
+        <div class="epreuve-row"><span class="epreuve-nom">4 · Rowing</span><span class="epreuve-detail">500 m</span></div>
+        <div style="font-size:12px;color:#999;margin:-2px 0 8px;">À deux (en relais)</div>
+        <div class="epreuve-row"><span class="epreuve-nom">5 · Farmer's Carry</span><span class="epreuve-detail">50 m</span></div>
+        <div style="font-size:12px;color:#999;margin:-2px 0 8px;">Enfant : 2 × 2,5 kg · Parent : 2 × 12 kg, simultané</div>
+        <div class="epreuve-row"><span class="epreuve-nom">6 · Sandbag Lunges</span><span class="epreuve-detail">100 m</span></div>
+        <div style="font-size:12px;color:#999;margin:-2px 0 8px;">Enfant : sans charge · Parent : 10 kg</div>
+        <div class="epreuve-row"><span class="epreuve-nom">7 · Wall Ball / Squat</span><span class="epreuve-detail">50 reps</span></div>
+        <div style="font-size:12px;color:#999;margin:-2px 0 8px;">Enfant : 2 kg · Parent : 4 kg</div>
+      </div>
+      </div>
+    </div>
   </div>
 
   <!-- À VENIR -->
@@ -527,10 +577,11 @@ function showTab(tab) {
   window.scrollTo(0, 0);
 }
 
-// Deep-link via URL hash (#passes, #avenir, #epreuves, #accueil)
+// Deep-link via URL hash (#passes, #avenir, #hc, #pe, #accueil ; #epreuves = ancien lien → #hc)
 (function() {
   var hash = (window.location.hash || '').replace('#', '');
-  if (hash && ['accueil','epreuves','avenir','passes'].indexOf(hash) !== -1) {
+  if (hash === 'epreuves') hash = 'hc';
+  if (hash && ['accueil','hc','pe','avenir','passes'].indexOf(hash) !== -1) {
     showTab(hash);
     // Auto-déplie la section photos PE si on arrive sur #passes
     if (hash === 'passes') {
