@@ -22,6 +22,19 @@
     .hero-desc { font-size: 15px; color: #ddd; max-width: 480px; margin: 1rem auto 0; line-height: 1.7; text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
     .hero-cta { display: inline-block; background: #FFEE00; color: #0a0a0a; font-weight: 800; font-size: 16px; padding: 13px 36px; border-radius: 10px; margin-top: 1.5rem; cursor: pointer; border: none; font-family: sans-serif; text-decoration: none; }
     .hero-cta:hover { background: #e6d800; }
+    .hero-events { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; max-width: 760px; margin: 1.5rem auto 0; text-align: center; }
+    .hero-event { background: rgba(10,10,10,0.82); border-radius: 14px; padding: 16px 14px; display: flex; flex-direction: column; align-items: center; }
+    .hero-event.hc { border: 3px solid #1B7B49; }
+    .hero-event.pe { border: 3px solid transparent; background: linear-gradient(rgba(10,10,10,0.92),rgba(10,10,10,0.92)) padding-box, linear-gradient(90deg,#ff3399,#FFA726,#FFEE00,#a3e635,#00d8ff) border-box; }
+    .he-date { display: inline-block; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px; }
+    .hc .he-date { background: #1B7B49; color: #fff; }
+    .pe .he-date { background: #ff3399; color: #fff; }
+    .he-title { font-size: 19px; font-weight: 900; color: #fff; line-height: 1.25; }
+    .he-sub { font-size: 13px; color: #bbb; margin: 6px 0 14px; }
+    .he-btn { margin-top: auto; display: block; width: 100%; font-weight: 800; font-size: 16px; padding: 13px 10px; border-radius: 10px; text-decoration: none; font-family: sans-serif; }
+    .hc .he-btn { background: #FFEE00; color: #0a0a0a; }
+    .pe .he-btn { background: #ff3399; color: #fff; }
+    @media (max-width: 640px) { .hero-events { grid-template-columns: 1fr; } .hero-event.pe { order: -1; } }
 
     /* BANDEAU PHOTO */
     .photo-bandeau { width: 100%; height: 200px; background-size: cover; background-position: center; filter: grayscale(100%) brightness(0.35); }
@@ -146,11 +159,21 @@
     <div class="hero-title">Hyrox Challenge <span>La Buse</span></div>
     <div class="hero-sub">Hyrox Training Club La Buse — Saint-Paul, La Réunion</div>
     <div class="hero-desc">Viens tester tes limites ! Deux formats accessibles à tous : Hyrox 1000 et Hyrox 500. Solo ou Duo — que tu sois débutant ou confirmé, viens vivre une expérience intense, fun et accessible 🔥</div>
-    <div class="hero-cta" style="background:#1B7B49;color:#fff;">🔥 Hyrox Challenge La Buse #3 — Dimanche 15 novembre</div>
-    <div><a class="hero-cta" href="inscription.html" style="margin-top:12px;font-size:18px;padding:15px 42px;">🔥 Inscriptions ici</a></div>
-    <!-- Hyrox Parents / Enfants #2 (samedi 14 nov.) -->
-    <div class="hero-cta" style="margin-top:2rem;padding:3px;background:linear-gradient(90deg,#ff3399,#FFA726,#FFEE00,#a3e635,#00d8ff);"><div style="background:#0a0a0a;color:#fff;border-radius:8px;padding:10px 30px;">👨‍👧 Hyrox Parents / Enfants #2 — Samedi 14 novembre</div></div>
-    <div><a class="hero-cta" href="parent-enfant-inscription.html" style="margin-top:12px;font-size:18px;padding:15px 42px;background:#ff3399;color:#fff;">👨‍👧 Inscriptions Parent-Enfant</a></div>
+    <!-- Les deux événements de novembre : une carte chacun, bouton d'inscription dans la carte -->
+    <div class="hero-events">
+      <div class="hero-event hc">
+        <div class="he-date">Dimanche 15 novembre</div>
+        <div class="he-title">🔥 Hyrox Challenge La Buse #3</div>
+        <div class="he-sub">Solo · Duo — Hyrox 1000 ou 500</div>
+        <a class="he-btn" href="inscription.html">🔥 Inscriptions ici</a>
+      </div>
+      <div class="hero-event pe">
+        <div class="he-date">Samedi 14 novembre</div>
+        <div class="he-title">👨‍👧 Hyrox Parents / Enfants #2</div>
+        <div class="he-sub">1 parent + 1 enfant (5-15 ans)</div>
+        <a class="he-btn" href="parent-enfant-inscription.html">👨‍👧 Inscriptions ici</a>
+      </div>
+    </div>
   </div>
 </div>
 
