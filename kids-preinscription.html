@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TRAINING KIDS — Inscription</title>
-  <meta http-equiv="refresh" content="4;url=/kids-inscription.html">
+  <title>TRAINING KIDS — Séance d'essai</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
@@ -66,13 +66,57 @@
     <div class="tagline">Hyrox, CrossFit…</div>
     <div class="sub">📍 Crossfit La Buse — Saint-Paul, La Réunion</div>
     <div class="slogan">BOUGE. DÉPASSE-TOI. AMUSE-TOI.</div>
+    <div class="date">Séance d'essai gratuite</div>
   </div>
 
-  <div class="form-card" style="text-align:center;">
-    <h2>Les inscriptions sont ouvertes 🎉</h2>
-    <p class="form-sub" style="font-size:14px;line-height:1.7;">Les pré-inscriptions sont terminées : on passe directement à l'inscription au cours, avec le choix de la formule et le paiement.</p>
-    <a href="/kids-inscription.html" class="btn-submit" style="display:block;text-decoration:none;text-align:center;line-height:1.2;">👉 Inscrire mon enfant</a>
-    <p class="form-sub" style="margin-top:14px;">Tu vas y être redirigé automatiquement dans quelques secondes.</p>
+  <div class="info-grid">
+    <div class="info creneaux">
+      <h3>📅 Créneaux</h3>
+      <div class="creneau-line"><span class="dot orange"></span><span>Groupe 1 — les plus jeunes<br><strong>8h45 à 9h30</strong></span></div>
+      <div class="creneau-line"><span class="dot green"></span><span>Groupe 2 — les plus grands<br><strong>9h30 à 10h30</strong></span></div>
+      <p class="desc">Le coach place chaque enfant dans l'un des deux groupes selon son âge et son niveau. On te confirme le créneau par retour de message.</p>
+    </div>
+    <div class="info places">
+      <h3>⚠️ Places limitées</h3>
+      <p><strong>12 enfants par groupe d'âge</strong></p>
+    </div>
+    <div class="info prix">
+      <h3>💰 Tarif</h3>
+      <p><span class="prix-big">30 €</span> <span class="prix-small">/ mois</span></p>
+      <div class="badges">
+        <span class="badge">1 séance / semaine · samedi matin</span>
+        <span class="badge ok">✔ Séance d'essai gratuite</span>
+      </div>
+      <p class="desc">La <strong>première séance est offerte</strong>, sans engagement : on découvre, on bouge, et on voit si ça plaît 💪<br>Ensuite, l'abonnement à 30 €/mois donne accès au cours du samedi matin — ou carnet de <strong>10 séances pour 120 €</strong> pour venir de temps en temps.</p>
+    </div>
+  </div>
+
+  <div id="form-block" class="form-card">
+    <h2>📝 Demander une séance d'essai</h2>
+    <p class="form-sub">Gratuit et sans engagement — on te recontacte pour te dire quand venir.</p>
+
+    <div class="section-divider">👧 Enfant</div>
+    <div class="field"><label>Prénom de l'enfant *</label><input type="text" id="enfant_prenom" placeholder="Ex : Léa"></div>
+    <div class="field"><label>Nom de l'enfant *</label><input type="text" id="enfant_nom" placeholder="Ex : DURAND"></div>
+    <div class="field"><label>Date de naissance *</label><input type="date" id="enfant_dob"></div>
+
+    <div class="section-divider">👤 Responsable légal</div>
+    <div class="field"><label>Prénom *</label><input type="text" id="parent_prenom"></div>
+    <div class="field"><label>Nom *</label><input type="text" id="parent_nom"></div>
+    <div class="field"><label>Email *</label><input type="email" id="parent_email" placeholder="ex@email.com"></div>
+    <div class="field"><label>Téléphone *</label><input type="tel" id="parent_tel" placeholder="0692 …"></div>
+
+    <p class="form-sub" style="margin-top:10px;">Déjà décidé ? Tu peux aussi <a href="/kids-inscription.html" style="color:#FFEE00;font-weight:700;">inscrire directement ton enfant</a>.</p>
+
+    <button type="button" class="btn-submit" id="btn" onclick="submit()">Demander une séance d'essai</button>
+    <div class="error" id="err"></div>
+  </div>
+
+  <div id="success-block" class="success" style="display:none;">
+    <div class="success-icon">🎉</div>
+    <h2>C'est noté !</h2>
+    <p>Merci. On te recontacte <strong>très vite</strong> pour te confirmer le créneau de la séance d'essai.</p>
+    <p style="font-size:12px;color:#888;margin-top:14px;">L'équipe Hyrox La Buse 💪</p>
   </div>
 
   <div class="contact">
@@ -81,5 +125,70 @@
   </div>
   <div class="footer-slogan">DES KIDS AUJOURD'HUI, DES CHAMPIONS DEMAIN !</div>
 </div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  async function submit() {
+    const f = {
+      enfant_prenom: val('enfant_prenom'),
+      enfant_nom: val('enfant_nom'),
+      enfant_dob: val('enfant_dob'),
+      parent_prenom: val('parent_prenom'),
+      parent_nom: val('parent_nom'),
+      parent_email: val('parent_email'),
+      parent_tel: val('parent_tel'),
+    };
+
+    if (!f.enfant_prenom || !f.enfant_nom || !f.enfant_dob || !f.parent_prenom || !f.parent_nom || !f.parent_email || !f.parent_tel) {
+      err('Tous les champs marqués * sont requis.');
+      return;
+    }
+    if (!f.parent_email.includes('@')) {
+      err('Email invalide.');
+      return;
+    }
+    // Une seule formule depuis le 21/09/2026 : le samedi matin (plus de mercredi)
+    const formuleTxt = '1 séance/semaine — Samedi';
+
+    document.getElementById('btn').disabled = true;
+    document.getElementById('btn').textContent = 'Envoi…';
+
+    const { data: inserted, error } = await db.from('Inscriptions').insert({
+      nom: f.parent_nom.toUpperCase(),
+      prenom: f.parent_prenom,
+      email: f.parent_email,
+      telephone: f.parent_tel,
+      categorie: 'Hyrox Kids Pré-inscription',
+      prix: 30,
+      statut_paiement: 'en_attente',
+      co1_nom: f.enfant_nom.toUpperCase(),
+      co1_prenom: f.enfant_prenom,
+      co1_date_naissance: f.enfant_dob,
+      nom_equipe: formuleTxt,
+    }).select('id');
+
+    if (error) {
+      err('Erreur : ' + error.message);
+      document.getElementById('btn').disabled = false;
+      document.getElementById('btn').textContent = 'Demander une séance d\'essai';
+      return;
+    }
+    // Mail de bienvenue automatique (envoyé côté serveur ; ne bloque pas l'affichage du succès)
+    try {
+      if (inserted && inserted[0] && inserted[0].id) {
+        fetch('/api/kids-bienvenue', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: inserted[0].id }) });
+      }
+    } catch (e) {}
+    document.getElementById('form-block').style.display = 'none';
+    document.getElementById('success-block').style.display = 'block';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }
+
+  function val(id) { return document.getElementById(id).value.trim(); }
+  function err(msg) { document.getElementById('err').textContent = msg; }
+</script>
 </body>
 </html>

@@ -93,8 +93,7 @@ function mailLancement(r) {
 <p><strong>Petite chose à faire : dis-nous si ${enfant} sera là samedi !</strong> Réponds simplement à ce mail, ou viens le dire directement sur le groupe WhatsApp des parents :<br>
 <a href="${WHATSAPP}" style="color:#A6D402;font-weight:700;">Rejoindre le groupe WhatsApp</a></p>
 <p>💡 <strong>Les formules :</strong><br>
-&nbsp;&nbsp;• Abonnement : <strong>30 €/mois</strong> — le samedi matin<br>
-&nbsp;&nbsp;• Fratrie : <strong>30 €/mois par enfant</strong><br>
+&nbsp;&nbsp;• Abonnement : <strong>30 €/mois</strong> — un cours par semaine, le samedi matin<br>
 &nbsp;&nbsp;• Sans abonnement : carnet de <strong>10 séances pour 120 €</strong><br>
 On en parle sur place !</p>
 <p>À prévoir : une tenue de sport, des baskets et une gourde. On s'occupe du reste 💪</p>
@@ -113,7 +112,7 @@ function mailBienvenue(r) {
   const formuleTxt = '';
   const corps = `
 <p>Salut ${parent},</p>
-<p>La pré-inscription de <strong>${enfant}</strong> au Training Kids est bien reçue — bienvenue dans l'équipe ! 🙌</p>
+<p>Ta demande de <strong>séance d'essai</strong> pour <strong>${enfant}</strong> est bien reçue 🙌</p>
 <p>📅 <strong>Les cours de ${enfant}${ageTxt} — ${i.groupe}</strong><br>
 ${lignesJours}
 &nbsp;&nbsp;à Crossfit La Buse, Saint-Paul. ${enfant} vient quand il/elle peut, sans obligation de présence.</p>
@@ -122,13 +121,14 @@ ${formuleTxt}
 <p><strong>Petite chose à faire : dis-nous à quelle séance ${enfant} vient pour son essai !</strong> Réponds simplement à ce mail, ou viens le dire directement sur le groupe WhatsApp des parents :<br>
 <a href="${WHATSAPP}" style="color:#A6D402;font-weight:700;">Rejoindre le groupe WhatsApp</a></p>
 <p>💡 <strong>Les formules :</strong><br>
-&nbsp;&nbsp;• Abonnement : <strong>30 €/mois</strong> — le samedi matin<br>
-&nbsp;&nbsp;• Fratrie : <strong>30 €/mois par enfant</strong><br>
+&nbsp;&nbsp;• Abonnement : <strong>30 €/mois</strong> — un cours par semaine, le samedi matin<br>
 &nbsp;&nbsp;• Sans abonnement : carnet de <strong>10 séances pour 120 €</strong><br>
 On en parle sur place !</p>
 <p>À prévoir : une tenue de sport, des baskets et une gourde. On s'occupe du reste 💪</p>
+<p>Si ça lui plaît, l'inscription se fait ensuite en ligne :<br>
+<a href="${PAGE_INSCRIPTION}" style="color:#A6D402;font-weight:700;">👉 Inscrire mon enfant au Training Kids</a></p>
 <p>À très vite !</p>`;
-  return { subject: `🎉 ${enfant} est pré-inscrit(e) au Training Kids !`, html: enveloppe('Bienvenue dans l\'équipe !', corps) };
+  return { subject: `🎉 La séance d'essai de ${enfant} au Training Kids`, html: enveloppe('Séance d\'essai — c\'est noté !', corps) };
 }
 
 // Mail « ouverture des inscriptions » (mode ouverture, texte validé par Stéphanie le 22/09/2026).
