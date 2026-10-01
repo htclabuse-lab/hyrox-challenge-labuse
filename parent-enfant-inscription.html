@@ -110,7 +110,7 @@
   </div>
 
   <!-- INSCRIPTIONS PAS ENCORE OUVERTES : retirer ce bloc et le style="display:none" du formulaire pour ouvrir -->
-  <div class="form-card" style="text-align:center;">
+  <div class="form-card" id="bloc-a-venir" style="text-align:center;">
     <h2>⏳ Inscriptions à venir</h2>
     <p style="font-size:14px;color:#ccc;line-height:1.6;margin-top:8px;">Les inscriptions ne sont pas encore ouvertes. Reviens très vite !</p>
   </div>
@@ -186,6 +186,11 @@
 </div>
 
 <script>
+  // Version de test (adresse « -git- » de Vercel) : formulaire visible pour pouvoir essayer.
+  if (location.hostname.includes('-git-')) {
+    document.getElementById('bloc-a-venir').style.display = 'none';
+    document.getElementById('form-block').style.display = 'block';
+  }
   const params = new URLSearchParams(location.search);
   if (params.get('succes') === '1') {
     document.getElementById('success-block').style.display = 'block';
