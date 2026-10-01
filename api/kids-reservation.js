@@ -29,6 +29,12 @@ const NB_SAMEDIS = 8;
 
 function iso(d) { return d.toISOString().slice(0, 10); }
 
+// Comparaison tolérante : accents, majuscules et espaces ignorés. Sans ça, un
+// parent qui tape « Andrea » au lieu d'« Andréa » ne retrouvait pas son carnet.
+function norm(s) {
+  return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+}
+
 // Les NB_SAMEDIS prochains samedis, à partir d'aujourd'hui inclus.
 function prochainsSamedis() {
   const out = [];
@@ -102,12 +108,11 @@ export default async function handler(req, res) {
 
     // --------------------------------------------------------------- lookup
     if (b.action === 'lookup') {
-      const email = String(b.email || '').trim().toLowerCase();
-      const prenom = String(b.enfant_prenom || '').trim().toLowerCase();
+      const email = norm(b.email);
+      const prenom = norm(b.enfant_prenom);
       if (!emailValide(email) || !prenom) return res.status(400).json({ error: "Indique l'email de l'inscription et le prénom de l'enfant." });
       const fiches = Object.values(carnetDe).filter(r =>
-        String(r.email || '').trim().toLowerCase() === email &&
-        String(r.co1_prenom || '').trim().toLowerCase() === prenom);
+        norm(r.email) === email && norm(r.co1_prenom) === prenom);
       if (!fiches.length) {
         return res.status(404).json({ error: "Aucun carnet trouvé pour cet email et ce prénom. Vérifie l'orthographe, ou écris-nous à htclabuse@gmail.com." });
       }
