@@ -25,14 +25,18 @@ import {
 
 const STRIPE_KEY_ENV = 'STRIPE_KIDS_SECRET_KEY';
 
-// 1er du mois suivant, 04h00 UTC = 08h00 à La Réunion.
+// 1er du mois suivant, à 00h00 UTC (= 04h00 à La Réunion, donc bien le 1er sur place).
 // Sert d'ancre de facturation : premier prélèvement ce jour-là, rien avant.
-// (On utilise billing_cycle_anchor + proration_behavior 'none' plutôt qu'un
-// trial_end, car Stripe refuse un trial_end à moins de 48 h — ce qui bloquait
-// les inscriptions les 29 et 30 septembre 2026.)
+//
+// Deux pièges Stripe, rencontrés en vrai :
+//  - un `trial_end` doit être à plus de 48 h → inutilisable fin de mois ;
+//  - un `billing_cycle_anchor` ne peut pas être POSTÉRIEUR à la date naturelle
+//    de facturation (création + 1 mois, à la même heure). D'où le 00h00 UTC :
+//    une inscription le 1er à 02h53 UTC donnait une ancre au 1er du mois suivant
+//    à 04h00, soit après la date naturelle (02h53) → refus (bug du 01/10/2026).
 function premierDuMoisSuivant() {
   const t = new Date();
-  return Math.floor(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 1, 4, 0, 0) / 1000);
+  return Math.floor(Date.UTC(t.getUTCFullYear(), t.getUTCMonth() + 1, 1, 0, 0, 0) / 1000);
 }
 
 function nettoie(s, max = 80) { return String(s || '').trim().slice(0, max); }
