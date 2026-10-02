@@ -102,13 +102,15 @@ export default async function handler(req, res) {
 
     const places = await placesParGroupe(db);
     const plein = places[groupe].libres <= 0;
-    // Le carnet ne réserve pas de place : on arrête d'en vendre quand le groupe se remplit.
-    if (carnet && !places[groupe].carnet_possible) {
-      return res.status(409).json({ error: "Le carnet n'est plus proposé sur ce créneau : le groupe est presque complet. Passe par l'abonnement mensuel, ou écris-nous à htclabuse@gmail.com." });
+    // Carnet refusé quand le groupe approche de sa limite d'abonnés (mais si le
+    // groupe est complet, c'est la liste d'attente qui s'applique, comme pour tous).
+    if (carnet && !plein && !places[groupe].carnet_possible) {
+      return res.status(409).json({ error: "Le carnet n'est plus proposé sur ce créneau. Passe par l'abonnement mensuel, ou écris-nous à htclabuse@gmail.com." });
     }
 
-    // Un carnet ne prend pas de place à l'année : il n'est jamais mis en liste d'attente.
-    const enAttente = plein && !carnet;
+    // Groupe complet (12 enfants, toutes formules confondues) : liste d'attente
+    // pour tout le monde, carnets compris, et aucun paiement n'est demandé.
+    const enAttente = plein;
     const fiche = {
       nom: f.parent_nom, prenom: f.parent_prenom, email: f.parent_email, telephone: f.parent_tel,
       categorie: CATEGORIE_INSCRIPTION, prix: carnet ? PRIX_CARNET : PRIX_MENSUEL,

@@ -79,6 +79,8 @@
     <div class="date">Tous les samedis matin</div>
   </div>
 
+  <div id="msg-complet" class="warn" style="display:none;"></div>
+
   <div id="msg-annule" class="warn" style="display:none;">Le paiement a été annulé : <strong>la place n'est pas réservée</strong>. Tu peux recommencer ci-dessous quand tu veux.</div>
 
   <div id="success-block" class="success" style="display:none;margin-bottom:1rem;">
@@ -162,13 +164,21 @@
   }
   if (params.get('annule') === '1') document.getElementById('msg-annule').style.display = 'block';
 
-  // Le carnet n'est plus proposé quand les groupes se remplissent.
+  // Carnet masqué quand il n'est plus proposé, et avertissement si un groupe est complet.
   fetch('/api/kids-checkout').then(r => r.json()).then(j => {
     if (!j || !j.places) return;
     const possible = Object.keys(j.places).some(k => j.places[k].carnet_possible);
     if (!possible) {
       const l = document.getElementById('label-carnet');
       if (l) l.style.display = 'none';
+    }
+    const complets = Object.keys(j.places).filter(k => j.places[k].complet)
+      .map(k => (j.groupes[k] || {}).label + ' (' + (j.groupes[k] || {}).horaire + ')');
+    if (complets.length) {
+      const el = document.getElementById('msg-complet');
+      el.innerHTML = '<strong>' + complets.join(' et ') + (complets.length > 1 ? ' sont complets' : ' est complet') +
+        '.</strong> Tu peux quand même remplir le formulaire : ton enfant sera placé sur la <strong>liste d\'attente</strong>, sans aucun paiement, et on te rappelle dès qu\'une place se libère.';
+      el.style.display = 'block';
     }
   }).catch(() => {});
 
