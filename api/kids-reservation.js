@@ -17,8 +17,11 @@ import {
 //  POST { action: 'book',   id, date }  → réserve (décompte 1 séance).
 //  POST { action: 'cancel', id, date }  → annule (rend la séance) jusqu'au
 //        vendredi soir qui précède.
-//  POST { action: 'admin',  password, date } → la liste des carnets attendus
-//        ce samedi-là (utilisé par admin.html).
+//  POST { action: 'admin',  password } → les carnets réservés, par samedi.
+//  POST { action: 'appel',  password, date } → la feuille d'appel d'un samedi :
+//        tous les enfants attendus (abonnés d'office + carnets ayant réservé),
+//        avec la présence déjà pointée.
+//  POST { action: 'presence', password, id, date, present } → pointe un enfant.
 //
 // La table Reservations_kids a RLS activée sans aucune policy : elle n'est
 // accessible que par la service_role, donc uniquement via cette route.
@@ -104,6 +107,51 @@ export default async function handler(req, res) {
         });
       }
       return res.status(200).json({ samedis, reservations: parDate });
+    }
+
+    // ------------------------------------------------- feuille d'appel (admin)
+    if (b.action === 'appel' || b.action === 'presence') {
+      if (!b.password || b.password !== process.env.JUGES_PASSWORD) return res.status(401).json({ error: 'Non autorisé' });
+      const date = String(b.date || '');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'Date invalide.' });
+
+      if (b.action === 'presence') {
+        const id = parseInt(b.id, 10);
+        const present = b.present === true;
+        if (!id) return res.status(400).json({ error: 'id requis' });
+        const { data: dej } = await db.from(TABLE).select('id').eq('inscription_id', id).eq('date_seance', date).limit(1);
+        if (dej && dej.length) {
+          const { error } = await db.from(TABLE).update({ present }).eq('id', dej[0].id);
+          if (error) return res.status(500).json({ error: error.message });
+        } else {
+          const { error } = await db.from(TABLE).insert({ inscription_id: id, date_seance: date, present });
+          if (error) return res.status(500).json({ error: error.message });
+        }
+        return res.status(200).json({ success: true, id, date, present });
+      }
+
+      // Lignes déjà présentes en base pour ce samedi (réservations et/ou pointages)
+      const { data: duJour, error: eJ } = await db.from(TABLE).select('inscription_id,present').eq('date_seance', date);
+      if (eJ) return res.status(500).json({ error: eJ.message });
+      const etat = {};
+      (duJour || []).forEach(x => { etat[x.inscription_id] = x; });
+
+      const liste = payes
+        .filter(r => r.nom_equipe !== FORMULE_CARNET || etat[r.id] !== undefined)
+        .map(r => ({
+          id: r.id,
+          enfant: `${(r.co1_prenom || '').trim()} ${(r.co1_nom || '').trim()}`.trim(),
+          naissance: r.co1_date_naissance,
+          groupe: groupeDe(r),
+          carnet: r.nom_equipe === FORMULE_CARNET,
+          seances_restantes: r.seances_restantes,
+          parent: `${(r.prenom || '').trim()} ${(r.nom || '').trim()}`.trim(),
+          telephone: r.telephone,
+          niveau: r.niveau || '',
+          present: etat[r.id] ? etat[r.id].present : null,
+        }))
+        .sort((a, b) => a.enfant.localeCompare(b.enfant));
+      return res.status(200).json({ date, liste, groupes: GROUPES });
     }
 
     // --------------------------------------------------------------- lookup

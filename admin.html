@@ -107,6 +107,7 @@
       <button type="button" class="main-tab" data-tab="pack-photo" onclick="showMainTab('pack-photo', this)">📸 Pack photo</button>
       <button type="button" class="main-tab" data-tab="parent-enfant" onclick="showMainTab('parent-enfant', this)">👨‍👧 Parent-Enfant</button>
       <button type="button" class="main-tab" data-tab="benevoles" onclick="showMainTab('benevoles', this)">🙌 Bénévoles</button>
+      <button type="button" class="main-tab" data-tab="kids-appel" onclick="showMainTab('kids-appel', this)">📋 Feuille d'appel Kids</button>
       <button type="button" class="main-tab" data-tab="kids-inscrits" onclick="showMainTab('kids-inscrits', this)">✅ Inscriptions cours Kids</button>
       <button type="button" class="main-tab" data-tab="kids" onclick="showMainTab('kids', this)">🧒 Pré-inscriptions Kids</button>
     </div>
@@ -188,6 +189,11 @@
       <div id="benevoles-content"></div>
     </div>
 
+    <!-- ONGLET FEUILLE D'APPEL KIDS -->
+    <div class="tab-content" id="tab-kids-appel">
+      <div id="kids-appel-content"></div>
+    </div>
+
     <!-- ONGLET INSCRIPTIONS AU COURS KIDS (abonnements Stripe) -->
     <div class="tab-content" id="tab-kids-inscrits">
       <div id="kids-inscrits-content"></div>
@@ -258,7 +264,7 @@
     'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
     'pe':  ['parent-enfant'],
     'pe2': ['parent-enfant','pack-photo'],
-    'kids': ['kids-inscrits','kids']
+    'kids': ['kids-appel','kids-inscrits','kids']
   };
 
   function applyEventTabs() {
@@ -390,6 +396,7 @@
     renderParentEnfant();
     renderKids();
     renderKidsInscrits();
+    renderAppel();
     loadBenevoles();
   }
 
@@ -501,6 +508,97 @@
   }
 
   // Onglet « Inscriptions cours Kids » : les enfants avec un abonnement + la liste d'attente.
+  // ---------------------------------------------------------- Feuille d'appel
+  var APPEL = { pwd: null, date: null, liste: null };
+
+  function prochainsSamedis(n) {
+    var out = [], d = new Date();
+    d.setHours(12,0,0,0);
+    while (d.getDay() !== 6) d.setDate(d.getDate() + 1);
+    for (var i = 0; i < n; i++) { out.push(d.toISOString().slice(0,10)); d.setDate(d.getDate() + 7); }
+    return out;
+  }
+  function jolieDate(d) {
+    var p = d.split('-');
+    return new Date(Date.UTC(+p[0], +p[1]-1, +p[2], 12)).toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', timeZone:'UTC' });
+  }
+
+  async function chargerAppel(date) {
+    if (!APPEL.pwd) {
+      APPEL.pwd = prompt('Mot de passe juges :');
+      if (!APPEL.pwd) return;
+    }
+    APPEL.date = date || APPEL.date || prochainsSamedis(1)[0];
+    document.getElementById('kids-appel-content').innerHTML = '<div style="color:#888;padding:1rem;">Chargement…</div>';
+    try {
+      var r = await fetch('/api/kids-reservation', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ action:'appel', password: APPEL.pwd, date: APPEL.date }) });
+      var d = await r.json();
+      if (!r.ok) { APPEL.pwd = null; document.getElementById('kids-appel-content').innerHTML = '<div style="color:#ff6666;padding:1rem;">❌ ' + (d.error||'Erreur') + '</div>'; return; }
+      APPEL.liste = d.liste;
+      renderAppel();
+    } catch (e) {
+      document.getElementById('kids-appel-content').innerHTML = '<div style="color:#ff6666;padding:1rem;">❌ ' + e.message + '</div>';
+    }
+  }
+
+  async function pointer(id, present) {
+    var r = await fetch('/api/kids-reservation', { method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'presence', password: APPEL.pwd, id: id, date: APPEL.date, present: present }) });
+    var d = await r.json();
+    if (!r.ok) { alert('Erreur : ' + (d.error||'')); return; }
+    APPEL.liste.forEach(function(x){ if (x.id === id) x.present = present; });
+    renderAppel();
+  }
+
+  function renderAppel() {
+    var el = document.getElementById('kids-appel-content');
+    if (!APPEL.liste) {
+      el.innerHTML = '<div style="background:#1a1a1a;border:1px solid #333;border-radius:12px;padding:1rem;">'
+        + '<div style="font-weight:800;color:#FFEE00;font-size:14px;margin-bottom:6px;">📋 Feuille d\'appel du samedi</div>'
+        + '<div style="font-size:12px;color:#888;margin-bottom:10px;">Qui est attendu, et qui est venu. Les abonnés sont là d\'office ; les carnets n\'apparaissent que s\'ils ont réservé.</div>'
+        + '<button onclick="chargerAppel()" style="background:#FFEE00;color:#0a0a0a;border:none;border-radius:8px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:13px;">Ouvrir la feuille d\'appel</button></div>';
+      return;
+    }
+    var sams = prochainsSamedis(6);
+    if (sams.indexOf(APPEL.date) === -1) sams.unshift(APPEL.date);
+    var h = '<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:1rem;">';
+    h += '<select onchange="chargerAppel(this.value)" style="background:#0a0a0a;color:#fff;border:1px solid #444;border-radius:8px;padding:8px;font-size:13px;">';
+    sams.forEach(function(d){ h += '<option value="' + d + '"' + (d===APPEL.date?' selected':'') + '>' + jolieDate(d) + '</option>'; });
+    h += '</select>';
+    h += '<button onclick="chargerAppel(APPEL.date)" style="background:#2a2a2a;color:#ddd;border:1px solid #444;border-radius:8px;padding:8px 12px;font-weight:700;cursor:pointer;font-size:12px;">↻ Rafraîchir</button>';
+    h += '</div>';
+
+    ['petits','grands'].forEach(function(gk) {
+      var g = KIDS_GROUPES[gk];
+      var l = APPEL.liste.filter(function(x){ return x.groupe === gk; });
+      var pres = l.filter(function(x){ return x.present === true; }).length;
+      h += '<div style="font-weight:800;color:#FFEE00;margin:1.2rem 0 0.5rem;font-size:15px;">' + g.heure + ' — ' + g.label
+         + ' <span style="color:#888;font-weight:600;font-size:13px;">· ' + l.length + ' attendu(s), ' + pres + ' présent(s)</span></div>';
+      if (!l.length) { h += '<div style="color:#666;padding:0.8rem;background:#1a1a1a;border-radius:10px;font-size:13px;">Personne</div>'; return; }
+      h += '<div style="overflow-x:auto;"><table><thead><tr><th>Présent</th><th>Enfant</th><th>Formule</th><th>Parent</th><th>Tél</th></tr></thead><tbody>';
+      l.forEach(function(x) {
+        var badge = x.carnet ? '<span style="color:#FFEE00;font-size:11px;font-weight:800;">🎟️ carnet · ' + x.seances_restantes + '</span>'
+          : (x.niveau.indexOf('seance_essai') !== -1 ? '<span style="color:#00d8ff;font-size:11px;font-weight:800;">🧪 essai</span>'
+          : (x.niveau.indexOf('offerte') !== -1 ? '<span style="color:#4ade80;font-size:11px;font-weight:800;">🎁 offert</span>'
+          : '<span style="color:#888;font-size:11px;">abonnement</span>'));
+        var bg = x.present === true ? '#0d1400' : (x.present === false ? '#1a0a0a' : 'transparent');
+        h += '<tr style="background:' + bg + ';">';
+        h += '<td style="white-space:nowrap;">'
+           + '<button onclick="pointer(' + x.id + ',true)" title="Présent" style="background:' + (x.present===true?'#4ade80':'#2a2a2a') + ';color:' + (x.present===true?'#0a0a0a':'#888') + ';border:none;border-radius:6px;padding:6px 10px;font-weight:800;cursor:pointer;font-size:13px;">✓</button> '
+           + '<button onclick="pointer(' + x.id + ',false)" title="Absent" style="background:' + (x.present===false?'#C0392B':'#2a2a2a') + ';color:' + (x.present===false?'#fff':'#888') + ';border:none;border-radius:6px;padding:6px 10px;font-weight:800;cursor:pointer;font-size:13px;">✗</button>'
+           + '</td>';
+        h += '<td><strong style="color:#fff;">' + x.enfant + '</strong><br><span style="font-size:11px;color:#888;">' + (x.naissance||'') + '</span></td>';
+        h += '<td>' + badge + '</td>';
+        h += '<td style="font-size:12px;">' + x.parent + '</td>';
+        h += '<td style="font-size:12px;white-space:nowrap;">' + (x.telephone ? '<a href="tel:' + x.telephone + '" style="color:#fff;">' + x.telephone + '</a>' : '—') + '</td>';
+        h += '</tr>';
+      });
+      h += '</tbody></table></div>';
+    });
+    el.innerHTML = h;
+  }
+
   // Réservations des carnets (table protégée : lecture via l'API, avec le mot de passe juges).
   var KIDS_RESA = null;
   async function chargerResaKids() {
@@ -1115,7 +1213,7 @@ function isParentEnfant(d) {
     if (list.length === 0) {
       html += '<div style="color:#666;padding:2rem;text-align:center;">Aucune inscription Parent-Enfant pour le moment</div>';
     } else {
-      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Parent</th><th>T-shirt parent</th><th>Enfant</th><th>T-shirt enfant</th><th>Format</th><th>📸</th><th title="Droit à l'image de l'enfant">📷 Diffusion</th><th>Payé</th><th>Statut</th><th>Date</th></tr></thead><tbody>';
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Parent</th><th>T-shirt parent</th><th>Enfant</th><th>T-shirt enfant</th><th>Format</th><th>📸</th><th title="Droit a l image de l enfant">📷 Diffusion</th><th>Payé</th><th>Statut</th><th>Date</th></tr></thead><tbody>';
       list.forEach(function(d, i) {
         var dt = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
         html += '<tr>';
