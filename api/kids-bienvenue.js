@@ -267,6 +267,34 @@ function mailCarnet(rows) {
   return { subject: '🎟️ Training Kids — pense à réserver les séances de ton carnet', html: enveloppe('Réserver avec le carnet', corps) };
 }
 
+// Mail aux familles qui viennent pour une séance d'essai : rappel de l'horaire.
+function mailEssai(rows) {
+  const r0 = rows[0];
+  const parent = esc((r0.prenom || '').trim()) || 'à vous';
+  const enfants = rows.map(r => {
+    const i = infosEnfant(r.co1_date_naissance);
+    const auto = (i.age !== null && i.age >= 9) ? 'grands' : 'petits';
+    const g = (r.groupe === 'petits' || r.groupe === 'grands') ? r.groupe : auto;
+    return { nom: esc((r.co1_prenom || '').trim()) || 'votre enfant', heure: g === 'grands' ? '9h30' : '8h45',
+             fin: g === 'grands' ? '10h30' : '9h30', label: g === 'grands' ? 'Groupe 2' : 'Groupe 1' };
+  });
+  const listeNoms = enfants.map(e => e.nom).join(' et ');
+  const plusieurs = enfants.length > 1;
+  const lignes = enfants.map(e => `&nbsp;&nbsp;👉 <strong>${e.nom}</strong> — ${e.label}, de <strong>${e.heure} à ${e.fin}</strong><br>`).join('\n');
+  const corps = `
+<p>Salut ${parent},</p>
+<p>C'est noté pour la <strong>séance d'essai</strong> de ${listeNoms} 🎉</p>
+<p>📅 <strong>Ce samedi</strong>, à Crossfit La Buse — Saint-Paul :<br>
+${lignes}</p>
+<p>Essaie d'arriver <strong>5 minutes en avance</strong> pour qu'on ait le temps de ${plusieurs ? 'les' : 'l\''}accueillir tranquillement et de faire connaissance 😊</p>
+<p>🎒 À prévoir : une tenue de sport, des baskets et une gourde. On s'occupe du reste 💪</p>
+<p>La séance est <strong>gratuite et sans engagement</strong> : on bouge, on rigole, on découvre — et on voit si ça ${plusieurs ? 'leur' : 'lui'} plaît. Si c'est le cas, l'inscription se fait ensuite en ligne :<br>
+<a href="${PAGE_INSCRIPTION}" style="color:#A6D402;font-weight:700;">👉 ${PAGE_INSCRIPTION}</a></p>
+<p>Un empêchement ? Préviens-moi, ça libère la place pour un autre enfant 😊</p>
+<p>À samedi !</p>`;
+  return { subject: `🧪 Séance d'essai de ${listeNoms} — samedi à ${enfants[0].heure}`, html: enveloppe("Séance d'essai — à samedi !", corps) };
+}
+
 async function envoyer(resendKey, to, { subject, html }) {
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -287,7 +315,7 @@ export default async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   const body = req.body || {};
-  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : body.mode === 'travaux' ? 'travaux' : body.mode === 'rappel' ? 'rappel' : body.mode === 'carnet' ? 'carnet' : 'auto';
+  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : body.mode === 'travaux' ? 'travaux' : body.mode === 'rappel' ? 'rappel' : body.mode === 'carnet' ? 'carnet' : body.mode === 'essai' ? 'essai' : 'auto';
 
   try {
     // ------------------------------------------------------------ mode auto
@@ -316,12 +344,12 @@ export default async function handler(req, res) {
     if (ids.length === 0) return res.status(400).json({ error: 'ids requis (liste explicite, non vide)' });
     const dryRun = body.dry_run === true || body.dry_run === 1 || body.dry_run === '1';
 
-    const categorieAttendue = mode === 'carnet' ? CATEGORIE_KIDS_INSCRIPTION : CATEGORIE_KIDS;
+    const categorieAttendue = (mode === 'carnet' || mode === 'essai') ? CATEGORIE_KIDS_INSCRIPTION : CATEGORIE_KIDS;
     const { data: rows, error } = await db.from('Inscriptions').select('*').in('id', ids).eq('categorie', categorieAttendue);
     if (error) return res.status(500).json({ error: error.message });
 
     const resultats = [];
-    if (mode === 'ouverture' || mode === 'travaux' || mode === 'rappel' || mode === 'carnet') {
+    if (mode === 'ouverture' || mode === 'travaux' || mode === 'rappel' || mode === 'carnet' || mode === 'essai') {
       // Un mail par parent : regroupe les fiches par email (fratrie)
       const parEmail = new Map();
       for (const r of rows) {
@@ -334,7 +362,8 @@ export default async function handler(req, res) {
         // Resend limite à 10 envois/seconde : on espace de 150 ms (constaté le 22/09/2026).
         if (!dryRun && !premier) await new Promise(r => setTimeout(r, 150));
         premier = false;
-        const m = mode === 'travaux' ? mailTravaux(grp) : mode === 'rappel' ? mailRappel(grp) : mode === 'carnet' ? mailCarnet(grp) : mailOuverture(grp);
+        const m = mode === 'travaux' ? mailTravaux(grp) : mode === 'rappel' ? mailRappel(grp)
+          : mode === 'carnet' ? mailCarnet(grp) : mode === 'essai' ? mailEssai(grp) : mailOuverture(grp);
         const ids = grp.map(r => r.id), enfants = grp.map(r => r.co1_prenom);
         if (!emailValide(to)) { resultats.push({ ids, skipped: 'email invalide' }); continue; }
         if (dryRun) { resultats.push({ ids, to, enfants, subject: m.subject, dry_run: true }); continue; }
