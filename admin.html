@@ -419,6 +419,7 @@
   function kidsFormuleCell(d) {
     var n = String(d.niveau || '');
     // Cas gérés à la main : inscription offerte, ou paiement en espèces.
+    if (n.indexOf('seance_essai') !== -1) return '<span style="background:#001018;border:1px solid #00d8ff;color:#00d8ff;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;">🧪 séance d\'essai</span>';
     if (n.indexOf('offerte') !== -1) return '<span style="background:#0d1400;border:1px solid #4ade80;color:#4ade80;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800;">🎁 offert</span>';
     if (n.indexOf('especes') !== -1) {
       var det = n.split(':').slice(1).join(':') || 'espèces';
