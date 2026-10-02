@@ -18,9 +18,8 @@ const TAILLES_ENFANT = ['5-6 ans', '7-8 ans', '9-11 ans', '12-14 ans',
   'S Femme', 'M Femme', 'L Femme', 'XL Femme'];
 const TAILLES_ADULTE = { Homme: ['S', 'M', 'L', 'XL', 'XXL'], Femme: ['S', 'M', 'L', 'XL'] };
 
-// Inscriptions pas encore ouvertes (décision de Stéphanie, 30/09/2026) : passer à true pour ouvrir.
-// Les versions de test (Preview Vercel, clés Stripe de test) restent ouvertes pour pouvoir tester.
-const INSCRIPTIONS_OUVERTES = false || process.env.VERCEL_ENV === 'preview';
+// Inscriptions ouvertes le 02/10/2026 (passer à false pour les fermer).
+const INSCRIPTIONS_OUVERTES = true;
 
 function nettoie(s, max = 80) { return String(s || '').trim().slice(0, max); }
 
