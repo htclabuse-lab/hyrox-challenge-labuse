@@ -72,7 +72,7 @@ export default async function handler(req, res) {
   try {
     // Toutes les fiches payées : les abonnés occupent une place d'office.
     const { data: payes, error: e1 } = await db.from('Inscriptions')
-      .select('id,co1_prenom,co1_nom,co1_date_naissance,prenom,nom,email,telephone,groupe,nom_equipe,seances_restantes,statut_paiement')
+      .select('id,co1_prenom,co1_nom,co1_date_naissance,prenom,nom,email,telephone,groupe,nom_equipe,seances_restantes,statut_paiement,niveau')
       .eq('categorie', CATEGORIE_INSCRIPTION).eq('statut_paiement', 'payé');
     if (e1) return res.status(500).json({ error: e1.message });
 
