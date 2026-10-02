@@ -1108,10 +1108,14 @@ function isParentEnfant(d) {
     // --- Liste des binômes ---
     var html = waveHtml + '<div style="font-weight:800;color:#FFEE00;margin:2rem 0 0.5rem;font-size:16px;">📋 Liste complète des binômes</div>';
     html += '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + list.length + '</strong> binôme(s) Parent-Enfant — ' + (currentEvent === 'pe2' ? 'épreuve du samedi 14 novembre 2026' : 'épreuve du samedi 27 juin 2026 dès 13h00') + '</div>';
+    if (currentEvent === 'pe2') {
+      var sansDiff = list.filter(function(d){ return d.droit_image === false && d.statut_paiement === 'paye'; });
+      html += '<div style="font-size:13px;margin-bottom:1rem;padding:10px 12px;border-radius:8px;background:#2a0d0d;border:1px solid #C0392B;color:#ffb3aa;">📷 <strong>Pas de diffusion des photos</strong> pour ' + sansDiff.length + ' enfant(s)' + (sansDiff.length ? ' : ' + sansDiff.map(function(d){ return (d.co1_prenom||'') + ' ' + (d.co1_nom||''); }).join(', ') : '') + ' — à transmettre au photographe.</div>';
+    }
     if (list.length === 0) {
       html += '<div style="color:#666;padding:2rem;text-align:center;">Aucune inscription Parent-Enfant pour le moment</div>';
     } else {
-      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Parent</th><th>T-shirt parent</th><th>Enfant</th><th>T-shirt enfant</th><th>Format</th><th>📸</th><th>Payé</th><th>Statut</th><th>Date</th></tr></thead><tbody>';
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Parent</th><th>T-shirt parent</th><th>Enfant</th><th>T-shirt enfant</th><th>Format</th><th>📸</th><th title="Droit à l'image de l'enfant">📷 Diffusion</th><th>Payé</th><th>Statut</th><th>Date</th></tr></thead><tbody>';
       list.forEach(function(d, i) {
         var dt = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
         html += '<tr>';
@@ -1122,6 +1126,7 @@ function isParentEnfant(d) {
         html += '<td>' + (d.co1_tshirt||'—') + '</td>';
         html += '<td style="font-size:12px;">' + (d.niveau||'—') + '</td>';
         html += '<td>' + (d.pack_photo ? '📸' : '') + '</td>';
+        html += '<td style="font-size:12px;">' + (d.droit_image === true ? '✅ oui' : d.droit_image === false ? '<strong style="color:#ff6b5b;">🚫 non</strong>' : '—') + '</td>';
         html += '<td style="font-size:12px;">' + (d.statut_paiement === 'paye' && d.prix != null ? String(d.prix).replace('.', ',') + ' €' : '—') + '</td>';
         html += '<td>' + getStatut(d.statut_paiement) + '</td>';
         html += '<td style="font-size:12px;">' + dt + '</td>';

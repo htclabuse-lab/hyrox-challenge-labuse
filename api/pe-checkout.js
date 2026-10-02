@@ -61,6 +61,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: `L'enfant doit avoir entre ${AGE_MIN} et ${AGE_MAX} ans le ${DATE_LABEL}.` });
   }
   if (b.sante !== true) return res.status(400).json({ error: "L'attestation de santé est obligatoire." });
+  if (b.droit_image !== 'oui' && b.droit_image !== 'non') return res.status(400).json({ error: "Merci de répondre à la question sur le droit à l'image." });
   const pack = b.pack_photo === true;
 
   try {
@@ -82,6 +83,7 @@ export default async function handler(req, res) {
       co1_prenom: f.enfant_prenom, co1_nom: f.enfant_nom, co1_date_naissance: f.enfant_dob, co1_tshirt: f.enfant_tshirt,
       contact_urgence_prenom: f.urg_prenom, contact_urgence_nom: f.urg_nom, contact_urgence_tel: f.urg_tel,
       sante_declaree: true,
+      droit_image: b.droit_image === 'oui',
     };
     const { data: inserted, error: insErr } = await db.from('Inscriptions').insert(fiche).select('id').single();
     if (insErr) return res.status(500).json({ error: 'Enregistrement impossible : ' + insErr.message });

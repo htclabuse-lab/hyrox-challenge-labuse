@@ -59,7 +59,8 @@
     .contact-line { font-size: 14px; color: #ddd; padding: 4px 0; }
     .contact a { color: #FFEE00; text-decoration: none; font-weight: 700; }
     .footer-slogan { text-align: center; font-size: 13px; font-weight: 800; color: #888; letter-spacing: 1px; margin: 1.2rem 0 0.5rem; }
-    .error { color: #ff6b5b; font-size: 13px; margin-top: 8px; }
+    .error { color: #ff6b5b; font-size: 14px; font-weight: 700; margin-top: 10px; }
+    .manquant { border-color: #ff4d4d !important; box-shadow: 0 0 0 2px rgba(255,77,77,.45); border-radius: 8px; }
   </style>
 </head>
 <body>
@@ -105,7 +106,7 @@
     <div class="info prix">
       <h3>💰 Tarif</h3>
       <p><span class="prix-big">68 €</span> <span class="prix-small">par binôme (parent + enfant), t-shirts compris</span></p>
-      <p style="font-size:13px;color:#ccc;margin-top:8px;">📸 En option : <strong style="color:#fff;">pack photo +20 €</strong> par binôme.</p>
+      <p style="font-size:14px;color:#fff;margin-top:10px;padding:10px 12px;background:#2a0d1c;border:1px solid #ff3399;border-radius:10px;">📸 <strong>Pack photo : +20 €</strong> par binôme — des <strong>photos professionnelles</strong> de votre binôme en pleine course, à ajouter dans le formulaire.</p>
     </div>
   </div>
 
@@ -159,14 +160,30 @@
     </div>
     <div class="field"><label>Téléphone *</label><input type="tel" id="urg_tel" placeholder="0692 …"></div>
 
-    <div class="section-divider">📸 Option</div>
-    <div class="checkboxes">
-      <label><input type="checkbox" id="pack_photo"> <span><strong>Pack photo — +20 €</strong><br><span style="color:#888;font-size:12px;">Les photos de votre binôme pendant la course.</span></span></label>
-    </div>
+    <div class="section-divider">📸 Pack photo</div>
+    <label for="pack_photo" style="display:block;cursor:pointer;margin-bottom:6px;padding:3px;border-radius:14px;background:linear-gradient(90deg,#ff3399,#FFA726,#FFEE00,#a3e635,#00d8ff);">
+      <span style="display:block;background:#141414;border-radius:12px;padding:14px;">
+        <span style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+          <span style="font-size:17px;font-weight:900;color:#fff;">📸 Photos professionnelles</span>
+          <span style="background:#ff3399;color:#fff;font-weight:900;font-size:15px;padding:4px 10px;border-radius:8px;white-space:nowrap;">+20 €</span>
+        </span>
+        <span style="display:block;font-size:13px;color:#ccc;line-height:1.55;margin:8px 0 12px;">Des <strong>photos professionnelles</strong> de votre binôme pendant la course : le parent et l'enfant en action, ensemble. Un super souvenir de ce moment en famille, envoyé après l'événement.</span>
+        <span style="display:flex;align-items:center;gap:10px;background:#0a0a0a;border:1px solid #333;border-radius:8px;padding:10px;font-size:14px;font-weight:800;color:#FFEE00;">
+          <input type="checkbox" id="pack_photo" style="width:22px;height:22px;accent-color:#ff3399;flex-shrink:0;"> Oui, j'ajoute le pack photo à mon inscription
+        </span>
+      </span>
+    </label>
 
     <div class="section-divider">✅ Attestation *</div>
     <div class="checkboxes">
       <label><input type="checkbox" id="sante"> <span>J'atteste que <strong>mon enfant et moi ne présentons aucune contre-indication médicale</strong> à la pratique sportive. En tant que responsable légal, j'autorise mon enfant à participer et l'organisation à prendre toute mesure d'urgence nécessaire.</span></label>
+    </div>
+
+    <div class="section-divider">📷 Droit à l'image *</div>
+    <p style="font-size:13px;color:#ccc;line-height:1.55;margin:-2px 0 10px;">Le jour de l'événement, notre photographe prendra des photos de tous les participants. Les photos de votre enfant ne seront <strong>diffusées</strong> (site, réseaux sociaux…) <strong>que si vous l'autorisez</strong>.</p>
+    <div class="checkboxes" id="bloc-droit-image">
+      <label><input type="radio" name="droit_image" value="oui"> <span><strong>J'autorise</strong> la diffusion des photos de mon enfant</span></label>
+      <label><input type="radio" name="droit_image" value="non"> <span><strong>Je n'autorise pas</strong> la diffusion des photos de mon enfant</span></label>
     </div>
 
     <button type="button" class="btn-submit" id="btn" onclick="envoyer()">Valider et passer au paiement</button>
@@ -210,12 +227,26 @@
     f.format = (document.querySelector('input[name="format"]:checked') || {}).value || '';
     f.sante = document.getElementById('sante').checked;
     f.pack_photo = document.getElementById('pack_photo').checked;
-    if (ids.some(id => !f[id])) { err('Tous les champs marqués * sont requis.'); return; }
-    if (!f.parent_email.includes('@')) { err('Email invalide.'); return; }
+    f.droit_image = (document.querySelector('input[name="droit_image"]:checked') || {}).value || '';
+
+    // Tout doit être renseigné : on liste ce qui manque et on l'entoure en rouge.
+    const NOMS = { parent_prenom: 'prénom du parent', parent_nom: 'nom du parent', parent_email: 'email', parent_tel: 'téléphone',
+      parent_dob: 'date de naissance du parent', parent_genre: 'coupe du t-shirt parent', parent_taille: 'taille du t-shirt parent',
+      enfant_prenom: "prénom de l'enfant", enfant_nom: "nom de l'enfant", enfant_dob: "date de naissance de l'enfant", enfant_tshirt: "t-shirt de l'enfant",
+      urg_prenom: 'prénom du contact d\'urgence', urg_nom: 'nom du contact d\'urgence', urg_tel: 'téléphone du contact d\'urgence' };
+    document.querySelectorAll('.manquant').forEach(e => e.classList.remove('manquant'));
+    const manque = ids.filter(id => !f[id]).map(id => { document.getElementById(id).classList.add('manquant'); return NOMS[id]; });
+    if (f.parent_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.parent_email)) { document.getElementById('parent_email').classList.add('manquant'); manque.push('email valide'); }
+    if (!f.format) { document.querySelector('input[name="format"]').closest('.checkboxes').classList.add('manquant'); manque.push('format (Standard ou XL)'); }
+    if (!f.sante) { document.getElementById('sante').closest('.checkboxes').classList.add('manquant'); manque.push('attestation de santé'); }
+    if (!f.droit_image) { document.getElementById('bloc-droit-image').classList.add('manquant'); manque.push("droit à l'image (oui ou non)"); }
+    if (manque.length) {
+      err('Il manque : ' + manque.join(', ') + '.');
+      document.querySelector('.manquant').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     const age = ageLeJour(f.enfant_dob);
-    if (age === null || age < 5 || age > 15) { err("L'enfant doit avoir entre 5 et 15 ans le samedi 14 novembre 2026."); return; }
-    if (!f.format) { err('Choisis un format : Standard ou XL.'); return; }
-    if (!f.sante) { err("Coche l'attestation pour continuer."); return; }
+    if (age === null || age < 5 || age > 15) { document.getElementById('enfant_dob').classList.add('manquant'); err("L'enfant doit avoir entre 5 et 15 ans le samedi 14 novembre 2026."); return; }
 
     const btn = document.getElementById('btn');
     btn.disabled = true; btn.textContent = 'Un instant…';
