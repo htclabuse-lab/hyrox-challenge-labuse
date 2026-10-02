@@ -39,6 +39,8 @@ const REPLY_TO = 'htclabuse@gmail.com';
 const WHATSAPP = 'https://chat.whatsapp.com/GjaYPWaX5tK7QXMXfHZoBr?mode=gi_t';
 const PAGE_INSCRIPTION = 'https://hyrox-challenge-labuse.vercel.app/kids-inscription.html';
 const CATEGORIE_KIDS = 'Hyrox Kids Pré-inscription';
+const CATEGORIE_KIDS_INSCRIPTION = 'Hyrox Kids Inscription';
+const PAGE_RESERVATION = 'https://hyrox-challenge-labuse.vercel.app/kids-reservation.html';
 const FENETRE_AUTO_MIN = 15;
 const MARQUEUR = 'mail_bienvenue_envoye';
 
@@ -239,6 +241,32 @@ function mailRappel(rows) {
   return { subject: 'Training Kids — premier cours samedi, il manque ton inscription', html: enveloppe('Premier cours samedi 3 octobre', corps) };
 }
 
+// Mail aux familles au carnet : rappel qu'il faut réserver chaque séance en ligne.
+function mailCarnet(rows) {
+  const r0 = rows[0];
+  const parent = esc((r0.prenom || '').trim()) || 'à vous';
+  const enfants = rows.map(r => esc((r.co1_prenom || '').trim()) || 'votre enfant');
+  const listeNoms = enfants.join(' et ');
+  const plusieurs = enfants.length > 1;
+  const restantes = rows.map(r => `${esc((r.co1_prenom || '').trim())} : <strong>${r.seances_restantes === null || r.seances_restantes === undefined ? 10 : r.seances_restantes} séance(s)</strong>`).join(' · ');
+  const corps = `
+<p>Salut ${parent},</p>
+<p>Un point important sur le <strong>carnet de 10 séances</strong> de ${listeNoms}, parce que ça se joue en ligne 😊</p>
+<p>Contrairement à l'abonnement, le carnet <strong>ne garde pas de place à l'année</strong>. Il faut donc <strong>réserver chaque samedi où ${plusieurs ? 'ils viennent' : 'il/elle vient'}</strong>, sinon ${plusieurs ? 'ils ne sont pas attendus' : 'il/elle n\'est pas attendu(e)'} et la place peut partir à un autre enfant.</p>
+<p>Ça se fait ici, en deux clics :<br>
+<a href="${PAGE_RESERVATION}" style="display:inline-block;background:#A6D402;color:#0a0a0a;font-weight:800;padding:12px 20px;border-radius:8px;text-decoration:none;margin:8px 0;">🎟️ Réserver une séance</a><br>
+<span style="font-size:12px;color:#888;">Si le bouton ne marche pas, copie cette adresse dans ton navigateur :<br><a href="${PAGE_RESERVATION}" style="color:#A6D402;">${PAGE_RESERVATION}</a></span></p>
+<p>👉 Tu saisis <strong>ton email d'inscription</strong> et <strong>le prénom de l'enfant</strong>, tu vois les 8 prochains samedis avec les places restantes, et tu cliques sur ceux qui t'arrangent.</p>
+<p>Une séance est décomptée à la réservation, et <strong>elle t'est rendue si tu annules avant le vendredi 20h</strong>.</p>
+<p>🎟️ Il reste aujourd'hui — ${restantes}.</p>
+<p>⚠️ À savoir : les cours sont limités à <strong>12 enfants</strong>. Le groupe du samedi 8h45 est déjà complet, celui de 9h30 a encore de la place. Réserver tôt, c'est l'assurance d'avoir sa place.</p>
+<p>⏰ Les créneaux du samedi à Crossfit La Buse :<br>
+&nbsp;&nbsp;• Groupe 1 : <strong>8h45 à 9h30</strong><br>
+&nbsp;&nbsp;• Groupe 2 : <strong>9h30 à 10h30</strong></p>
+<p>Une question ? Réponds simplement à ce mail 😊</p>`;
+  return { subject: '🎟️ Training Kids — pense à réserver les séances de ton carnet', html: enveloppe('Réserver avec le carnet', corps) };
+}
+
 async function envoyer(resendKey, to, { subject, html }) {
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -259,7 +287,7 @@ export default async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   const body = req.body || {};
-  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : body.mode === 'travaux' ? 'travaux' : body.mode === 'rappel' ? 'rappel' : 'auto';
+  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : body.mode === 'travaux' ? 'travaux' : body.mode === 'rappel' ? 'rappel' : body.mode === 'carnet' ? 'carnet' : 'auto';
 
   try {
     // ------------------------------------------------------------ mode auto
@@ -288,11 +316,12 @@ export default async function handler(req, res) {
     if (ids.length === 0) return res.status(400).json({ error: 'ids requis (liste explicite, non vide)' });
     const dryRun = body.dry_run === true || body.dry_run === 1 || body.dry_run === '1';
 
-    const { data: rows, error } = await db.from('Inscriptions').select('*').in('id', ids).eq('categorie', CATEGORIE_KIDS);
+    const categorieAttendue = mode === 'carnet' ? CATEGORIE_KIDS_INSCRIPTION : CATEGORIE_KIDS;
+    const { data: rows, error } = await db.from('Inscriptions').select('*').in('id', ids).eq('categorie', categorieAttendue);
     if (error) return res.status(500).json({ error: error.message });
 
     const resultats = [];
-    if (mode === 'ouverture' || mode === 'travaux' || mode === 'rappel') {
+    if (mode === 'ouverture' || mode === 'travaux' || mode === 'rappel' || mode === 'carnet') {
       // Un mail par parent : regroupe les fiches par email (fratrie)
       const parEmail = new Map();
       for (const r of rows) {
@@ -305,7 +334,7 @@ export default async function handler(req, res) {
         // Resend limite à 10 envois/seconde : on espace de 150 ms (constaté le 22/09/2026).
         if (!dryRun && !premier) await new Promise(r => setTimeout(r, 150));
         premier = false;
-        const m = mode === 'travaux' ? mailTravaux(grp) : mode === 'rappel' ? mailRappel(grp) : mailOuverture(grp);
+        const m = mode === 'travaux' ? mailTravaux(grp) : mode === 'rappel' ? mailRappel(grp) : mode === 'carnet' ? mailCarnet(grp) : mailOuverture(grp);
         const ids = grp.map(r => r.id), enfants = grp.map(r => r.co1_prenom);
         if (!emailValide(to)) { resultats.push({ ids, skipped: 'email invalide' }); continue; }
         if (dryRun) { resultats.push({ ids, to, enfants, subject: m.subject, dry_run: true }); continue; }
