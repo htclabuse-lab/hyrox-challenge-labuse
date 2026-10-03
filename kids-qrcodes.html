@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Training Kids — QR codes à imprimer</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fff; color: #1a1a1a; font-family: sans-serif; padding: 1.5rem; }
+    .wrap { max-width: 1100px; margin: 0 auto; }
+    h1 { text-align: center; font-size: 24px; margin-bottom: 4px; }
+    h1 span { color: #7ba300; }
+    .subtitle { text-align: center; color: #777; font-size: 14px; margin-bottom: 1.5rem; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+    .card { border: 3px solid #1a1a1a; border-radius: 14px; padding: 1.25rem; text-align: center; page-break-inside: avoid; }
+    .card.insc { border-color: #A6D402; } .card.insc .card-title { color: #6f8e00; }
+    .card.essai { border-color: #00a8cc; } .card.essai .card-title { color: #00809c; }
+    .card.resa { border-color: #e08900; } .card.resa .card-title { color: #b06c00; }
+    .card-icon { font-size: 34px; margin-bottom: 6px; }
+    .card-title { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+    .card-desc { font-size: 12px; color: #666; margin-bottom: 12px; line-height: 1.45; min-height: 56px; }
+    .card img { display: block; width: 100%; max-width: 250px; height: auto; margin: 0 auto 8px; }
+    .card-url { font-family: monospace; font-size: 9px; color: #888; word-break: break-all; padding: 4px 6px; background: #f5f5f5; border-radius: 4px; }
+    .infos { margin-top: 1.5rem; border: 2px dashed #bbb; border-radius: 12px; padding: 1rem 1.25rem; font-size: 13px; line-height: 1.7; color: #444; page-break-inside: avoid; }
+    .infos strong { color: #1a1a1a; }
+    .footer { text-align: center; font-size: 12px; color: #888; margin-top: 1.2rem; }
+    .print-btn { display: block; margin: 0 auto 1rem; background: #A6D402; color: #0a0a0a; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; }
+    @media print { .print-btn { display: none; } body { padding: 0.5cm; } }
+    @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <button class="print-btn" onclick="window.print()">🖨️ Imprimer</button>
+  <h1>TRAINING <span>KIDS</span></h1>
+  <div class="subtitle">Crossfit La Buse — Saint-Paul · tous les samedis matin · dès 5 ans</div>
+
+  <div class="grid">
+    <div class="card insc">
+      <div class="card-icon">📝</div>
+      <div class="card-title">Inscrire mon enfant</div>
+      <div class="card-desc">Inscription au cours : abonnement 30 €/mois ou carnet de 10 séances (120 €). Paiement sécurisé en ligne.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fkids-inscription.html" alt="QR Inscrire mon enfant">
+      <div class="card-url">https://hyrox-challenge-labuse.vercel.app/kids-inscription.html</div>
+    </div>
+    <div class="card essai">
+      <div class="card-icon">🧪</div>
+      <div class="card-title">Séance d'essai gratuite</div>
+      <div class="card-desc">Pour découvrir sans s'engager : on vous recontacte pour vous dire quel samedi venir.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fkids-preinscription.html" alt="QR Séance d'essai gratuite">
+      <div class="card-url">https://hyrox-challenge-labuse.vercel.app/kids-preinscription.html</div>
+    </div>
+    <div class="card resa">
+      <div class="card-icon">🎟️</div>
+      <div class="card-title">Réserver avec mon carnet</div>
+      <div class="card-desc">Réservé aux carnets de 10 séances : réservez les samedis où votre enfant vient.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fkids-reservation.html" alt="QR Réserver avec mon carnet">
+      <div class="card-url">https://hyrox-challenge-labuse.vercel.app/kids-reservation.html</div>
+    </div>
+  </div>
+
+  <div class="infos">
+    ⏰ <strong>Les créneaux du samedi</strong> — Groupe 1 : 8h45 à 9h30 · Groupe 2 : 9h30 à 10h30. Le coach place chaque enfant selon son âge et son niveau.<br>
+    💰 <strong>Tarifs</strong> — Abonnement 30 €/mois, prélevé le 1er, sans engagement de durée (arrêt sur simple mail avant le 25 du mois). Ou carnet de 10 séances à 120 €, pour venir de temps en temps.<br>
+    👥 <strong>12 enfants maximum par groupe.</strong> Au-delà, l'inscription passe en liste d'attente, sans paiement.<br>
+    📞 <strong>Infos</strong> — Stéphanie : 06 92 56 51 02 (WhatsApp) · htclabuse@gmail.com
+  </div>
+
+  <div class="footer">DES KIDS AUJOURD'HUI, DES CHAMPIONS DEMAIN !</div>
+</div>
+</body>
+</html>
