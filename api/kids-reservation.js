@@ -117,9 +117,21 @@ export default async function handler(req, res) {
 
       if (b.action === 'presence') {
         const id = parseInt(b.id, 10);
-        const present = b.present === true;
         if (!id) return res.status(400).json({ error: 'id requis' });
+        // present: true = présent, false = absent, null = effacer le pointage.
+        const present = b.present === null ? null : b.present === true;
         const { data: dej } = await db.from(TABLE).select('id').eq('inscription_id', id).eq('date_seance', date).limit(1);
+        const estCarnet = !!(carnetDe[id]);
+        if (present === null) {
+          if (dej && dej.length) {
+            // Pour un carnet, la ligne EST la réservation : on efface juste le pointage.
+            const { error } = estCarnet
+              ? await db.from(TABLE).update({ present: null }).eq('id', dej[0].id)
+              : await db.from(TABLE).delete().eq('id', dej[0].id);
+            if (error) return res.status(500).json({ error: error.message });
+          }
+          return res.status(200).json({ success: true, id, date, present: null });
+        }
         if (dej && dej.length) {
           const { error } = await db.from(TABLE).update({ present }).eq('id', dej[0].id);
           if (error) return res.status(500).json({ error: error.message });
