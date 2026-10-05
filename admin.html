@@ -1096,6 +1096,13 @@ function isParentEnfant(d) {
 
   function renderParentEnfant() {
     var list = allData.filter(isParentEnfant).filter(EVENT_FILTERS[currentEvent === 'pe2' ? 'pe2' : 'pe']);
+    // 2e édition : seuls les binômes PAYÉS comptent (liste, formats, t-shirts). Les paiements
+    // non finalisés sont affichés à part, en bas, sans être comptés.
+    var nonFinalises = [];
+    if (currentEvent === 'pe2') {
+      nonFinalises = list.filter(function(d){ return d.statut_paiement !== 'paye'; });
+      list = list.filter(function(d){ return d.statut_paiement === 'paye'; });
+    }
 
     // --- Map numéros de passage (basé sur ordre check-in : vague + nom alphabétique) ---
     var sortedAll = list.slice().sort(function(a,b){
@@ -1231,6 +1238,15 @@ function isParentEnfant(d) {
         html += '</tr>';
       });
       html += '</tbody></table></div>';
+    }
+    if (nonFinalises.length) {
+      html += '<details style="margin-top:1.5rem;"><summary style="cursor:pointer;color:#FFA726;font-weight:800;font-size:14px;">⏳ Paiements non finalisés (' + nonFinalises.length + ') — non comptés</summary>';
+      html += '<div style="font-size:12px;color:#888;margin:8px 0;">Formulaire rempli mais paiement pas terminé (abandon ou en cours). Ils ne sont comptés nulle part.</div>';
+      html += '<div style="overflow-x:auto;"><table><thead><tr><th>Parent</th><th>Email</th><th>Téléphone</th><th>Enfant</th><th>Date</th></tr></thead><tbody>';
+      nonFinalises.forEach(function(d) {
+        html += '<tr><td><strong style="color:#fff;">' + (d.nom||'—') + '</strong> ' + (d.prenom||'') + '</td><td style="font-size:12px;">' + (d.email||'—') + '</td><td style="font-size:12px;">' + (d.telephone||'—') + '</td><td>' + (d.co1_prenom||'') + ' ' + (d.co1_nom||'') + '</td><td style="font-size:12px;">' + (d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—') + '</td></tr>';
+      });
+      html += '</tbody></table></div></details>';
     }
     document.getElementById('pe-list').innerHTML = html;
 
