@@ -1096,8 +1096,9 @@ function isParentEnfant(d) {
 
   function renderParentEnfant() {
     var list = allData.filter(isParentEnfant).filter(EVENT_FILTERS[currentEvent === 'pe2' ? 'pe2' : 'pe']);
-    // 2e édition : seuls les binômes PAYÉS comptent (liste, formats, t-shirts). Les paiements
-    // non finalisés sont affichés à part, en bas, sans être comptés.
+    // 2e édition : seuls les binômes PAYÉS comptent (compteurs, formats, t-shirts, vagues).
+    // Les paiements non finalisés restent dans la liste (pour les relancer) mais ne sont pas comptés.
+    var listeAffichee = list;
     var nonFinalises = [];
     if (currentEvent === 'pe2') {
       nonFinalises = list.filter(function(d){ return d.statut_paiement !== 'paye'; });
@@ -1212,19 +1213,21 @@ function isParentEnfant(d) {
 
     // --- Liste des binômes ---
     var html = waveHtml + '<div style="font-weight:800;color:#FFEE00;margin:2rem 0 0.5rem;font-size:16px;">📋 Liste complète des binômes</div>';
-    html += '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + list.length + '</strong> binôme(s) Parent-Enfant — ' + (currentEvent === 'pe2' ? 'épreuve du samedi 14 novembre 2026' : 'épreuve du samedi 27 juin 2026 dès 13h00') + '</div>';
+    html += '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + list.length + '</strong> binôme(s) Parent-Enfant' + (nonFinalises.length ? ' payé(s) <span style="color:#FFA726;">+ ' + nonFinalises.length + ' paiement(s) non finalisé(s), non compté(s)</span>' : '') + ' — ' + (currentEvent === 'pe2' ? 'épreuve du samedi 14 novembre 2026' : 'épreuve du samedi 27 juin 2026 dès 13h00') + '</div>';
     if (currentEvent === 'pe2') {
       var sansDiff = list.filter(function(d){ return d.droit_image === false && d.statut_paiement === 'paye'; });
       html += '<div style="font-size:13px;margin-bottom:1rem;padding:10px 12px;border-radius:8px;background:#2a0d0d;border:1px solid #C0392B;color:#ffb3aa;">📷 <strong>Pas de diffusion des photos</strong> pour ' + sansDiff.length + ' enfant(s)' + (sansDiff.length ? ' : ' + sansDiff.map(function(d){ return (d.co1_prenom||'') + ' ' + (d.co1_nom||''); }).join(', ') : '') + ' — à transmettre au photographe.</div>';
     }
-    if (list.length === 0) {
+    if (listeAffichee.length === 0) {
       html += '<div style="color:#666;padding:2rem;text-align:center;">Aucune inscription Parent-Enfant pour le moment</div>';
     } else {
       html += '<div style="overflow-x:auto;"><table><thead><tr><th>#</th><th>Parent</th><th>T-shirt parent</th><th>Enfant</th><th>T-shirt enfant</th><th>Format</th><th>📸</th><th title="Droit a l image de l enfant">📷 Diffusion</th><th>Payé</th><th>Statut</th><th>Date</th></tr></thead><tbody>';
-      list.forEach(function(d, i) {
+      var numPaye = 0;
+      listeAffichee.forEach(function(d) {
         var dt = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
-        html += '<tr>';
-        html += '<td style="color:#FFEE00;font-weight:700;">' + (i+1) + '</td>';
+        var paye = d.statut_paiement === 'paye';
+        html += '<tr' + (paye ? '' : ' style="opacity:.6;"') + '>';
+        html += '<td style="color:#FFEE00;font-weight:700;">' + (paye ? ++numPaye : '⏳') + '</td>';
         html += '<td><strong style="color:#fff;">' + (d.nom||'—') + '</strong> ' + (d.prenom||'') + '</td>';
         html += '<td>' + (d.tshirt_taille||'—') + ' ' + (d.tshirt_coupe||'') + '</td>';
         html += '<td><strong style="color:#fff;">' + (d.co1_nom||'—') + '</strong> ' + (d.co1_prenom||'') + '</td>';
@@ -1238,15 +1241,6 @@ function isParentEnfant(d) {
         html += '</tr>';
       });
       html += '</tbody></table></div>';
-    }
-    if (nonFinalises.length) {
-      html += '<details style="margin-top:1.5rem;"><summary style="cursor:pointer;color:#FFA726;font-weight:800;font-size:14px;">⏳ Paiements non finalisés (' + nonFinalises.length + ') — non comptés</summary>';
-      html += '<div style="font-size:12px;color:#888;margin:8px 0;">Formulaire rempli mais paiement pas terminé (abandon ou en cours). Ils ne sont comptés nulle part.</div>';
-      html += '<div style="overflow-x:auto;"><table><thead><tr><th>Parent</th><th>Email</th><th>Téléphone</th><th>Enfant</th><th>Date</th></tr></thead><tbody>';
-      nonFinalises.forEach(function(d) {
-        html += '<tr><td><strong style="color:#fff;">' + (d.nom||'—') + '</strong> ' + (d.prenom||'') + '</td><td style="font-size:12px;">' + (d.email||'—') + '</td><td style="font-size:12px;">' + (d.telephone||'—') + '</td><td>' + (d.co1_prenom||'') + ' ' + (d.co1_nom||'') + '</td><td style="font-size:12px;">' + (d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—') + '</td></tr>';
-      });
-      html += '</tbody></table></div></details>';
     }
     document.getElementById('pe-list').innerHTML = html;
 
