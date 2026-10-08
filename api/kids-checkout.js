@@ -94,14 +94,18 @@ export default async function handler(req, res) {
     // Groupe : celui fixé par le coach sur la pré-inscription s'il existe, sinon selon l'âge
     // (groupe 2 à partir de 9 ans). Pas de choix par le parent.
     const { data: pre } = await db.from('Inscriptions')
-      .select('groupe')
+      .select('groupe,niveau')
       .eq('categorie', CATEGORIE_PREINSCRIPTION)
       .ilike('co1_prenom', f.enfant_prenom).ilike('co1_nom', f.enfant_nom)
-      .not('groupe', 'is', null).limit(1);
-    const groupe = (pre && pre.length && GROUPES[pre[0].groupe]) ? pre[0].groupe : groupeParAge(f.enfant_dob);
+      .limit(1);
+    const fichePre = (pre && pre.length) ? pre[0] : null;
+    const groupe = (fichePre && GROUPES[fichePre.groupe]) ? fichePre.groupe : groupeParAge(f.enfant_dob);
+    // Place accordée au cas par cas : Stéphanie marque la pré-inscription de l'enfant
+    // avec `place_accordee` pour qu'il passe malgré un groupe complet (décision du 08/10/2026).
+    const placeAccordee = !!(fichePre && String(fichePre.niveau || '').includes('place_accordee'));
 
     const places = await placesParGroupe(db);
-    const plein = places[groupe].libres <= 0;
+    const plein = places[groupe].libres <= 0 && !placeAccordee;
     // Carnet refusé quand le groupe approche de sa limite d'abonnés (mais si le
     // groupe est complet, c'est la liste d'attente qui s'applique, comme pour tous).
     if (carnet && !plein && !places[groupe].carnet_possible) {
