@@ -39,6 +39,10 @@
     .formats-complet { position: relative; }
     .formats-complet::before { content: "🚫 COMPLET — événement plein"; display: block; background: #C0392B; color: #fff; font-weight: 800; text-align: center; padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; letter-spacing: 1px; }
     .formats-complet .cat-btn { opacity: 0.35; cursor: not-allowed !important; pointer-events: none; text-decoration: line-through; }
+    .places-badge { display:block; margin-top:6px; padding:3px 7px; border-radius:6px; font-size:10px; font-weight:800; letter-spacing:0.3px; }
+    .places-badge.libre { background:#FFEE00; color:#0a0a0a; }
+    .places-badge.complet { background:#C0392B; color:#fff; }
+    .cat-btn.cat-complet { opacity:0.5; pointer-events:none; cursor:not-allowed; filter:grayscale(0.3); }
     .formats-complet .group-label { opacity: 0.55; text-decoration: line-through; }
     .toggle-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid #eee; background: #fafafa; color: #888; font-size: 13px; cursor: pointer; font-family: sans-serif; position: relative; }
     .toggle-btn.selected { border-color: #C0392B; background: #fff5f5; color: #C0392B; font-weight: 600; }
@@ -132,10 +136,10 @@
       <div class="field">
         <div class="group-label">Solo · <span style="color:#C0392B;">🏃 dim. 15 novembre 2026</span></div>
         <div class="grid2">
-          <button type="button" class="cat-btn" onclick="setCat(this,'solo-h-rx',55,'Solo Homme RX')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">55 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'solo-h-sc',55,'Solo Homme Scaled')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">55 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'solo-f-rx',55,'Solo Femme RX')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">55 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'solo-f-sc',55,'Solo Femme Scaled')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">55 €</div></button>
+          <button type="button" class="cat-btn" data-cat="Solo Homme RX" onclick="setCat(this,'solo-h-rx',55,'Solo Homme RX')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">55 €</div><div class="places-badge" data-places>&nbsp;</div></button>
+          <button type="button" class="cat-btn" data-cat="Solo Homme Scaled" onclick="setCat(this,'solo-h-sc',55,'Solo Homme Scaled')"><span class="check">✓</span><div>Solo Homme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">55 €</div><div class="places-badge" data-places>&nbsp;</div></button>
+          <button type="button" class="cat-btn" data-cat="Solo Femme RX" onclick="setCat(this,'solo-f-rx',55,'Solo Femme RX')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">55 €</div><div class="places-badge" data-places>&nbsp;</div></button>
+          <button type="button" class="cat-btn" data-cat="Solo Femme Scaled" onclick="setCat(this,'solo-f-sc',55,'Solo Femme Scaled')"><span class="check">✓</span><div>Solo Femme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">55 €</div><div class="places-badge" data-places>&nbsp;</div></button>
         </div>
       </div>
       <div class="field">
@@ -711,6 +715,53 @@
     }
     var lien = getStripeLink() + '?client_reference_id=' + inserted.id;
     window.location.href = lien;
+  }
+
+  // Quotas Solo HC #3 (fermeture au prochain multiple de 5)
+  // Ne compte QUE les inscriptions "paye" créées depuis l'ouverture HC #3
+  // (sinon on comptabilise les HC #2 déjà couru en juillet 2026).
+  var OUVERTURE_HC3 = '2026-07-19';
+  var QUOTAS_SOLO = {
+    'Solo Femme RX': 15,
+    'Solo Femme Scaled': 20,
+    'Solo Homme RX': 45,
+    'Solo Homme Scaled': 25
+  };
+
+  async function refreshPlacesSolo() {
+    try {
+      var res = await db.from('Inscriptions')
+        .select('categorie')
+        .eq('statut_paiement', 'paye')
+        .ilike('categorie', 'Solo%')
+        .gte('created_at', OUVERTURE_HC3);
+      if (res.error) return;
+      var counts = {};
+      (res.data || []).forEach(function(d){ counts[d.categorie] = (counts[d.categorie] || 0) + 1; });
+      document.querySelectorAll('.cat-btn[data-cat]').forEach(function(btn){
+        var cat = btn.getAttribute('data-cat');
+        if (!QUOTAS_SOLO[cat]) return;
+        var payes = counts[cat] || 0;
+        var reste = Math.max(0, QUOTAS_SOLO[cat] - payes);
+        var badge = btn.querySelector('.places-badge');
+        if (reste === 0) {
+          if (badge) { badge.className = 'places-badge complet'; badge.textContent = 'COMPLET'; }
+          btn.classList.add('cat-complet');
+        } else {
+          if (badge) {
+            badge.className = 'places-badge libre';
+            badge.textContent = reste === 1 ? '1 place restante' : reste + ' places restantes';
+          }
+          btn.classList.remove('cat-complet');
+        }
+      });
+    } catch (e) { /* fail silent */ }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', refreshPlacesSolo);
+  } else {
+    refreshPlacesSolo();
   }
 </script>
 </body>
