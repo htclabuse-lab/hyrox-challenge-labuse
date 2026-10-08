@@ -52,7 +52,7 @@ export default async function handler(req, res) {
       // extra_emails : adresses hors base (ex. anciens participants HC #1, dont les
       // inscriptions ne sont pas dans Supabase). Elles passent par le même
       // dédoublonnage et les mêmes exclusions que les adresses lues en base.
-      const { subject, html, limit, exclude_emails, extra_emails } = req.body;
+      const { subject, html, limit, exclude_emails, extra_emails, dry_run } = req.body;
       if (!subject || !html) {
         return res.status(400).json({ error: 'subject et html requis' });
       }
@@ -90,8 +90,17 @@ export default async function handler(req, res) {
         }
       }
 
-      const cap = (typeof limit === 'number' && limit > 0) ? limit : eligibles.length;
+      // limit = 0 signifie "n'envoie a personne" (simulation a blanc pour verifier
+      // la liste avant un envoi reel). Seul limit absent/null vaut "aucune limite".
+      // Ne pas remettre `limit > 0` ici : un 0 basculerait alors sur un envoi complet.
+      const cap = (typeof limit === 'number' && limit >= 0) ? limit : eligibles.length;
       const targets = eligibles.slice(0, cap);
+      if (dry_run === true || cap === 0) {
+        return res.status(200).json({
+          success: true, mode: 'broadcast', dry_run: true,
+          total_eligible: eligibles.length, sent: 0, would_send_to: eligibles,
+        });
+      }
 
       if (targets.length === 0) {
         return res.status(200).json({ success: true, mode: 'broadcast', total_eligible: eligibles.length, sent: 0, sent_emails: [] });
