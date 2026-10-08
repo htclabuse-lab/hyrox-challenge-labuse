@@ -108,7 +108,7 @@ export default async function handler(req, res) {
     const plein = places[groupe].libres <= 0 && !placeAccordee;
     // Carnet refusé quand le groupe approche de sa limite d'abonnés (mais si le
     // groupe est complet, c'est la liste d'attente qui s'applique, comme pour tous).
-    if (carnet && !plein && !places[groupe].carnet_possible) {
+    if (carnet && !plein && !placeAccordee && !places[groupe].carnet_possible) {
       return res.status(409).json({ error: "Le carnet n'est plus proposé sur ce créneau. Passe par l'abonnement mensuel, ou écris-nous à htclabuse@gmail.com." });
     }
 
