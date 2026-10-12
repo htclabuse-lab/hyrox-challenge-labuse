@@ -145,12 +145,12 @@
       <div class="field">
         <div class="group-label">Duo · <span style="color:#C0392B;">🏃 dim. 15 novembre 2026</span> · 1 inscription pour 2 athlètes</div>
         <div class="grid2">
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-h-rx',110,'Duo Homme RX')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">110 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-h-sc',110,'Duo Homme Scaled')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">110 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-f-rx',110,'Duo Femme RX')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">110 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-f-sc',110,'Duo Femme Scaled')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">110 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-mix-rx',110,'Duo Mixte RX')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">110 €</div></button>
-          <button type="button" class="cat-btn" onclick="setCat(this,'duo-mix-sc',110,'Duo Mixte Scaled')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">110 €</div></button>
+          <button type="button" class="cat-btn" data-cat="Duo Homme RX" onclick="setCat(this,'duo-h-rx',110,'Duo Homme RX')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">110 €</div><div class="places-badge" data-places>&nbsp;</div></button>
+          <button type="button" class="cat-btn" data-cat="Duo Homme Scaled" onclick="setCat(this,'duo-h-sc',110,'Duo Homme Scaled')"><span class="check">✓</span><div>Duo Homme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">110 €</div><div class="places-badge" data-places>&nbsp;</div></button>
+          <button type="button" class="cat-btn" data-cat="Duo Femme RX" onclick="setCat(this,'duo-f-rx',110,'Duo Femme RX')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">110 €</div><div class="places-badge" data-places>&nbsp;</div></button>
+          <button type="button" class="cat-btn" data-cat="Duo Femme Scaled" onclick="setCat(this,'duo-f-sc',110,'Duo Femme Scaled')"><span class="check">✓</span><div>Duo Femme</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">110 €</div><div class="places-badge" data-places>&nbsp;</div></button>
+          <button type="button" class="cat-btn" data-cat="Duo Mixte RX" onclick="setCat(this,'duo-mix-rx',110,'Duo Mixte RX')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">RX · 1 000 m</div><div class="prix-tag">110 €</div><div class="places-badge" data-places>&nbsp;</div></button>
+          <button type="button" class="cat-btn" data-cat="Duo Mixte Scaled" onclick="setCat(this,'duo-mix-sc',110,'Duo Mixte Scaled')"><span class="check">✓</span><div>Duo Mixte</div><div class="niveau">Scaled · 500 m</div><div class="prix-tag">110 €</div><div class="places-badge" data-places>&nbsp;</div></button>
         </div>
       </div>
       <div style="font-size:11px;color:#888;text-align:center;margin:8px 0 4px;font-style:italic;">🏃 Distance de course entre chaque station : RX = 1 000 m · Scaled = 500 m</div>
@@ -717,15 +717,21 @@
     window.location.href = lien;
   }
 
-  // Quotas Solo HC #3 (fermeture au prochain multiple de 5)
+  // Quotas Solo + Duo HC #3 (fermeture au multiple de 5 choisi)
   // Ne compte QUE les inscriptions "paye" créées depuis l'ouverture HC #3
   // (sinon on comptabilise les HC #2 déjà couru en juillet 2026).
   var OUVERTURE_HC3 = '2026-07-19';
-  var QUOTAS_SOLO = {
+  var QUOTAS_CAT = {
     'Solo Femme RX': 15,
-    'Solo Femme Scaled': 20,
-    'Solo Homme RX': 45,
-    'Solo Homme Scaled': 25
+    'Solo Femme Scaled': 25,
+    'Solo Homme RX': 50,
+    'Solo Homme Scaled': 30,
+    'Duo Femme RX': 15,
+    'Duo Femme Scaled': 30,
+    'Duo Homme RX': 30,
+    'Duo Homme Scaled': 20,
+    'Duo Mixte RX': 15,
+    'Duo Mixte Scaled': 20
   };
 
   async function refreshPlacesSolo() {
@@ -733,16 +739,15 @@
       var res = await db.from('Inscriptions')
         .select('categorie')
         .eq('statut_paiement', 'paye')
-        .ilike('categorie', 'Solo%')
         .gte('created_at', OUVERTURE_HC3);
       if (res.error) return;
       var counts = {};
       (res.data || []).forEach(function(d){ counts[d.categorie] = (counts[d.categorie] || 0) + 1; });
       document.querySelectorAll('.cat-btn[data-cat]').forEach(function(btn){
         var cat = btn.getAttribute('data-cat');
-        if (!QUOTAS_SOLO[cat]) return;
+        if (!QUOTAS_CAT[cat]) return;
         var payes = counts[cat] || 0;
-        var reste = Math.max(0, QUOTAS_SOLO[cat] - payes);
+        var reste = Math.max(0, QUOTAS_CAT[cat] - payes);
         var badge = btn.querySelector('.places-badge');
         if (reste === 0) {
           if (badge) { badge.className = 'places-badge complet'; badge.textContent = 'COMPLET'; }
