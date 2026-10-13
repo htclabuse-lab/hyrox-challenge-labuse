@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL } from '../lib/kids.js';
-import { CATEGORIE, EDITION_2_DEPUIS, CODES_ANNONCE, mailAnnonce, FROM, REPLY_TO } from '../lib/parent-enfant.js';
+import { CATEGORIE, EDITION_2_DEPUIS, CODES_ANNONCE, mailAnnonce, mailRelance, FROM, REPLY_TO } from '../lib/parent-enfant.js';
 
 // ============================================================================
 // Mail d'annonce Hyrox Parents / Enfants #2 avec code de réduction.
@@ -53,10 +53,27 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' });
   const b = req.body || {};
   if (!process.env.JUGES_PASSWORD || b.password !== process.env.JUGES_PASSWORD) return res.status(401).json({ error: 'Mot de passe incorrect' });
-  if (!CODES_ANNONCE[b.code]) return res.status(400).json({ error: 'Code inconnu : KIDS20 ou REVIENS10' });
   const serviceKey = process.env.SUPABASE_SERVICE_KEY;
   const resendKey = process.env.RESEND_API_KEY;
   if (!serviceKey || !resendKey) return res.status(500).json({ error: 'Configuration serveur incomplète' });
+
+  // Relance des paiements non finalisés : { relance_ids: [..], envoyer: true }. Sans envoyer → essai à blanc.
+  // On ne relance que des fiches Parent-Enfant #2 encore en attente (jamais une fiche payée).
+  if (Array.isArray(b.relance_ids)) {
+    const db = createClient(SUPABASE_URL, serviceKey);
+    const { data, error } = await db.from('Inscriptions').select('*')
+      .in('id', b.relance_ids.map(Number)).eq('categorie', CATEGORIE).gte('created_at', EDITION_2_DEPUIS).neq('statut_paiement', 'paye');
+    if (error) return res.status(500).json({ error: error.message });
+    const fiches = (data || []).filter(r => r.email);
+    if (b.envoyer !== true) return res.status(200).json({ dry_run: true, nombre: fiches.length, destinataires: fiches.map(r => ({ id: r.id, email: r.email, parent: r.prenom, enfant: r.co1_prenom })) });
+    try {
+      const n = await resendBatch(resendKey, fiches.map(r => ({ from: FROM, to: r.email, reply_to: REPLY_TO, ...mailRelance(r) })),
+        'pe-relance-' + fiches.map(r => r.id).sort().join('-'));
+      return res.status(200).json({ envoye: true, envoyes: n, ids: fiches.map(r => r.id) });
+    } catch (e) { return res.status(500).json({ error: e.message }); }
+  }
+
+  if (!CODES_ANNONCE[b.code]) return res.status(400).json({ error: 'Code inconnu : KIDS20 ou REVIENS10' });
 
   try {
     const liste = (await destinataires(createClient(SUPABASE_URL, serviceKey)))[b.code];
