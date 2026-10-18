@@ -20,17 +20,14 @@ const TAILLES_ADULTE = { Homme: ['S', 'M', 'L', 'XL', 'XXL'], Femme: ['S', 'M', 
 
 // Inscriptions ouvertes le 02/10/2026 (passer à false pour les fermer).
 const INSCRIPTIONS_OUVERTES = true;
-// Fermeture automatique à 84 binômes (décision de Stéphanie, 18/10/2026). On compte les payés +
-// les paiements en cours depuis moins de 35 min (la page Stripe expire au bout de 32 min),
-// pour ne pas dépasser si plusieurs parents paient en même temps.
+// Fermeture automatique à 84 binômes PAYÉS (décision de Stéphanie, 18/10/2026).
+// Pas de délai de paiement : deux parents qui paient en même temps au 84e peuvent faire 85.
 const MAX_BINOMES = 84;
-const RESA_MINUTES = 35;
 async function placesPrises(db) {
-  const depuis = new Date(Date.now() - RESA_MINUTES * 60000).toISOString();
-  const { data, error } = await db.from('Inscriptions').select('statut_paiement,created_at')
-    .eq('categorie', CATEGORIE).gte('created_at', EDITION_2_DEPUIS);
+  const { count, error } = await db.from('Inscriptions').select('id', { count: 'exact', head: true })
+    .eq('categorie', CATEGORIE).gte('created_at', EDITION_2_DEPUIS).eq('statut_paiement', 'paye');
   if (error) throw new Error(error.message);
-  return (data || []).filter(r => r.statut_paiement === 'paye' || (r.statut_paiement === 'en_attente' && r.created_at >= depuis)).length;
+  return count || 0;
 }
 
 function nettoie(s, max = 80) { return String(s || '').trim().slice(0, max); }
@@ -118,7 +115,6 @@ export default async function handler(req, res) {
       customer_email: f.parent_email,
       client_reference_id: String(id),
       allow_promotion_codes: true,
-      expires_at: Math.floor(Date.now() / 1000) + 32 * 60,  // Stripe exige au moins 30 min ; place gardée 32 min max
       metadata: { type: TYPE_STRIPE, inscription_id: String(id), enfant: `${f.enfant_prenom} ${f.enfant_nom}`, format: f.format },
       line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: PRIX * 100,
         product_data: { name: 'Hyrox Parents / Enfants — 2e édition',
