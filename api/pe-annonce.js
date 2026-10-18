@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL } from '../lib/kids.js';
-import { CATEGORIE, EDITION_2_DEPUIS, CODES_ANNONCE, mailAnnonce, mailRelance, FROM, REPLY_TO } from '../lib/parent-enfant.js';
+import { CATEGORIE, EDITION_2_DEPUIS, CODES_ANNONCE, mailAnnonce, mailRelance, mailRelancePE1, FROM, REPLY_TO } from '../lib/parent-enfant.js';
 
 // ============================================================================
 // Mail d'annonce Hyrox Parents / Enfants #2 avec code de réduction.
@@ -70,6 +70,34 @@ export default async function handler(req, res) {
       const n = await resendBatch(resendKey, fiches.map(r => ({ from: FROM, to: r.email, reply_to: REPLY_TO, ...mailRelance(r) })),
         'pe-relance-' + fiches.map(r => r.id).sort().join('-'));
       return res.status(200).json({ envoye: true, envoyes: n, ids: fiches.map(r => r.id) });
+    } catch (e) { return res.status(500).json({ error: e.message }); }
+  }
+
+  // Relance des familles du PE #1 pas encore inscrites (payées) au #2 : { relance_pe1: true, envoyer: true }.
+  // Une famille = un email. Exclue si son email, le parent ou l'enfant a déjà une fiche payée au #2.
+  if (b.relance_pe1 === true) {
+    const db = createClient(SUPABASE_URL, serviceKey);
+    const { data, error } = await db.from('Inscriptions').select('prenom,nom,email,co1_prenom,co1_nom,statut_paiement,created_at')
+      .eq('categorie', CATEGORIE).eq('statut_paiement', 'paye');
+    if (error) return res.status(500).json({ error: error.message });
+    const n = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toUpperCase();
+    const em = r => String(r.email || '').trim().toLowerCase();
+    const pe2 = data.filter(r => (r.created_at || '') >= EDITION_2_DEPUIS);
+    const pe1 = data.filter(r => (r.created_at || '') < EDITION_2_DEPUIS);
+    const em2 = new Set(pe2.map(em)), enf2 = new Set(pe2.map(r => n(r.co1_prenom) + '|' + n(r.co1_nom))), par2 = new Set(pe2.map(r => n(r.prenom) + '|' + n(r.nom)));
+    const familles = {};
+    pe1.forEach(r => { if (em(r)) (familles[em(r)] = familles[em(r)] || []).push(r); });
+    const liste = Object.keys(familles).filter(e => !em2.has(e) && !EXCLUS.includes(e)
+      && !familles[e].some(r => enf2.has(n(r.co1_prenom) + '|' + n(r.co1_nom)) || par2.has(n(r.prenom) + '|' + n(r.nom)))).sort();
+    const places = Math.max(0, 84 - pe2.length);
+    if (b.envoyer !== true) return res.status(200).json({ dry_run: true, nombre: liste.length, places, destinataires: liste });
+    try {
+      const mail = mailRelancePE1(places);
+      let envoyes = 0;
+      for (let i = 0; i < liste.length; i += 100) {
+        envoyes += await resendBatch(resendKey, liste.slice(i, i + 100).map(to => ({ from: FROM, to, reply_to: REPLY_TO, ...mail })), `pe-relance-pe1-lot${i / 100}-v1`);
+      }
+      return res.status(200).json({ envoye: true, nombre: liste.length, envoyes, places });
     } catch (e) { return res.status(500).json({ error: e.message }); }
   }
 
