@@ -20,16 +20,37 @@ const TAILLES_ADULTE = { Homme: ['S', 'M', 'L', 'XL', 'XXL'], Femme: ['S', 'M', 
 
 // Inscriptions ouvertes le 02/10/2026 (passer à false pour les fermer).
 const INSCRIPTIONS_OUVERTES = true;
+// Fermeture automatique à 84 binômes (décision de Stéphanie, 18/10/2026). On compte les payés +
+// les paiements en cours depuis moins de 35 min (la page Stripe expire au bout de 32 min),
+// pour ne pas dépasser si plusieurs parents paient en même temps.
+const MAX_BINOMES = 84;
+const RESA_MINUTES = 35;
+async function placesPrises(db) {
+  const depuis = new Date(Date.now() - RESA_MINUTES * 60000).toISOString();
+  const { data, error } = await db.from('Inscriptions').select('statut_paiement,created_at')
+    .eq('categorie', CATEGORIE).gte('created_at', EDITION_2_DEPUIS);
+  if (error) throw new Error(error.message);
+  return (data || []).filter(r => r.statut_paiement === 'paye' || (r.statut_paiement === 'en_attente' && r.created_at >= depuis)).length;
+}
 
 function nettoie(s, max = 80) { return String(s || '').trim().slice(0, max); }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' });
-  if (!INSCRIPTIONS_OUVERTES) return res.status(403).json({ error: 'Les inscriptions ne sont pas encore ouvertes.' });
   const serviceKey = process.env.SUPABASE_SERVICE_KEY;
   const stripeKey = process.env.STRIPE_KIDS_SECRET_KEY;
   if (!serviceKey || !stripeKey) return res.status(500).json({ error: 'Configuration serveur incomplète' });
   const db = createClient(SUPABASE_URL, serviceKey);
+
+  // GET → la page sait s'il reste de la place (affiche « Complet » sinon).
+  if (req.method === 'GET') {
+    try { const prises = await placesPrises(db); return res.status(200).json({ complet: prises >= MAX_BINOMES, max: MAX_BINOMES }); }
+    catch (e) { return res.status(500).json({ error: e.message }); }
+  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' });
+  if (!INSCRIPTIONS_OUVERTES) return res.status(403).json({ error: 'Les inscriptions ne sont pas encore ouvertes.' });
+  try {
+    if (await placesPrises(db) >= MAX_BINOMES) return res.status(409).json({ complet: true, error: 'Désolé, c\'est complet : les 84 binômes sont inscrits. Écris-nous à htclabuse@gmail.com pour être prévenu(e) si une place se libère.' });
+  } catch (e) { return res.status(500).json({ error: e.message }); }
 
   const b = req.body || {};
   const f = {
@@ -97,6 +118,7 @@ export default async function handler(req, res) {
       customer_email: f.parent_email,
       client_reference_id: String(id),
       allow_promotion_codes: true,
+      expires_at: Math.floor(Date.now() / 1000) + 32 * 60,  // Stripe exige au moins 30 min ; place gardée 32 min max
       metadata: { type: TYPE_STRIPE, inscription_id: String(id), enfant: `${f.enfant_prenom} ${f.enfant_nom}`, format: f.format },
       line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: PRIX * 100,
         product_data: { name: 'Hyrox Parents / Enfants — 2e édition',

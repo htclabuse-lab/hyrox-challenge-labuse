@@ -110,6 +110,11 @@
     </div>
   </div>
 
+  <div id="bloc-complet" class="form-card" style="display:none;text-align:center;">
+    <h2>🔒 C'est complet !</h2>
+    <p style="font-size:14px;color:#ccc;line-height:1.6;margin-top:8px;">Les 84 binômes sont inscrits. Merci pour votre enthousiasme !<br>Écris-nous à <a href="mailto:htclabuse@gmail.com" style="color:#FFEE00;">htclabuse@gmail.com</a> pour être prévenu(e) si une place se libère.</p>
+  </div>
+
   <div id="form-block" class="form-card">
     <h2>📝 Inscription du binôme</h2>
     <p class="form-sub">Paiement sécurisé par Stripe. Une inscription par binôme.</p>
@@ -199,6 +204,14 @@
 
 <script>
   const params = new URLSearchParams(location.search);
+  // Complet (84 binômes) : on masque le formulaire.
+  function afficherComplet() {
+    document.getElementById('form-block').style.display = 'none';
+    document.getElementById('bloc-complet').style.display = 'block';
+  }
+  if (params.get('succes') !== '1') {
+    fetch('/api/pe-checkout').then(r => r.json()).then(j => { if (j && j.complet) afficherComplet(); }).catch(() => {});
+  }
   if (params.get('succes') === '1') {
     document.getElementById('success-block').style.display = 'block';
     document.getElementById('form-block').style.display = 'none';
@@ -253,6 +266,7 @@
     try {
       const r = await fetch('/api/pe-checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(f) });
       const j = await r.json();
+      if (j && j.complet) { afficherComplet(); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
       if (!r.ok) throw new Error(j.error || 'Erreur ' + r.status);
       if (j.url) { location.href = j.url; return; }
       throw new Error('Réponse inattendue');
