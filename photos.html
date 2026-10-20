@@ -16,6 +16,8 @@
   .sub { text-align: center; color: #888; font-size: 14px; margin-bottom: 1.5rem; }
   .card { background: #111; border: 1px solid #222; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
   p { color: #ccc; font-size: 15px; line-height: 1.6; margin: 0 0 1rem; }
+  .champ { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid #333; background: #0a0a0a; color: #fff; font-size: 16px; font-family: inherit; margin-top: 8px; }
+  .champ:focus { outline: none; border-color: #FFEE00; }
   select { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid #333; background: #0a0a0a; color: #fff; font-size: 16px; font-family: inherit; }
   .consent { display: flex; gap: 12px; align-items: flex-start; background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 14px; cursor: pointer; }
   .consent input { width: 22px; height: 22px; margin: 2px 0 0; flex-shrink: 0; accent-color: #FFEE00; }
@@ -98,7 +100,9 @@
       <p style="margin-bottom:4px;">En haute définition, sans filigrane, à télécharger.</p>
       <div class="prix" id="prix">20 €</div>
       <p class="petit" style="margin-top:0;">Tu as déjà pris le pack photo à ton inscription ? Il est inclus, rien à repayer.</p>
+      <input type="email" id="email" class="champ" placeholder="L'email de ton inscription" autocomplete="email">
       <button class="btn" id="btn-debloquer">🔓 Débloquer mes photos</button>
+      <div class="petit" style="margin-top:8px;">Le lien vers ton espace photo est envoyé à cette adresse.</div>
       <div id="msg-debloquer"></div>
     </div>
   </div>
@@ -110,15 +114,11 @@
 </div>
 
 <script type="module">
-// La reconnaissance (~1 Mo de code + ~12 Mo de modèles) n'est téléchargée qu'une
-// fois la case de consentement cochée : la page s'affiche tout de suite.
-const FACE_API = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.esm.js';
-let faceapi = null;
-const MODELES = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model/';
+import { chargerModeles, empreinteDuSelfie, modelesCharges } from './photos-visage.js';
+
 const $ = id => document.getElementById(id);
 
 let evenement = null;
-let modelesPrets = null;
 const photos = new Map();   // photo_id → { apercu, nette?, telecharger? }
 const bons = [];            // bons de recherche signés (un par selfie)
 
@@ -186,65 +186,13 @@ $('consent').onchange = () => {
   if ($('consent').checked) chargerModeles(); // on prépare la reconnaissance pendant qu'il se met en place
 };
 
-// ---------------------------------------------------------------- Reconnaissance (dans le téléphone)
-function chargerModeles() {
-  if (!modelesPrets) {
-    modelesPrets = (async () => {
-      faceapi = await import(FACE_API);
-      let gpu = false;
-      try { gpu = await faceapi.tf.setBackend('webgl'); } catch (e) {}
-      if (!gpu) await faceapi.tf.setBackend('cpu'); // vieux téléphones : plus lent mais ça marche
-      await faceapi.tf.ready();
-      await Promise.all([
-        faceapi.nets.ssdMobilenetv1.loadFromUri(MODELES),
-        faceapi.nets.faceLandmark68Net.loadFromUri(MODELES),
-        faceapi.nets.faceRecognitionNet.loadFromUri(MODELES),
-      ]);
-    })();
-    modelesPrets.catch(() => { modelesPrets = null; });
-  }
-  return modelesPrets;
-}
-
-async function chargerImage(fichier) {
-  try {
-    return await createImageBitmap(fichier, { imageOrientation: 'from-image' });
-  } catch (e) {
-    const url = URL.createObjectURL(fichier);
-    try {
-      const img = new Image();
-      img.src = url;
-      await img.decode();
-      return img;
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-  }
-}
-
-async function empreinteDuSelfie(fichier) {
-  const image = await chargerImage(fichier);
-  const w = image.width || image.naturalWidth, h = image.height || image.naturalHeight;
-  const r = Math.min(1, 1200 / Math.max(w, h));
-  const c = document.createElement('canvas');
-  c.width = Math.round(w * r); c.height = Math.round(h * r);
-  c.getContext('2d').drawImage(image, 0, 0, c.width, c.height);
-  if (image.close) image.close();
-  const visages = await faceapi.detectAllFaces(c, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
-    .withFaceLandmarks().withFaceDescriptors();
-  if (!visages.length) return null;
-  // Plusieurs visages ? On garde le plus grand (celui du selfie).
-  visages.sort((a, b) => b.detection.box.area - a.detection.box.area);
-  return Array.from(visages[0].descriptor).map(v => Math.round(v * 1e6) / 1e6);
-}
-
 // ---------------------------------------------------------------- Recherche
 async function rechercher(fichier, zoneMsg) {
   msg(zoneMsg, '', '');
   if (!$('consent').checked) { msg(zoneMsg, 'warn', 'Coche d\'abord la case pour accepter l\'analyse de ton visage.'); return; }
   montrer('bloc-chargement');
   try {
-    $('chargement-txt').textContent = modelesPrets ? 'Analyse de ton visage…' : 'Préparation de la reconnaissance (une seule fois)…';
+    $('chargement-txt').textContent = modelesCharges() ? 'Analyse de ton visage…' : 'Préparation de la reconnaissance (une seule fois)…';
     await chargerModeles();
     $('chargement-txt').textContent = 'Analyse de ton visage…';
     const empreinte = await empreinteDuSelfie(fichier);
@@ -304,9 +252,29 @@ $('in-selfie').onchange = e => { const f = e.target.files[0]; e.target.value = '
 $('in-import').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) rechercher(f, 'msg-selfie'); };
 $('in-encore').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) rechercher(f, 'msg-encore'); };
 
-// ---------------------------------------------------------------- Déblocage (étape suivante)
-$('btn-debloquer').onclick = () => {
-  msg('msg-debloquer', 'warn', 'Le déblocage arrive très bientôt !');
+// ---------------------------------------------------------------- Déblocage
+$('btn-debloquer').onclick = async () => {
+  const email = $('email').value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg('msg-debloquer', 'err', 'Entre une adresse email valide.'); return; }
+  $('btn-debloquer').disabled = true;
+  msg('msg-debloquer', '', '');
+  try {
+    const r = await fetch('/api/photos-acces', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'debloquer', evenement_id: evenement.id, email, bons }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || 'Erreur, réessaie dans un instant.');
+    if (d.paiement_requis) {
+      msg('msg-debloquer', 'warn', "Ton inscription n'a pas encore le pack photo. Le paiement en ligne arrive très bientôt !");
+    } else {
+      msg('msg-debloquer', 'info', `✅ C'est envoyé ! Ouvre le mail reçu sur <strong>${d.email_masque}</strong> pour accéder à toutes tes photos. Pense à regarder dans les spams.`);
+    }
+  } catch (e) {
+    msg('msg-debloquer', 'err', e.message);
+  } finally {
+    $('btn-debloquer').disabled = false;
+  }
 };
 
 demarrer();
