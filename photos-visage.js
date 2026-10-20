@@ -25,6 +25,27 @@ export function modelesCharges() {
   return !!modelesPrets;
 }
 
+function chargerReseaux() {
+  return Promise.all([
+    faceapi.nets.ssdMobilenetv1.loadFromUri(MODELES),
+    faceapi.nets.faceLandmark68Net.loadFromUri(MODELES),
+    faceapi.nets.faceRecognitionNet.loadFromUri(MODELES),
+  ]);
+}
+
+// Mode secours : certaines cartes graphiques (ex. Mali-G610 de nombreux Xiaomi /
+// Samsung) abîment les données de la reconnaissance dès leur chargement. On
+// recharge alors tout SANS carte graphique : plus lent, mais fiable, et avec le
+// même détecteur que l'indexation (donc la même empreinte).
+let modeSecours = false;
+async function passerEnModeSecours() {
+  await faceapi.tf.setBackend('cpu');
+  await faceapi.tf.ready();
+  await chargerReseaux();          // données rechargées proprement, en mémoire normale
+  modeSecours = true;
+  noter('→ mode secours : reconnaissance rechargée sans carte graphique (cpu)');
+}
+
 export function chargerModeles() {
   if (!modelesPrets) {
     modelesPrets = (async () => {
@@ -34,11 +55,7 @@ export function chargerModeles() {
       if (!gpu) await faceapi.tf.setBackend('cpu'); // vieux téléphones : plus lent mais ça marche
       await faceapi.tf.ready();
       noter(`calcul : ${faceapi.tf.getBackend()} (carte graphique ${gpu ? 'OK' : 'refusée'})`);
-      await Promise.all([
-        faceapi.nets.ssdMobilenetv1.loadFromUri(MODELES),
-        faceapi.nets.faceLandmark68Net.loadFromUri(MODELES),
-        faceapi.nets.faceRecognitionNet.loadFromUri(MODELES),
-      ]);
+      await chargerReseaux();
     })();
     modelesPrets.catch(() => { modelesPrets = null; });
   }
@@ -128,15 +145,19 @@ export async function empreinteDuSelfie(fichier, avertir = () => {}) {
     diagnostic.apercu = p.toDataURL('image/jpeg', 0.7);
   }
 
+  // En mode secours, chaque essai est lent : on ne teste que le sens normal (la
+  // photo est déjà remise droite à la lecture).
+  if (modeSecours) {
+    avertir('Ton téléphone a besoin d\'un peu plus de temps… (jusqu\'à une minute)');
+    return chercherDansTousLesSens(c, [0]);
+  }
   let e = await chercherDansTousLesSens(c);
-  // Certaines cartes graphiques Android calculent mal : on refait le calcul sans
-  // elles (plus lent, mais fiable), et on y reste pour les recherches suivantes.
+  // Rien trouvé : peut-être une carte graphique défaillante. On réessaie en mode
+  // secours, et on y reste pour les recherches suivantes.
   if (!e && faceapi.tf.getBackend() !== 'cpu') {
     avertir('Ton téléphone a besoin d\'un peu plus de temps… (jusqu\'à une minute)');
-    await faceapi.tf.setBackend('cpu');
-    await faceapi.tf.ready();
-    noter('→ nouvel essai sans carte graphique (cpu)');
-    e = await chercherDansTousLesSens(c, [0, 90, 270]);
+    await passerEnModeSecours();
+    e = await chercherDansTousLesSens(c, [0]);
   }
   return e;
 }
