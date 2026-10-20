@@ -110,11 +110,30 @@
   <div class="petit" style="text-align:center;margin-top:1.5rem;">
     🔒 Ton selfie ne quitte jamais ton téléphone : seule une « empreinte » de ton visage (une suite de nombres) est envoyée pour la recherche, et elle n'est pas conservée.
   </div>
+  <div id="diag"></div>
   <a class="back" href="index.html#accueil">← Retour au site</a>
 </div>
 
 <script type="module">
-import { chargerModeles, empreinteDuSelfie, modelesCharges } from './photos-visage.js';
+import { chargerModeles, empreinteDuSelfie, modelesCharges, diagnostic } from './photos-visage.js';
+
+// ?diag=1 : affiche ce que la reconnaissance a vu (pour dépanner un téléphone).
+diagnostic.actif = new URLSearchParams(location.search).has('diag');
+function afficherDiagnostic(erreur) {
+  if (!diagnostic.actif) return;
+  let gpu = '?';
+  try {
+    const gl = document.createElement('canvas').getContext('webgl');
+    const ext = gl && gl.getExtension('WEBGL_debug_renderer_info');
+    gpu = gl ? (ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : 'webgl sans détail') : 'pas de webgl';
+  } catch (e) {}
+  const lignes = [navigator.userAgent, 'carte graphique : ' + gpu, ...diagnostic.lignes];
+  if (erreur) lignes.push('ERREUR : ' + erreur);
+  $('diag').innerHTML = `<div style="margin-top:1rem;padding:10px;border:1px dashed #666;border-radius:8px;font:11px/1.5 monospace;color:#aaa;white-space:pre-wrap;word-break:break-all;">`
+    + (diagnostic.apercu ? `<img src="${diagnostic.apercu}" style="display:block;max-width:160px;margin-bottom:8px;border:1px solid #444">` : '')
+    + lignes.map(l => l.replace(/</g, '&lt;')).join('\n') + '</div>';
+  diagnostic.lignes.length = 0;
+}
 
 const $ = id => document.getElementById(id);
 
@@ -188,6 +207,7 @@ $('consent').onchange = () => {
 
 // ---------------------------------------------------------------- Recherche
 async function rechercher(fichier, zoneMsg) {
+  let erreurVue = null;
   msg(zoneMsg, '', '');
   if (!$('consent').checked) { msg(zoneMsg, 'warn', 'Coche d\'abord la case pour accepter l\'analyse de ton visage.'); return; }
   montrer('bloc-chargement');
@@ -216,8 +236,10 @@ async function rechercher(fichier, zoneMsg) {
     }
   } catch (e) {
     msg(zoneMsg, 'err', e.message);
+    erreurVue = e.stack || e.message;
   } finally {
     montrer('bloc-chargement', false);
+    afficherDiagnostic(erreurVue);
   }
 }
 

@@ -13,6 +13,14 @@ const MODELES = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model/
 let faceapi = null;
 let modelesPrets = null;
 
+// Mode diagnostic (adresse avec ?diag=1) : la page affiche ce que la reconnaissance
+// a vu, pour comprendre un échec sur un téléphone qu'on n'a pas sous la main.
+// Rien n'est envoyé : tout reste affiché sur l'appareil.
+export const diagnostic = { actif: false, lignes: [], apercu: null };
+function noter(texte) {
+  if (diagnostic.actif) diagnostic.lignes.push(texte);
+}
+
 export function modelesCharges() {
   return !!modelesPrets;
 }
@@ -25,6 +33,7 @@ export function chargerModeles() {
       try { gpu = await faceapi.tf.setBackend('webgl'); } catch (e) {}
       if (!gpu) await faceapi.tf.setBackend('cpu'); // vieux téléphones : plus lent mais ça marche
       await faceapi.tf.ready();
+      noter(`calcul : ${faceapi.tf.getBackend()} (carte graphique ${gpu ? 'OK' : 'refusée'})`);
       await Promise.all([
         faceapi.nets.ssdMobilenetv1.loadFromUri(MODELES),
         faceapi.nets.faceLandmark68Net.loadFromUri(MODELES),
@@ -37,9 +46,13 @@ export function chargerModeles() {
 }
 
 async function chargerImage(fichier) {
+  noter(`fichier : ${fichier.type || '?'}, ${Math.round(fichier.size / 1024)} Ko`);
   try {
-    return await createImageBitmap(fichier, { imageOrientation: 'from-image' });
+    const bmp = await createImageBitmap(fichier, { imageOrientation: 'from-image' });
+    noter(`lecture : createImageBitmap ${bmp.width}x${bmp.height}`);
+    return bmp;
   } catch (e) {
+    noter(`lecture : createImageBitmap a échoué (${e.message}), repli sur <img>`);
     const url = URL.createObjectURL(fichier);
     try {
       const img = new Image();
@@ -69,6 +82,10 @@ function tourner(source, degres) {
 async function plusGrandVisage(canvas) {
   const visages = await faceapi.detectAllFaces(canvas, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
     .withFaceLandmarks().withFaceDescriptors();
+  if (diagnostic.actif) {
+    const faibles = await faceapi.detectAllFaces(canvas, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.1 }));
+    noter(`  ${canvas.width}x${canvas.height} : ${visages.length} visage(s) ; scores bruts : ${faibles.map(f => f.score.toFixed(2)).join(', ') || 'aucun'}`);
+  }
   if (!visages.length) return null;
   // Plusieurs visages ? On garde le plus grand (celui du selfie).
   visages.sort((a, b) => b.detection.box.area - a.detection.box.area);
@@ -84,6 +101,7 @@ async function plusGrandVisage(canvas) {
 async function chercherDansTousLesSens(canvas, sens = [0, 90, 270, 180]) {
   let meilleur = null;
   for (const degres of sens) {
+    noter(`sens ${degres}° :`);
     const v = await plusGrandVisage(degres ? tourner(canvas, degres) : canvas);
     if (v && (!meilleur || v.score > meilleur.score)) meilleur = v;
     if (degres === 0 && v && v.score > 0.9) break;
@@ -102,6 +120,13 @@ export async function empreinteDuSelfie(fichier, avertir = () => {}) {
   c.width = Math.round(w * r); c.height = Math.round(h * r);
   c.getContext('2d').drawImage(image, 0, 0, c.width, c.height);
   if (image.close) image.close();
+  if (diagnostic.actif) {
+    const p = document.createElement('canvas');
+    const rp = 160 / Math.max(c.width, c.height);
+    p.width = Math.round(c.width * rp); p.height = Math.round(c.height * rp);
+    p.getContext('2d').drawImage(c, 0, 0, p.width, p.height);
+    diagnostic.apercu = p.toDataURL('image/jpeg', 0.7);
+  }
 
   let e = await chercherDansTousLesSens(c);
   // Certaines cartes graphiques Android calculent mal : on refait le calcul sans
@@ -110,6 +135,7 @@ export async function empreinteDuSelfie(fichier, avertir = () => {}) {
     avertir('Ton téléphone a besoin d\'un peu plus de temps… (jusqu\'à une minute)');
     await faceapi.tf.setBackend('cpu');
     await faceapi.tf.ready();
+    noter('→ nouvel essai sans carte graphique (cpu)');
     e = await chercherDansTousLesSens(c, [0, 90, 270]);
   }
   return e;
