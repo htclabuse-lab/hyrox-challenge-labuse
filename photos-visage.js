@@ -46,12 +46,18 @@ async function passerEnModeSecours() {
   noter('→ mode secours : reconnaissance rechargée sans carte graphique (cpu)');
 }
 
+function secoursMemorise() {
+  try { return localStorage.getItem('photos_mode_secours') === '1'; } catch (e) { return false; }
+}
+
 export function chargerModeles() {
   if (!modelesPrets) {
     modelesPrets = (async () => {
       faceapi = await import(FACE_API);
       let gpu = false;
-      try { gpu = await faceapi.tf.setBackend('webgl'); } catch (e) {}
+      // Ce téléphone a déjà eu besoin du mode secours : on y va directement.
+      if (secoursMemorise()) { modeSecours = true; noter('mode secours mémorisé sur cet appareil'); }
+      else { try { gpu = await faceapi.tf.setBackend('webgl'); } catch (e) {} }
       if (!gpu) await faceapi.tf.setBackend('cpu'); // vieux téléphones : plus lent mais ça marche
       await faceapi.tf.ready();
       noter(`calcul : ${faceapi.tf.getBackend()} (carte graphique ${gpu ? 'OK' : 'refusée'})`);
@@ -115,10 +121,16 @@ async function plusGrandVisage(canvas) {
 // Certains Android livrent le selfie « couché » : on essaie les 4 sens et on garde
 // la détection la plus sûre (un visage couché peut être détecté, mais mal).
 // Si l'image droite est déjà très nette, inutile d'essayer les autres sens.
-async function chercherDansTousLesSens(canvas, sens = [0, 90, 270, 180]) {
+// Renvoie l'empreinte, null si aucun visage, ou 'PANNE' si la carte graphique ne
+// voit strictement rien (même pas de « bruit ») sur la photo droite.
+async function chercherDansTousLesSens(canvas, sens = [0, 90, 270, 180], verifierPanne = false) {
   let meilleur = null;
   for (const degres of sens) {
     noter(`sens ${degres}° :`);
+    if (verifierPanne && degres === 0) {
+      const bruit = await faceapi.detectAllFaces(canvas, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.1 }));
+      if (!bruit.length) { noter('  aucun signal : carte graphique défaillante'); return 'PANNE'; }
+    }
     const v = await plusGrandVisage(degres ? tourner(canvas, degres) : canvas);
     if (v && (!meilleur || v.score > meilleur.score)) meilleur = v;
     if (degres === 0 && v && v.score > 0.9) break;
@@ -151,13 +163,24 @@ export async function empreinteDuSelfie(fichier, avertir = () => {}) {
     avertir('Ton téléphone a besoin d\'un peu plus de temps… (jusqu\'à une minute)');
     return chercherDansTousLesSens(c, [0]);
   }
-  let e = await chercherDansTousLesSens(c);
+  let e = await chercherDansTousLesSens(c, undefined, faceapi.tf.getBackend() === 'webgl');
+  if (e === 'PANNE') e = null;
   // Rien trouvé : peut-être une carte graphique défaillante. On réessaie en mode
   // secours, et on y reste pour les recherches suivantes.
   if (!e && faceapi.tf.getBackend() !== 'cpu') {
     avertir('Ton téléphone a besoin d\'un peu plus de temps… (jusqu\'à une minute)');
     await passerEnModeSecours();
     e = await chercherDansTousLesSens(c, [0]);
+    if (e) {
+      // Le secours a vu un visage que la carte graphique ne voyait pas : on le
+      // retient sur cet appareil pour les prochaines visites.
+      try { localStorage.setItem('photos_mode_secours', '1'); } catch (err) {}
+    } else {
+      // Pas de visage non plus : c'était simplement la photo. Retour au mode normal.
+      modeSecours = false;
+      try { await faceapi.tf.setBackend('webgl'); } catch (err) {}
+      noter('→ pas de visage en secours non plus : retour au mode normal');
+    }
   }
   return e;
 }
