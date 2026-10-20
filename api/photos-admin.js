@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL } from '../lib/kids.js';
 import { lienSigne, clesPhoto } from '../lib/r2.js';
+import { rechercherPhotos, empreinteValide, SEUIL_SELFIE, SEUIL_DEUXIEME_TEMPS } from '../lib/photos.js';
 
 // ============================================================================
 // Plateforme photos — fonctions serveur de la page photos-indexeur.html.
@@ -115,40 +116,16 @@ export default async function handler(req, res) {
     if (b.action === 'tester') {
       // Test admin : recherche à partir d'une empreinte de selfie (rien n'est enregistré).
       const e = b.empreinte;
-      if (!Array.isArray(e) || e.length !== 128 || !e.every(Number.isFinite)) {
-        return res.status(400).json({ error: 'Empreinte invalide' });
-      }
-      const seuil = Number.isFinite(b.seuil) ? Math.min(Math.max(b.seuil, 0.3), 0.7) : 0.5;
-      const selfie = '[' + e.join(',') + ']';
-      const { data, error } = await db.rpc('photos_rechercher', {
-        p_evenement: b.evenement_id, p_empreinte: selfie, p_seuil: seuil, p_max: 60,
+      if (!empreinteValide(e)) return res.status(400).json({ error: 'Empreinte invalide' });
+      const trouvees = await rechercherPhotos(db, b.evenement_id, e, {
+        seuil: Number.isFinite(b.seuil) ? Math.min(Math.max(b.seuil, 0.3), 0.7) : SEUIL_SELFIE,
+        deuxTemps: !!b.deux_temps,
+        seuil2: Number.isFinite(b.seuil2) ? Math.min(Math.max(b.seuil2, 0.3), 0.6) : SEUIL_DEUXIEME_TEMPS,
+        max: 60,
       });
-      if (error) throw error;
-      const trouvees = new Map(data.map(r => [r.photo_id, { distance: r.distance, via: 'selfie' }]));
-
-      // Recherche « en deux temps » : les visages les plus sûrs (trouvés avec le
-      // selfie) servent à leur tour de modèle, avec un seuil plus strict.
-      if (b.deux_temps) {
-        const seuil2 = Number.isFinite(b.seuil2) ? Math.min(Math.max(b.seuil2, 0.3), 0.6) : 0.45;
-        const { data: ancres, error: aErr } = await db.rpc('photos_visages_proches', {
-          p_evenement: b.evenement_id, p_empreinte: selfie, p_seuil: Math.min(seuil, 0.5), p_max: 5,
-        });
-        if (aErr) throw aErr;
-        for (const a of ancres) {
-          const { data: d2, error: e2 } = await db.rpc('photos_rechercher', {
-            p_evenement: b.evenement_id, p_empreinte: a.empreinte, p_seuil: seuil2, p_max: 60,
-          });
-          if (e2) throw e2;
-          for (const r of d2) {
-            if (!trouvees.has(r.photo_id)) trouvees.set(r.photo_id, { distance: r.distance, via: '2e temps' });
-          }
-        }
-      }
-
       const photos = [];
-      for (const [photo_id, t] of trouvees) {
-        photos.push({ photo_id, distance: t.distance, via: t.via,
-          url: await lienSigne('GET', clesPhoto(b.evenement_id, photo_id).apercu) });
+      for (const t of trouvees) {
+        photos.push({ ...t, url: await lienSigne('GET', clesPhoto(b.evenement_id, t.photo_id).apercu) });
       }
       return res.status(200).json({ photos });
     }
