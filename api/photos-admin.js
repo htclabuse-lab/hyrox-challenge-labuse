@@ -14,7 +14,7 @@ import { lienSigne, clesPhoto } from '../lib/r2.js';
 //        → crée la ligne photo + 3 tickets de dépôt R2 (hd, web, apercu), valables 15 min
 //  POST { password, action: 'terminer', photo_id, visages: [{ empreinte: [128 nombres], cadre, score }] }
 //        → enregistre les empreintes et marque la photo « prête »
-//  POST { password, action: 'tester', evenement_id, empreinte: [128 nombres], seuil? }
+//  POST { password, action: 'tester', evenement_id, empreinte: [128 nombres], seuil?, deux_temps?, seuil2? }
 //        → photos ressemblantes (aperçus filigranés) — pour vérifier l'indexation
 // ============================================================================
 
@@ -119,14 +119,36 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Empreinte invalide' });
       }
       const seuil = Number.isFinite(b.seuil) ? Math.min(Math.max(b.seuil, 0.3), 0.7) : 0.5;
+      const selfie = '[' + e.join(',') + ']';
       const { data, error } = await db.rpc('photos_rechercher', {
-        p_evenement: b.evenement_id, p_empreinte: '[' + e.join(',') + ']', p_seuil: seuil, p_max: 60,
+        p_evenement: b.evenement_id, p_empreinte: selfie, p_seuil: seuil, p_max: 60,
       });
       if (error) throw error;
+      const trouvees = new Map(data.map(r => [r.photo_id, { distance: r.distance, via: 'selfie' }]));
+
+      // Recherche « en deux temps » : les visages les plus sûrs (trouvés avec le
+      // selfie) servent à leur tour de modèle, avec un seuil plus strict.
+      if (b.deux_temps) {
+        const seuil2 = Number.isFinite(b.seuil2) ? Math.min(Math.max(b.seuil2, 0.3), 0.6) : 0.45;
+        const { data: ancres, error: aErr } = await db.rpc('photos_visages_proches', {
+          p_evenement: b.evenement_id, p_empreinte: selfie, p_seuil: Math.min(seuil, 0.5), p_max: 5,
+        });
+        if (aErr) throw aErr;
+        for (const a of ancres) {
+          const { data: d2, error: e2 } = await db.rpc('photos_rechercher', {
+            p_evenement: b.evenement_id, p_empreinte: a.empreinte, p_seuil: seuil2, p_max: 60,
+          });
+          if (e2) throw e2;
+          for (const r of d2) {
+            if (!trouvees.has(r.photo_id)) trouvees.set(r.photo_id, { distance: r.distance, via: '2e temps' });
+          }
+        }
+      }
+
       const photos = [];
-      for (const r of data) {
-        photos.push({ photo_id: r.photo_id, distance: r.distance,
-          url: await lienSigne('GET', clesPhoto(b.evenement_id, r.photo_id).apercu) });
+      for (const [photo_id, t] of trouvees) {
+        photos.push({ photo_id, distance: t.distance, via: t.via,
+          url: await lienSigne('GET', clesPhoto(b.evenement_id, photo_id).apercu) });
       }
       return res.status(200).json({ photos });
     }

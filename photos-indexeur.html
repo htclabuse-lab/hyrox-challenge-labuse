@@ -93,8 +93,14 @@
       <div class="hint">Pour vérifier que l'analyse a bien marché. Le selfie reste sur cet ordinateur : seule l'empreinte du visage est envoyée, et rien n'est enregistré.</div>
       <label for="selfie">Choisis une photo de toi (visage bien visible)</label>
       <input type="file" id="selfie" accept="image/*">
-      <label for="seuil">Sévérité : <span id="seuil-val">0.50</span> <span style="color:#666">(plus bas = plus strict)</span></label>
-      <input type="range" id="seuil" min="0.35" max="0.65" step="0.01" value="0.5" style="width:100%">
+      <label for="seuil">Sévérité : <span id="seuil-val">0.60</span> <span style="color:#666">(plus bas = plus strict)</span></label>
+      <input type="range" id="seuil" min="0.35" max="0.65" step="0.01" value="0.6" style="width:100%">
+      <label style="display:flex;gap:8px;align-items:center;color:#fff;margin-top:14px;">
+        <input type="checkbox" id="deux-temps" checked style="width:18px;height:18px;accent-color:#FFEE00;">
+        Recherche en deux temps (relance avec tes visages déjà trouvés)
+      </label>
+      <label for="seuil2">Sévérité du 2e temps : <span id="seuil2-val">0.45</span></label>
+      <input type="range" id="seuil2" min="0.35" max="0.60" step="0.01" value="0.45" style="width:100%">
       <button class="btn" id="btn-test" disabled>🔍 Chercher mes photos</button>
       <div id="test-msg"></div>
       <div class="grille" id="test-grille"></div>
@@ -434,6 +440,7 @@ window.addEventListener('beforeunload', e => {
 
 // ---------------------------------------------------------------- Test avec un selfie
 $('seuil').oninput = () => { $('seuil-val').textContent = (+$('seuil').value).toFixed(2); };
+$('seuil2').oninput = () => { $('seuil2-val').textContent = (+$('seuil2').value).toFixed(2); };
 
 $('btn-test').onclick = async () => {
   const f = $('selfie').files[0];
@@ -450,10 +457,14 @@ $('btn-test').onclick = async () => {
     if (!visages.length) { msg('test-msg', 'err', 'Aucun visage trouvé sur cette photo. Essaie avec un visage plus grand et bien éclairé.'); return; }
     // S'il y a plusieurs visages, on prend le plus grand.
     visages.sort((a, b) => b.cadre.w * b.cadre.h - a.cadre.w * a.cadre.h);
-    const d = await api('tester', { evenement_id: $('evt').value, empreinte: visages[0].empreinte, seuil: +$('seuil').value });
-    msg('test-msg', d.photos.length ? 'ok' : 'info', `${d.photos.length} photo(s) trouvée(s).`);
+    const d = await api('tester', {
+      evenement_id: $('evt').value, empreinte: visages[0].empreinte, seuil: +$('seuil').value,
+      deux_temps: $('deux-temps').checked, seuil2: +$('seuil2').value,
+    });
+    const nb2 = d.photos.filter(p => p.via === '2e temps').length;
+    msg('test-msg', d.photos.length ? 'ok' : 'info', `${d.photos.length} photo(s) trouvée(s)` + (nb2 ? ` dont ${nb2} grâce au 2e temps.` : '.'));
     $('test-grille').innerHTML = d.photos.map(p =>
-      `<figure><img src="${p.url}" loading="lazy" alt=""><figcaption>ressemblance : ${p.distance.toFixed(2)}</figcaption></figure>`).join('');
+      `<figure><img src="${p.url}" loading="lazy" alt=""><figcaption>${p.via === '2e temps' ? '🔁 2e temps' : '🤳 selfie'} · ${p.distance.toFixed(2)}</figcaption></figure>`).join('');
   } catch (e) {
     msg('test-msg', 'err', e.message);
   } finally {
