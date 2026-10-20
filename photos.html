@@ -107,8 +107,10 @@
 </div>
 
 <script type="module">
-import * as faceapi from 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.esm.js';
-
+// La reconnaissance (~1 Mo de code + ~12 Mo de modèles) n'est téléchargée qu'une
+// fois la case de consentement cochée : la page s'affiche tout de suite.
+const FACE_API = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.esm.js';
+let faceapi = null;
 const MODELES = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model/';
 const $ = id => document.getElementById(id);
 
@@ -185,7 +187,10 @@ $('consent').onchange = () => {
 function chargerModeles() {
   if (!modelesPrets) {
     modelesPrets = (async () => {
-      try { await faceapi.tf.setBackend('webgl'); } catch (e) { await faceapi.tf.setBackend('cpu'); }
+      faceapi = await import(FACE_API);
+      let gpu = false;
+      try { gpu = await faceapi.tf.setBackend('webgl'); } catch (e) {}
+      if (!gpu) await faceapi.tf.setBackend('cpu'); // vieux téléphones : plus lent mais ça marche
       await faceapi.tf.ready();
       await Promise.all([
         faceapi.nets.ssdMobilenetv1.loadFromUri(MODELES),
