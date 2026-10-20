@@ -52,8 +52,48 @@ async function chargerImage(fichier) {
   }
 }
 
+// Copie de l'image tournée de 90°, 180° ou 270°.
+function tourner(source, degres) {
+  const c = document.createElement('canvas');
+  const droit = degres % 180 !== 0;
+  c.width = droit ? source.height : source.width;
+  c.height = droit ? source.width : source.height;
+  const ctx = c.getContext('2d');
+  ctx.translate(c.width / 2, c.height / 2);
+  ctx.rotate(degres * Math.PI / 180);
+  ctx.drawImage(source, -source.width / 2, -source.height / 2);
+  return c;
+}
+
+// Le plus grand visage de l'image : { empreinte, score } ou null.
+async function plusGrandVisage(canvas) {
+  const visages = await faceapi.detectAllFaces(canvas, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+    .withFaceLandmarks().withFaceDescriptors();
+  if (!visages.length) return null;
+  // Plusieurs visages ? On garde le plus grand (celui du selfie).
+  visages.sort((a, b) => b.detection.box.area - a.detection.box.area);
+  return {
+    empreinte: Array.from(visages[0].descriptor).map(v => Math.round(v * 1e6) / 1e6),
+    score: visages[0].detection.score,
+  };
+}
+
+// Certains Android livrent le selfie « couché » : on essaie les 4 sens et on garde
+// la détection la plus sûre (un visage couché peut être détecté, mais mal).
+// Si l'image droite est déjà très nette, inutile d'essayer les autres sens.
+async function chercherDansTousLesSens(canvas, sens = [0, 90, 270, 180]) {
+  let meilleur = null;
+  for (const degres of sens) {
+    const v = await plusGrandVisage(degres ? tourner(canvas, degres) : canvas);
+    if (v && (!meilleur || v.score > meilleur.score)) meilleur = v;
+    if (degres === 0 && v && v.score > 0.9) break;
+  }
+  return meilleur ? meilleur.empreinte : null;
+}
+
 // Renvoie l'empreinte du plus grand visage de la photo, ou null si aucun visage.
-export async function empreinteDuSelfie(fichier) {
+// avertir(texte) : facultatif, pour prévenir l'utilisateur si ça va être long.
+export async function empreinteDuSelfie(fichier, avertir = () => {}) {
   await chargerModeles();
   const image = await chargerImage(fichier);
   const w = image.width || image.naturalWidth, h = image.height || image.naturalHeight;
@@ -62,10 +102,15 @@ export async function empreinteDuSelfie(fichier) {
   c.width = Math.round(w * r); c.height = Math.round(h * r);
   c.getContext('2d').drawImage(image, 0, 0, c.width, c.height);
   if (image.close) image.close();
-  const visages = await faceapi.detectAllFaces(c, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
-    .withFaceLandmarks().withFaceDescriptors();
-  if (!visages.length) return null;
-  // Plusieurs visages ? On garde le plus grand (celui du selfie).
-  visages.sort((a, b) => b.detection.box.area - a.detection.box.area);
-  return Array.from(visages[0].descriptor).map(v => Math.round(v * 1e6) / 1e6);
+
+  let e = await chercherDansTousLesSens(c);
+  // Certaines cartes graphiques Android calculent mal : on refait le calcul sans
+  // elles (plus lent, mais fiable), et on y reste pour les recherches suivantes.
+  if (!e && faceapi.tf.getBackend() !== 'cpu') {
+    avertir('Ton téléphone a besoin d\'un peu plus de temps… (jusqu\'à une minute)');
+    await faceapi.tf.setBackend('cpu');
+    await faceapi.tf.ready();
+    e = await chercherDansTousLesSens(c, [0, 90, 270]);
+  }
+  return e;
 }

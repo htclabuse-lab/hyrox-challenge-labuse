@@ -209,7 +209,7 @@ async function ajouter(fichier) {
     $('chargement-txt').textContent = modelesCharges() ? 'Analyse du visage…' : 'Préparation de la reconnaissance (une seule fois)…';
     await chargerModeles();
     $('chargement-txt').textContent = 'Analyse du visage…';
-    const empreinte = await empreinteDuSelfie(fichier);
+    const empreinte = await empreinteDuSelfie(fichier, t => { $('chargement-txt').textContent = t; });
     if (!empreinte) {
       msg('msg-ajout', 'err', "On n'a pas trouvé de visage sur cette photo. Essaie avec un selfie de face, bien éclairé.");
       return;

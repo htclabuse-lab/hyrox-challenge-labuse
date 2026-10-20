@@ -195,7 +195,7 @@ async function rechercher(fichier, zoneMsg) {
     $('chargement-txt').textContent = modelesCharges() ? 'Analyse de ton visage…' : 'Préparation de la reconnaissance (une seule fois)…';
     await chargerModeles();
     $('chargement-txt').textContent = 'Analyse de ton visage…';
-    const empreinte = await empreinteDuSelfie(fichier);
+    const empreinte = await empreinteDuSelfie(fichier, t => { $('chargement-txt').textContent = t; });
     if (!empreinte) {
       msg(zoneMsg, 'err', "On n'a pas trouvé de visage sur cette photo. Essaie avec un selfie de face, bien éclairé, sans lunettes de soleil.");
       return;
