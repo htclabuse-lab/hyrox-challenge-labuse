@@ -39,8 +39,11 @@
   .compte b { color: #FFEE00; font-size: 22px; }
   .offre { text-align: center; }
   .offre .prix { color: #FFEE00; font-size: 28px; font-weight: 900; margin: 4px 0; }
-  .chargement { text-align: center; padding: 2rem 0; color: #ccc; font-size: 15px; }
-  .rond { width: 36px; height: 36px; border: 4px solid #333; border-top-color: #FFEE00; border-radius: 50%; margin: 0 auto 12px; animation: tourne 1s linear infinite; }
+  .voile { position: fixed; inset: 0; z-index: 10; background: rgba(10,10,10,.94); display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+  .chargement { text-align: center; }
+  .chargement b { display: block; font-size: 22px; color: #fff; margin-bottom: 8px; }
+  .chargement span { font-size: 14px; color: #aaa; }
+  .rond { width: 54px; height: 54px; border: 5px solid #333; border-top-color: #FFEE00; border-radius: 50%; margin: 0 auto 18px; animation: tourne 1s linear infinite; }
   @keyframes tourne { to { transform: rotate(360deg); } }
   .hidden { display: none !important; }
   .back { display: block; text-align: center; color: #888; text-decoration: none; font-size: 13px; margin-top: 1.5rem; }
@@ -76,8 +79,8 @@
   </div>
 
   <!-- Chargement -->
-  <div class="card hidden" id="bloc-chargement">
-    <div class="chargement"><div class="rond"></div><span id="chargement-txt">Recherche en cours…</span></div>
+  <div class="voile hidden" id="bloc-chargement">
+    <div class="chargement"><div class="rond"></div><b>Recherche en cours…</b><span id="chargement-txt"></span></div>
   </div>
 
   <!-- Résultats -->
@@ -249,7 +252,7 @@ async function rechercher(fichier, zoneMsg) {
       msg(zoneMsg, 'err', "On n'a pas trouvé de visage sur cette photo. Essaie avec un selfie de face, bien éclairé, sans lunettes de soleil.");
       return;
     }
-    $('chargement-txt').textContent = 'Recherche dans les photos de l\'événement…';
+    $('chargement-txt').textContent = 'On cherche dans les photos de l\'événement…';
     const d = await api('rechercher', { evenement_id: evenement.id, empreinte });
     bons.push(d.bon);
     let nouvelles = 0;
@@ -257,6 +260,7 @@ async function rechercher(fichier, zoneMsg) {
       if (!photos.has(p.photo_id)) { photos.set(p.photo_id, p); nouvelles++; }
     }
     afficher();
+    if (bons.length === 1) window.scrollTo({ top: 0 });
     if (bons.length > 1) {
       msg(zoneMsg, nouvelles ? 'info' : 'warn', nouvelles
         ? `${nouvelles} nouvelle(s) photo(s) ajoutée(s) à ta liste.`
