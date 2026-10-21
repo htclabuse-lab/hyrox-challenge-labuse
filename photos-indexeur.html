@@ -126,6 +126,7 @@ let motDePasse = '';
 let modelesPrets = null;
 let fichiers = [];
 let enCours = false;
+let confirmation = null;   // clé « événement|photographe|nb » déjà confirmée une fois
 let arret = false;
 
 // ---------------------------------------------------------------- API
@@ -331,7 +332,14 @@ async function traiter(fichier, evenementId, photographe) {
 }
 
 // ---------------------------------------------------------------- Choix du dossier
+function annulerConfirmation() {
+  if (confirmation) { confirmation = null; $('btn-go').textContent = "▶ Lancer l'analyse"; msg('choix-msg', '', ''); }
+}
+$('evt').addEventListener('change', annulerConfirmation);
+$('photographe').addEventListener('input', annulerConfirmation);
+
 $('dossier').onchange = () => {
+  confirmation = null; $('btn-go').textContent = "▶ Lancer l'analyse";
   fichiers = [...$('dossier').files]
     .filter(f => /\.(jpe?g|png)$/i.test(f.name) && !f.name.startsWith('.'))
     .sort((a, b) => (a.webkitRelativePath || a.name).localeCompare(b.webkitRelativePath || b.name));
@@ -360,8 +368,21 @@ $('btn-go').onclick = async () => {
   const photographe = $('photographe').value.trim();
   if (!evenementId) { msg('choix-msg', 'err', 'Choisis d\'abord l\'événement (étape 1).'); return; }
   if (!photographe) { msg('choix-msg', 'err', 'Indique le nom du photographe.'); return; }
+  // Confirmation DANS la page (les fenêtres confirm() ne s'affichent pas partout,
+  // par ex. dans le navigateur intégré de l'app Claude).
   const nomEvt = $('evt').selectedOptions[0].textContent.split(' — ')[0];
-  if (!confirm(`Tu vas mettre en ligne ${fichiers.length} photo(s) de « ${photographe} »\n\ndans l'événement : ${nomEvt}\n\nC'est bien le bon événement ?`)) return;
+  const cle = evenementId + '|' + photographe + '|' + fichiers.length;
+  if (confirmation !== cle) {
+    confirmation = cle;
+    msg('choix-msg', 'info', `Tu vas mettre en ligne <strong>${fichiers.length} photo(s)</strong> de « ${photographe} »
+      dans l'événement : <strong style="font-size:16px;color:#FFEE00;">${nomEvt}</strong><br>
+      C'est bien le bon événement ? Si oui, clique à nouveau sur <strong>▶ Lancer l'analyse</strong>.
+      Sinon, change l'événement en haut.`);
+    $('btn-go').textContent = '✅ Oui, lancer dans « ' + nomEvt + ' »';
+    return;
+  }
+  confirmation = null;
+  $('btn-go').textContent = "▶ Lancer l'analyse";
 
   enCours = true; arret = false; majBoutonGo();
   $('btn-stop').classList.remove('hidden');
