@@ -118,9 +118,10 @@ async function plusGrandVisage(canvas) {
   };
 }
 
-// Certains Android livrent le selfie « couché » : on essaie les 4 sens et on garde
-// la détection la plus sûre (un visage couché peut être détecté, mais mal).
-// Si l'image droite est déjà très nette, inutile d'essayer les autres sens.
+// Certains Android livrent le selfie « couché ». Règle : si un visage est trouvé
+// sur l'image DROITE, on le garde (comme l'indexeur) — un visage couché peut avoir
+// un meilleur score mais une empreinte moins fidèle. Les autres sens ne servent
+// que si rien n'est trouvé à l'endroit ; on garde alors la détection la plus sûre.
 // Renvoie l'empreinte, null si aucun visage, ou 'PANNE' si la carte graphique ne
 // voit strictement rien (même pas de « bruit ») sur la photo droite.
 async function chercherDansTousLesSens(canvas, sens = [0, 90, 270, 180], verifierPanne = false) {
@@ -133,7 +134,7 @@ async function chercherDansTousLesSens(canvas, sens = [0, 90, 270, 180], verifie
     }
     const v = await plusGrandVisage(degres ? tourner(canvas, degres) : canvas);
     if (v && (!meilleur || v.score > meilleur.score)) meilleur = v;
-    if (degres === 0 && v && v.score > 0.9) break;
+    if (degres === 0 && v) break;
   }
   return meilleur ? meilleur.empreinte : null;
 }
