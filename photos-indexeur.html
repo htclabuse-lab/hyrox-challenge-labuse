@@ -150,7 +150,9 @@ async function connexion() {
   try {
     const d = await api('evenements');
     sessionStorage.setItem('photos_pwd', motDePasse);
-    $('evt').innerHTML = d.evenements.map(e =>
+    // Aucun événement choisi par défaut : il faut le sélectionner explicitement
+    // (le 21/10, des photos de test sont parties par erreur dans HC #3, 1er de la liste).
+    $('evt').innerHTML = '<option value="" selected disabled>— Choisis l\'événement —</option>' + d.evenements.map(e =>
       `<option value="${e.id}">${e.nom} — ${e.nb_photos} photo(s) en ligne${e.statut === 'brouillon' ? ' (brouillon)' : ''}</option>`).join('');
     $('bloc-login').classList.add('hidden');
     $('bloc-app').classList.remove('hidden');
@@ -356,7 +358,10 @@ function duree(sec) {
 $('btn-go').onclick = async () => {
   const evenementId = $('evt').value;
   const photographe = $('photographe').value.trim();
+  if (!evenementId) { msg('choix-msg', 'err', 'Choisis d\'abord l\'événement (étape 1).'); return; }
   if (!photographe) { msg('choix-msg', 'err', 'Indique le nom du photographe.'); return; }
+  const nomEvt = $('evt').selectedOptions[0].textContent.split(' — ')[0];
+  if (!confirm(`Tu vas mettre en ligne ${fichiers.length} photo(s) de « ${photographe} »\n\ndans l'événement : ${nomEvt}\n\nC'est bien le bon événement ?`)) return;
 
   enCours = true; arret = false; majBoutonGo();
   $('btn-stop').classList.remove('hidden');
@@ -445,6 +450,7 @@ $('seuil2').oninput = () => { $('seuil2-val').textContent = (+$('seuil2').value)
 
 $('btn-test').onclick = async () => {
   const f = $('selfie').files[0];
+  if (!$('evt').value) { msg('test-msg', 'err', 'Choisis d\'abord l\'événement (étape 1, en haut).'); return; }
   if (!f) { msg('test-msg', 'err', 'Choisis d\'abord une photo.'); return; }
   $('btn-test').disabled = true;
   $('test-grille').innerHTML = '';
