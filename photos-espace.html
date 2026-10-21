@@ -215,7 +215,7 @@ async function ajouter(fichier) {
       return;
     }
     $('chargement-txt').textContent = 'On cherche dans les photos de l\'événement…';
-    const recherche = await api('/api/photos-recherche', 'rechercher', { evenement_id: espace.evenement.id, empreinte });
+    const recherche = await api('/api/photos-recherche', 'rechercher', { evenement_id: espace.evenement.id, empreinte, jeton });
     const d = await api('/api/photos-acces', 'ajouter', { jeton, bon: recherche.bon });
     await charger();
     msg('msg-ajout', d.nouvelles ? 'info' : 'warn', d.nouvelles

@@ -3,7 +3,7 @@ import { SUPABASE_URL } from '../lib/kids.js';
 import { FROM as FROM_PE, REPLY_TO } from '../lib/parent-enfant.js';
 import { lienSigne, clesPhoto } from '../lib/r2.js';
 import {
-  lireBon, emailValide, inscriptionsPourEmail, personnesCouvertes, SELFIES_PAR_PERSONNE,
+  lireBon, emailValide, inscriptionsPourEmail, inscriptionEtPack, personnesCouvertes, SELFIES_PAR_PERSONNE,
 } from '../lib/photos.js';
 
 // ============================================================================
@@ -109,19 +109,8 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: "Aucune inscription trouvée avec cet email pour cet événement. Utilise bien l'adresse de ton inscription." });
       }
 
-      // Le pack : pris à l'inscription, ou déjà acheté en ligne par un membre de l'équipe.
-      let insc = inscriptions.find(r => r.pack_photo === true);
-      let origine = insc ? 'pack_inscription' : null;
-      if (!insc) {
-        const { data: achats } = await db.from('photos_acces').select('inscription_id')
-          .eq('evenement_id', evt.id).eq('origine', 'achat_en_ligne').eq('statut', 'actif')
-          .in('inscription_id', inscriptions.map(r => r.id));
-        if (achats && achats.length) {
-          insc = inscriptions.find(r => r.id === achats[0].inscription_id);
-          origine = 'achat_en_ligne';
-        }
-      }
-      if (!insc) {
+      const { insc, origine } = await inscriptionEtPack(db, evt, inscriptions);
+      if (!origine) {
         return res.status(200).json({ paiement_requis: true, prix_cents: evt.prix_pack_cents });
       }
 

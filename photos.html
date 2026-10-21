@@ -67,7 +67,9 @@
   <div class="card hidden" id="bloc-selfie">
     <h2>Comment ça marche</h2>
     <p>Prends un selfie : on le compare aux photos des photographes pour retrouver celles où tu apparais.
-      Tu en vois <strong id="nb-gratuites-txt">3</strong> gratuitement, et tu peux débloquer toutes les autres en haute définition.</p>
+      Tu en vois <strong id="nb-gratuites-txt">3</strong> gratuitement (pour ton équipe : Duo et binôme Parent / Enfant compris), et tu peux débloquer toutes les autres en haute définition.</p>
+    <label for="email" style="display:block;font-size:14px;color:#ccc;font-weight:700;margin-bottom:6px;">1. L'email de ton inscription</label>
+    <input type="email" id="email" class="champ" placeholder="ton.email@exemple.fr" autocomplete="email" style="margin:0 0 14px;">
     <label class="consent">
       <input type="checkbox" id="consent">
       <span id="consent-txt"></span>
@@ -99,10 +101,9 @@
       <h2>Débloque toutes tes photos</h2>
       <p style="margin-bottom:4px;">En haute définition, sans filigrane, à télécharger.</p>
       <div class="prix" id="prix">20 €</div>
-      <p class="petit" style="margin-top:0;">Tu as déjà pris le pack photo à ton inscription ? Il est inclus, rien à repayer.</p>
-      <input type="email" id="email" class="champ" placeholder="L'email de ton inscription" autocomplete="email">
+      <p class="petit" style="margin-top:0;" id="offre-txt">Tu as déjà pris le pack photo à ton inscription ? Il est inclus, rien à repayer.</p>
       <button class="btn" id="btn-debloquer">🔓 Débloquer mes photos</button>
-      <div class="petit" style="margin-top:8px;">Le lien vers ton espace photo est envoyé à cette adresse.</div>
+      <div class="petit" style="margin-top:8px;">Le lien vers ton espace photo est envoyé à <strong id="email-rappel"></strong>.</div>
       <div id="msg-debloquer"></div>
     </div>
   </div>
@@ -147,6 +148,8 @@ let derniereRecherche = null;   // pour le diagnostic
 const signature = e => 'Σ=' + e.reduce((a, v) => a + v, 0).toFixed(4) + ' [' + e.slice(0, 3).map(v => v.toFixed(3)).join(', ') + ']';
 const photos = new Map();   // photo_id → { apercu, nette?, telecharger? }
 const bons = [];            // bons de recherche signés (un par selfie)
+let emailRecherche = '';    // l'email d'inscription utilisé pour la recherche
+let aLePack = false;
 
 // ---------------------------------------------------------------- Outils
 function msg(id, type, texte) { $(id).innerHTML = texte ? `<div class="msg msg-${type}">${texte}</div>` : ''; }
@@ -202,8 +205,10 @@ async function demarrer() {
 }
 
 // ---------------------------------------------------------------- Consentement
+const emailOk = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('email').value.trim());
+$('email').addEventListener('input', () => majBoutons());
 function majBoutons() {
-  const ok = $('consent').checked;
+  const ok = $('consent').checked && emailOk();
   $('btn-selfie').classList.toggle('off', !ok);
   $('btn-import').classList.toggle('off', !ok);
 }
@@ -216,7 +221,11 @@ $('consent').onchange = () => {
 async function rechercher(fichier, zoneMsg) {
   let erreurVue = null;
   msg(zoneMsg, '', '');
+  if (!emailOk()) { msg(zoneMsg, 'warn', 'Entre d\'abord l\'email de ton inscription.'); return; }
   if (!$('consent').checked) { msg(zoneMsg, 'warn', 'Coche d\'abord la case pour accepter l\'analyse de ton visage.'); return; }
+  const email = $('email').value.trim().toLowerCase();
+  // Changement d'email = nouvelle personne : on repart de zéro.
+  if (emailRecherche && email !== emailRecherche) { photos.clear(); bons.length = 0; }
   montrer('bloc-chargement');
   try {
     $('chargement-txt').textContent = modelesCharges() ? 'Analyse de ton visage…' : 'Préparation de la reconnaissance (une seule fois)…';
@@ -228,7 +237,9 @@ async function rechercher(fichier, zoneMsg) {
       return;
     }
     $('chargement-txt').textContent = 'On cherche dans les photos de l\'événement…';
-    const d = await api('rechercher', { evenement_id: evenement.id, empreinte });
+    const d = await api('rechercher', { evenement_id: evenement.id, empreinte, email });
+    emailRecherche = email;
+    aLePack = d.a_le_pack;
     derniereRecherche = { empreinte, photos: d.photos };
     bons.push(d.bon);
     let nouvelles = 0;
@@ -259,10 +270,10 @@ function afficher() {
     msg('msg-selfie', 'warn', "Aucune photo trouvée pour l'instant. Réessaie avec un autre selfie (de face, bien éclairé), ou reviens plus tard : les photos sont parfois mises en ligne en plusieurs fois.");
     return;
   }
-  // Les N premières photos ayant une version nette sont offertes, pas plus — même après plusieurs selfies.
+  // Le serveur décide des photos offertes (N par équipe) : on affiche nettes celles qu'il a marquées.
   let offertes = 0;
   const html = liste.map(p => {
-    if (p.nette && offertes < evenement.nb_gratuites) {
+    if (p.nette) {
       offertes++;
       return `<div class="ph"><a href="${p.nette}" target="_blank" rel="noopener"><img src="${p.nette}" alt="Photo offerte" loading="lazy"></a>
         <span class="tag">🎁 OFFERTE</span><a class="dl" href="${p.telecharger}">⬇ Télécharger</a></div>`;
@@ -276,6 +287,11 @@ function afficher() {
   $('compte').innerHTML = `<b>${liste.length}</b> photo(s) de toi trouvée(s)` +
     (verrouillees ? `<br><span style="font-size:13px;color:#888;">${offertes} offerte(s) · ${verrouillees} à débloquer</span>` : '');
   montrer('bloc-offre', verrouillees > 0);
+  $('email-rappel').textContent = emailRecherche;
+  $('offre-txt').textContent = aLePack
+    ? '✅ Ton équipe a le pack photo : il est inclus, rien à payer.'
+    : 'Tu as déjà pris le pack photo à ton inscription ? Il est inclus, rien à repayer.';
+  $('btn-debloquer').textContent = aLePack ? '📩 Recevoir toutes mes photos par mail' : '🔓 Débloquer mes photos';
 }
 
 $('in-selfie').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) rechercher(f, 'msg-selfie'); };
@@ -284,8 +300,7 @@ $('in-encore').onchange = e => { const f = e.target.files[0]; e.target.value = '
 
 // ---------------------------------------------------------------- Déblocage
 $('btn-debloquer').onclick = async () => {
-  const email = $('email').value.trim().toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg('msg-debloquer', 'err', 'Entre une adresse email valide.'); return; }
+  const email = emailRecherche;
   $('btn-debloquer').disabled = true;
   msg('msg-debloquer', '', '');
   try {
