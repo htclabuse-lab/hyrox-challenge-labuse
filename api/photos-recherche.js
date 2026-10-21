@@ -56,7 +56,7 @@ export default async function handler(req, res) {
       // version nette (la page n'en affiche que N au total, même après un 2e selfie).
       for (const [i, t] of trouvees.entries()) {
         const cles = clesPhoto(evt.id, t.photo_id);
-        const p = { photo_id: t.photo_id, apercu: await lienSigne('GET', cles.apercu) };
+        const p = { photo_id: t.photo_id, distance: Math.round(t.distance * 1000) / 1000, via: t.via, apercu: await lienSigne('GET', cles.apercu) };
         if (i < evt.nb_gratuites) {
           p.nette = await lienSigne('GET', cles.web);
           p.telecharger = await lienSigne('GET', cles.web, { telechargerSous: `HTC-La-Buse-${evt.id}-offerte-${i + 1}.jpg` });

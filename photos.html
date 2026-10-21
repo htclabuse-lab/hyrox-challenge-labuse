@@ -128,6 +128,11 @@ function afficherDiagnostic(erreur) {
     gpu = gl ? (ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : 'webgl sans détail') : 'pas de webgl';
   } catch (e) {}
   const lignes = [navigator.userAgent, 'carte graphique : ' + gpu, ...diagnostic.lignes];
+  if (derniereRecherche) {
+    lignes.push('empreinte : ' + signature(derniereRecherche.empreinte));
+    lignes.push('trouvées : ' + derniereRecherche.photos.map(p => `${p.via === '2e temps' ? '2e' : 'selfie'} ${p.distance}`).join(' | '));
+    derniereRecherche = null;
+  }
   if (erreur) lignes.push('ERREUR : ' + erreur);
   $('diag').innerHTML = `<div style="margin-top:1rem;padding:10px;border:1px dashed #666;border-radius:8px;font:11px/1.5 monospace;color:#aaa;white-space:pre-wrap;word-break:break-all;">`
     + (diagnostic.apercu ? `<img src="${diagnostic.apercu}" style="display:block;max-width:160px;margin-bottom:8px;border:1px solid #444">` : '')
@@ -138,6 +143,8 @@ function afficherDiagnostic(erreur) {
 const $ = id => document.getElementById(id);
 
 let evenement = null;
+let derniereRecherche = null;   // pour le diagnostic
+const signature = e => 'Σ=' + e.reduce((a, v) => a + v, 0).toFixed(4) + ' [' + e.slice(0, 3).map(v => v.toFixed(3)).join(', ') + ']';
 const photos = new Map();   // photo_id → { apercu, nette?, telecharger? }
 const bons = [];            // bons de recherche signés (un par selfie)
 
@@ -222,6 +229,7 @@ async function rechercher(fichier, zoneMsg) {
     }
     $('chargement-txt').textContent = 'On cherche dans les photos de l\'événement…';
     const d = await api('rechercher', { evenement_id: evenement.id, empreinte });
+    derniereRecherche = { empreinte, photos: d.photos };
     bons.push(d.bon);
     let nouvelles = 0;
     for (const p of d.photos) {

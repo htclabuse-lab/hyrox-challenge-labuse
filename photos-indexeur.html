@@ -439,6 +439,7 @@ window.addEventListener('beforeunload', e => {
 });
 
 // ---------------------------------------------------------------- Test avec un selfie
+const signature = e => 'Σ=' + e.reduce((a, v) => a + v, 0).toFixed(4) + ' [' + e.slice(0, 3).map(v => v.toFixed(3)).join(', ') + ']';
 $('seuil').oninput = () => { $('seuil-val').textContent = (+$('seuil').value).toFixed(2); };
 $('seuil2').oninput = () => { $('seuil2-val').textContent = (+$('seuil2').value).toFixed(2); };
 
@@ -462,7 +463,8 @@ $('btn-test').onclick = async () => {
       deux_temps: $('deux-temps').checked, seuil2: +$('seuil2').value,
     });
     const nb2 = d.photos.filter(p => p.via === '2e temps').length;
-    msg('test-msg', d.photos.length ? 'ok' : 'info', `${d.photos.length} photo(s) trouvée(s)` + (nb2 ? ` dont ${nb2} grâce au 2e temps.` : '.'));
+    msg('test-msg', d.photos.length ? 'ok' : 'info', `${d.photos.length} photo(s) trouvée(s)` + (nb2 ? ` dont ${nb2} grâce au 2e temps.` : '.')
+      + `<br><span style="font:11px monospace;color:#888">empreinte : ${signature(visages[0].empreinte)}</span>`);
     $('test-grille').innerHTML = d.photos.map(p =>
       `<figure><img src="${p.url}" loading="lazy" alt=""><figcaption>${p.via === '2e temps' ? '🔁 2e temps' : '🤳 selfie'} · ${p.distance.toFixed(2)}</figcaption></figure>`).join('');
   } catch (e) {
