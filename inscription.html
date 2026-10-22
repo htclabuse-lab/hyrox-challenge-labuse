@@ -753,50 +753,18 @@
     window.location.href = lien;
   }
 
-  // Quotas Solo + Duo HC #3 (fermeture au multiple de 5 choisi)
-  // Ne compte QUE les inscriptions "paye" créées depuis l'ouverture HC #3
-  // (sinon on comptabilise les HC #2 déjà couru en juillet 2026).
-  var OUVERTURE_HC3 = '2026-07-19';
-  var QUOTAS_CAT = {
-    'Solo Femme RX': 15,
-    'Solo Femme Scaled': 25,
-    'Solo Homme RX': 52,
-    'Solo Homme Scaled': 30,
-    'Duo Femme RX': 15,
-    'Duo Femme Scaled': 30,
-    'Duo Homme RX': 25,
-    'Duo Homme Scaled': 20,
-    'Duo Mixte RX': 15,
-    'Duo Mixte Scaled': 25
-  };
-
-  async function refreshPlacesSolo() {
-    try {
-      var res = await db.from('Inscriptions')
-        .select('categorie')
-        .eq('statut_paiement', 'paye')
-        .gte('created_at', OUVERTURE_HC3);
-      if (res.error) return;
-      var counts = {};
-      (res.data || []).forEach(function(d){ counts[d.categorie] = (counts[d.categorie] || 0) + 1; });
-      document.querySelectorAll('.cat-btn[data-cat]').forEach(function(btn){
-        var cat = btn.getAttribute('data-cat');
-        if (!QUOTAS_CAT[cat]) return;
-        var payes = counts[cat] || 0;
-        var reste = Math.max(0, QUOTAS_CAT[cat] - payes);
-        var badge = btn.querySelector('.places-badge');
-        if (reste === 0) {
-          if (badge) { badge.className = 'places-badge complet'; badge.textContent = 'COMPLET'; }
-          btn.classList.add('cat-complet');
-        } else {
-          if (badge) {
-            badge.className = 'places-badge libre';
-            badge.textContent = reste === 1 ? '1 place restante' : reste + ' places restantes';
-          }
-          btn.classList.remove('cat-complet');
-        }
-      });
-    } catch (e) { /* fail silent */ }
+  // Dernière ligne droite : plus de quotas, toutes les catégories affichent
+  // simplement "⚡ Dernières places" et restent ouvertes. Fermeture manuelle
+  // prévue dimanche soir.
+  function refreshPlacesSolo() {
+    document.querySelectorAll('.cat-btn[data-cat]').forEach(function(btn){
+      btn.classList.remove('cat-complet');
+      var badge = btn.querySelector('.places-badge');
+      if (badge) {
+        badge.className = 'places-badge libre';
+        badge.textContent = '⚡ Dernières places';
+      }
+    });
   }
 
   if (document.readyState === 'loading') {
