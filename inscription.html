@@ -311,15 +311,23 @@
   // Code DUOGRATUIT (RETOUR10 + 1 place offerte) — DUO UNIQUEMENT
   const STRIPE_DUO_GRATUIT      = 'https://buy.stripe.com/fZubJ04Hz5JNdPP2lK8Vi0j'; // 49,50 €
   const STRIPE_DUO_PACK_GRATUIT = 'https://buy.stripe.com/7sY28q5LDdcf9zz1hG8Vi0i'; // 69,50 €
+  // Code DALON50 (-50 %) — SOLO UNIQUEMENT, sans pack photo
+  const STRIPE_SOLO_DALON       = 'https://buy.stripe.com/fZufZga1TegjdPP8K88Vi0l'; // 27,50 €
 
   // Taux de remise appliqué au prix de l'inscription (le pack photo n'est jamais remisé)
   //  RETOUR10   : -10 %  → Duo 110 € = 99 €
   //  DUOGRATUIT : -55 %  → Duo 110 € = 49,50 € (RETOUR10 + 1 place offerte)
-  const CODES_PROMO = { 'RETOUR10': 0.10, 'DUOGRATUIT': 0.55 };
+  //  DALON50    : -50 %  → Solo 55 € = 27,50 €
+  const CODES_PROMO = { 'RETOUR10': 0.10, 'DUOGRATUIT': 0.55, 'DALON50': 0.50 };
   // Codes réservés aux inscriptions Duo (pas de lien Stripe équivalent en Solo)
   const CODES_DUO_ONLY = ['DUOGRATUIT'];
+  // Codes réservés aux inscriptions Solo (pas de lien Stripe équivalent en Duo)
+  const CODES_SOLO_ONLY = ['DALON50'];
   // Message affiché à la place du "-X%" générique
-  const CODES_MESSAGE = { 'DUOGRATUIT': '✓ Code appliqué ! 1 place offerte sur ton duo' };
+  const CODES_MESSAGE = {
+    'DUOGRATUIT': '✓ Code appliqué ! 1 place offerte sur ton duo',
+    'DALON50': '✓ Code appliqué ! -50% sur ton Solo (pack photo non inclus, ajoutable après)',
+  };
   const PACK_PHOTO_PRIX = 20;
 
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -589,9 +597,25 @@
       buildRecap();
       return;
     }
+    // Idem symétrique : codes réservés aux inscriptions Solo
+    if (CODES_PROMO[code] && CODES_SOLO_ONLY.indexOf(code) !== -1 && !(state.cat || '').startsWith('solo')) {
+      remise = 0;
+      codeApplique = '';
+      msg.style.color = '#C0392B';
+      msg.textContent = '✗ Ce code est réservé aux inscriptions Solo';
+      buildRecap();
+      return;
+    }
     if (CODES_PROMO[code]) {
       remise = CODES_PROMO[code];
       codeApplique = code;
+      // DALON50 n'inclut pas le pack photo : on force la case a decoche pour
+      // que le prix affiche corresponde au prix Stripe reel.
+      if (code === 'DALON50' && state.packPhoto) {
+        var cbPack = document.getElementById('pack-photo');
+        if (cbPack) cbPack.checked = false;
+        state.packPhoto = false;
+      }
       msg.style.color = '#4CAF50';
       msg.textContent = CODES_MESSAGE[code] || ('✓ Code appliqué ! -' + (remise * 100) + '% sur l\'inscription');
       buildRecap();
@@ -605,6 +629,14 @@
   }
 
   function togglePack(el) {
+    // Avec DALON50, le pack photo n'est pas inclus (lien Stripe sans pack).
+    // On refuse la case et on redirige vers l'add-on apres inscription.
+    if (el.checked && codeApplique === 'DALON50') {
+      el.checked = false;
+      state.packPhoto = false;
+      alert('Avec le code DALON50, le pack photo n\'est pas inclus. Tu pourras l\'ajouter séparément après ton inscription (lien dédié envoyé par mail).');
+      return;
+    }
     state.packPhoto = !!el.checked;
     buildRecap();
   }
@@ -633,6 +665,7 @@
     var isDuo = state.cat.startsWith('duo');
     var withCode = (codeApplique === 'RETOUR10');
     var withGratuit = (codeApplique === 'DUOGRATUIT');
+    var withDalon = (codeApplique === 'DALON50');
     var withPack = !!state.packPhoto;
     if (isDuo) {
       if (withGratuit && withPack) return STRIPE_DUO_PACK_GRATUIT;
@@ -642,6 +675,9 @@
       if (withPack)             return STRIPE_DUO_PACK;
       return STRIPE_DUO;
     } else {
+      // DALON50 : code solo -50%. Pas de variante "avec pack" : le pack photo
+      // sera ajouté via le lien add-on apres l'inscription si besoin.
+      if (withDalon)            return STRIPE_SOLO_DALON;
       if (withCode && withPack) return STRIPE_SOLO_PACK_PREV;
       if (withCode)             return STRIPE_SOLO_PREV;
       if (withPack)             return STRIPE_SOLO_PACK;
