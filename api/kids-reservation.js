@@ -22,6 +22,9 @@ import {
 //        tous les enfants attendus (abonnés d'office + carnets ayant réservé),
 //        avec la présence déjà pointée.
 //  POST { action: 'presence', password, id, date, present } → pointe un enfant.
+//  POST { action: 'ajout', password, date, groupe, prenom, nom } → ajoute un
+//        enfant qui se présente sans être sur la liste (fiche gratuite marquée
+//        `ajout_appel`, pointée présente). À compléter ou supprimer ensuite.
 //
 // La table Reservations_kids a RLS activée sans aucune policy : elle n'est
 // accessible que par la service_role, donc uniquement via cette route.
@@ -114,6 +117,22 @@ export default async function handler(req, res) {
       if (!b.password || b.password !== process.env.JUGES_PASSWORD) return res.status(401).json({ error: 'Non autorisé' });
       const date = String(b.date || '');
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'Date invalide.' });
+
+      if (b.action === 'ajout') {
+        const prenom = String(b.prenom || '').trim().slice(0, 40);
+        const nom = String(b.nom || '').trim().slice(0, 60).toUpperCase();
+        const groupe = (b.groupe === 'petits' || b.groupe === 'grands') ? b.groupe : 'petits';
+        if (!prenom) return res.status(400).json({ error: "Indique au moins le prénom de l'enfant." });
+        const { data: cree, error: eC } = await db.from('Inscriptions').insert({
+          categorie: CATEGORIE_INSCRIPTION, prix: 0, statut_paiement: 'payé', nom_equipe: 'Abonnement',
+          co1_prenom: prenom, co1_nom: nom, groupe, sante_declaree: false,
+          niveau: 'ajout_appel:' + date + " — ajouté pendant le cours, fiche à compléter",
+        }).select('id').single();
+        if (eC) return res.status(500).json({ error: eC.message });
+        const { error: eP } = await db.from(TABLE).insert({ inscription_id: cree.id, date_seance: date, present: true });
+        if (eP) return res.status(500).json({ error: eP.message });
+        return res.status(200).json({ success: true, id: cree.id, prenom, nom, groupe });
+      }
 
       if (b.action === 'presence') {
         const id = parseInt(b.id, 10);
