@@ -113,7 +113,7 @@ export default async function handler(req, res) {
     }
 
     // ------------------------------------------------- feuille d'appel (admin)
-    if (b.action === 'appel' || b.action === 'presence') {
+    if (b.action === 'appel' || b.action === 'presence' || b.action === 'ajout') {
       if (!b.password || b.password !== process.env.JUGES_PASSWORD) return res.status(401).json({ error: 'Non autorisé' });
       const date = String(b.date || '');
       if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return res.status(400).json({ error: 'Date invalide.' });
