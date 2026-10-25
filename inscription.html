@@ -753,16 +753,27 @@
     window.location.href = lien;
   }
 
-  // Dernière ligne droite : plus de quotas, toutes les catégories affichent
-  // simplement "⚡ Dernières places" et restent ouvertes. Fermeture manuelle
-  // prévue dimanche soir.
+  // Fermeture automatique des inscriptions a 20h00 heure Reunion (UTC+4)
+  // le dimanche 25 octobre 2026. Avant cette heure : badge "Dernieres places".
+  // Apres : tous les boutons COMPLET + non cliquables.
+  var FERMETURE_HC3 = new Date('2026-10-25T20:00:00+04:00');
+
   function refreshPlacesSolo() {
+    var ferme = new Date() >= FERMETURE_HC3;
     document.querySelectorAll('.cat-btn[data-cat]').forEach(function(btn){
-      btn.classList.remove('cat-complet');
       var badge = btn.querySelector('.places-badge');
-      if (badge) {
-        badge.className = 'places-badge libre';
-        badge.textContent = '⚡ Dernières places';
+      if (ferme) {
+        btn.classList.add('cat-complet');
+        if (badge) {
+          badge.className = 'places-badge complet';
+          badge.textContent = 'COMPLET';
+        }
+      } else {
+        btn.classList.remove('cat-complet');
+        if (badge) {
+          badge.className = 'places-badge libre';
+          badge.textContent = '⚡ Dernières places';
+        }
       }
     });
   }
@@ -772,6 +783,8 @@
   } else {
     refreshPlacesSolo();
   }
+  // Re-check toutes les 60 sec pour que la bascule 20h00 soit effective sans reload.
+  setInterval(refreshPlacesSolo, 60 * 1000);
 </script>
 </body>
 </html>

@@ -111,8 +111,8 @@
   </div>
 
   <div id="bloc-complet" class="form-card" style="display:none;text-align:center;">
-    <h2>🔒 C'est complet !</h2>
-    <p style="font-size:14px;color:#ccc;line-height:1.6;margin-top:8px;">Les 84 binômes sont inscrits. Merci pour votre enthousiasme !<br>Écris-nous à <a href="mailto:htclabuse@gmail.com" style="color:#FFEE00;">htclabuse@gmail.com</a> pour être prévenu(e) si une place se libère.</p>
+    <h2>🔒 Inscriptions closes</h2>
+    <p style="font-size:14px;color:#ccc;line-height:1.6;margin-top:8px;">Merci pour votre enthousiasme !<br>Écris-nous à <a href="mailto:htclabuse@gmail.com" style="color:#FFEE00;">htclabuse@gmail.com</a> pour être prévenu(e) si une place se libère.</p>
   </div>
 
   <div id="form-block" class="form-card">
@@ -204,13 +204,19 @@
 
 <script>
   const params = new URLSearchParams(location.search);
-  // Complet (84 binômes) : on masque le formulaire.
+  // Fermeture automatique a 20h00 heure Reunion (UTC+4) le dim 25 oct 2026.
+  const FERMETURE_PE = new Date('2026-10-25T20:00:00+04:00');
+  // Complet (84 binomes) OU inscriptions closes : on masque le formulaire.
   function afficherComplet() {
     document.getElementById('form-block').style.display = 'none';
     document.getElementById('bloc-complet').style.display = 'block';
   }
-  if (params.get('succes') !== '1') {
+  if (new Date() >= FERMETURE_PE) {
+    afficherComplet();
+  } else if (params.get('succes') !== '1') {
     fetch('/api/pe-checkout').then(r => r.json()).then(j => { if (j && j.complet) afficherComplet(); }).catch(() => {});
+    // Re-check la fermeture auto chaque minute (bascule 20h00 sans reload).
+    setInterval(function(){ if (new Date() >= FERMETURE_PE) afficherComplet(); }, 60 * 1000);
   }
   if (params.get('succes') === '1') {
     document.getElementById('success-block').style.display = 'block';
