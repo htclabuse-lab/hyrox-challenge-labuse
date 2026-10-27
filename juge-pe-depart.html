@@ -50,6 +50,13 @@
   const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
   const JUGE_PWD = 'labuse';
+
+  // Écritures via le serveur (la clé publique ne peut plus modifier la base).
+  async function majPE(ids, champs) {
+    const r = await fetch('/api/juge-pe', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: JUGE_PWD, action: 'maj', ids: ids, champs: champs }) });
+    if (!r.ok) { alert('⚠️ Pas enregistré (réseau ?). Réessaie.'); throw new Error('juge-pe ' + r.status); }
+  }
   const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
   function login() {
@@ -76,6 +83,7 @@
     const { data: rows } = await db.from('Inscriptions')
       .select('id,prenom,nom,co1_prenom,co1_nom,vague,heure_depart,niveau,temps_estime,statut_paiement')
       .eq('categorie', 'Parent-Enfant')
+      .gte('created_at', '2026-09-01') // 2e édition uniquement
       .order('vague');
     data = rows || [];
     render();
@@ -169,18 +177,14 @@
     if (!confirm(`Démarrer la vague ${v} maintenant ?`)) return;
     const now = new Date().toISOString();
     const ids = data.filter(d => d.vague === v).map(d => d.id);
-    for (const id of ids) {
-      await db.from('Inscriptions').update({temps_estime: now}).eq('id', id);
-    }
+    await majPE(ids, {temps_estime: now});
     await load();
   }
 
   async function cancelStart(v) {
     if (!confirm(`Annuler le départ de la vague ${v} ?`)) return;
     const ids = data.filter(d => d.vague === v).map(d => d.id);
-    for (const id of ids) {
-      await db.from('Inscriptions').update({temps_estime: '', dossard: null}).eq('id', id);
-    }
+    await majPE(ids, {temps_estime: '', dossard: null});
     await load();
   }
 </script>
