@@ -414,8 +414,16 @@
           <span class="format-tag fluo">XL 400 m</span>
           <span class="format-tag">1 parent + 1 enfant · 5-15 ans</span>
         </div>
-        <p style="color:#ccc;font-size:14px;line-height:1.5;margin:0 0 12px;">2e édition : 7 stations adaptées, à faire en binôme. <strong style="color:#FFEE00;">68 € par binôme</strong>. Horaire communiqué plus tard.</p>
-        <span class="hero-cta" style="margin:0;display:block;text-align:center;background:#444;color:#ccc;cursor:default;pointer-events:none;">🔒 Complet</span>
+        <p style="color:#ccc;font-size:14px;line-height:1.5;margin:0 0 12px;">2e édition : 7 stations adaptées, à faire en binôme. <strong style="color:#FFEE00;">68 € par binôme</strong>. Départs de 12h30 à 15h20, par vagues.</p>
+        <span class="hero-cta" style="margin:0 0 14px;display:block;text-align:center;background:#444;color:#ccc;cursor:default;pointer-events:none;">🔒 Complet</span>
+        <div class="actions-grid">
+          <button type="button" class="action-btn" onclick="toggleSection('vagues-pe2',this); loadVaguesPE2();">📋 Vagues (provisoire)</button>
+        </div>
+        <div class="sub-section" id="vagues-pe2">
+          <div class="sub-title">📋 Planning des vagues — provisoire</div>
+          <p style="font-size:13px;color:#aaa;margin-bottom:12px;line-height:1.5;">Ce planning est <strong style="color:#fff;">provisoire</strong> : il peut encore bouger un peu d'ici l'événement.</p>
+          <div id="vagues-pe2-content" style="color:#888;font-size:13px;">Chargement…</div>
+        </div>
       </div>
     </div>
 
@@ -610,6 +618,18 @@ function showTab(tab) {
 (function() {
   var hash = (window.location.hash || '').replace('#', '');
   if (hash === 'epreuves') hash = 'hc';
+  if (hash === 'vagues-pe') {
+    showTab('avenir');
+    setTimeout(function() {
+      var sec = document.getElementById('vagues-pe2');
+      if (sec) {
+        sec.style.display = 'block';
+        loadVaguesPE2();
+        setTimeout(function(){ sec.scrollIntoView({behavior:'smooth', block:'start'}); }, 300);
+      }
+    }, 200);
+    return;
+  }
   if (hash === 'vagues') {
     showTab('avenir');
     setTimeout(function() {
@@ -636,6 +656,51 @@ function showTab(tab) {
     }
   }
 })();
+
+// Vagues Hyrox Parents / Enfants #2 (14/11/2026) — onglet À venir, lien direct /#vagues-pe
+var vaguesPE2Loaded = false;
+async function loadVaguesPE2() {
+  if (vaguesPE2Loaded) return;
+  vaguesPE2Loaded = true;
+  var target = document.getElementById('vagues-pe2-content');
+  try {
+    var db = supabase.createClient('https://mzyfnmjzlosranptwucr.supabase.co', 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC');
+    var { data, error } = await db.from('Inscriptions')
+      .select('prenom,nom,co1_prenom,niveau,vague,heure_depart')
+      .eq('categorie', 'Parent-Enfant')
+      .eq('statut_paiement', 'paye')
+      .gte('heure_depart', '2026-11-14')
+      .lt('heure_depart', '2026-11-15')
+      .not('vague', 'is', null)
+      .order('vague').order('nom');
+    if (error) throw error;
+    var byV = {};
+    (data||[]).forEach(function(d){ if(!byV[d.vague]) byV[d.vague]=[]; byV[d.vague].push(d); });
+    var vagues = Object.keys(byV).map(Number).sort(function(a,b){return a-b;});
+    if (vagues.length === 0) { target.innerHTML = 'Aucune vague publiée pour l\'instant.'; return; }
+    var html = '', prevFormat = null;
+    vagues.forEach(function(v){
+      var rows = byV[v];
+      var heure = new Date(rows[0].heure_depart).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Indian/Reunion'});
+      var xl = (rows[0].niveau||'').indexOf('XL') === 0;
+      var format = xl ? 'XL — 400 m' : 'Standard — 200 m';
+      if (format !== prevFormat) {
+        html += '<div style="background:linear-gradient(90deg,#ff3399,#FFA726,#FFEE00);color:#0a0a0a;padding:10px 14px;border-radius:8px;margin:14px 0 8px;font-weight:900;font-size:14px;letter-spacing:1px;text-align:center;">🏁 ' + format + '</div>';
+        prevFormat = format;
+      }
+      html += '<div style="background:#1a0d14;border:1px solid #ff3399;border-radius:8px;padding:10px 12px;margin-bottom:10px;">';
+      html += '<div style="font-weight:800;color:#ff3399;font-size:14px;margin-bottom:6px;">Vague ' + v + ' · <span style="color:#fff;">' + heure + '</span></div>';
+      rows.forEach(function(d){
+        html += '<div style="font-size:13px;color:#ddd;padding:3px 0;line-height:1.4;">' + (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong>'
+          + (d.co1_prenom ? ' <span style="color:#888;">+</span> ' + d.co1_prenom.trim() : '') + '</div>';
+      });
+      html += '</div>';
+    });
+    target.innerHTML = html;
+  } catch(e) {
+    target.innerHTML = 'Erreur de chargement : ' + (e.message||e);
+  }
+}
 
 var vaguesHC3Loaded = false;
 async function loadVaguesHC3() {
@@ -750,7 +815,7 @@ async function loadVagues() {
 }
 
 function toggleSection(id, btn) {
-  var sections = ['lb-passe', 'planning-passe', 'photos-passe', 'photos-pe', 'planning-avenir', 'rulebook-avenir', 'lb-avenir', 'photos-avenir', 'vagues-hc3'];
+  var sections = ['lb-passe', 'planning-passe', 'photos-passe', 'photos-pe', 'planning-avenir', 'rulebook-avenir', 'lb-avenir', 'photos-avenir', 'vagues-hc3', 'vagues-pe2'];
   sections.forEach(function(s) {
     var el = document.getElementById(s);
     if (el && s !== id) {
