@@ -25,7 +25,8 @@ const INSCRIPTIONS_OUVERTES = true;
 const MAX_BINOMES = 84;
 async function placesPrises(db) {
   const { count, error } = await db.from('Inscriptions').select('id', { count: 'exact', head: true })
-    .eq('categorie', CATEGORIE).gte('created_at', EDITION_2_DEPUIS).eq('statut_paiement', 'paye');
+    .eq('categorie', CATEGORIE).gte('created_at', EDITION_2_DEPUIS).eq('statut_paiement', 'paye')
+    .gt('prix', 0); // les inscriptions offertes (0 €, ajoutées à la main) ne prennent pas de place
   if (error) throw new Error(error.message);
   return count || 0;
 }
