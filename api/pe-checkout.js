@@ -51,6 +51,10 @@ export default async function handler(req, res) {
   } catch (e) { return res.status(500).json({ error: e.message }); }
 
   const b = req.body || {};
+  // Lien réservé ?invite=herubel : 2e binôme du même parent, sans t-shirt parent, 10 € de moins.
+  const sansTshirtParent = b.invite === 'herubel';
+  const prixBinome = sansTshirtParent ? PRIX - 10 : PRIX;
+  if (sansTshirtParent) { b.parent_genre = 'Homme'; b.parent_taille = 'S'; } // place-holders pour la validation, non enregistrés
   const f = {
     parent_prenom: nettoie(b.parent_prenom),
     parent_nom: nettoie(b.parent_nom).toUpperCase(),
@@ -96,9 +100,9 @@ export default async function handler(req, res) {
     const fiche = {
       nom: f.parent_nom, prenom: f.parent_prenom, email: f.parent_email, telephone: f.parent_tel,
       date_naissance: f.parent_dob, genre: f.parent_genre,
-      categorie: CATEGORIE, prix: PRIX + (pack ? PRIX_PACK_PHOTO : 0), statut_paiement: 'en_attente', pack_photo: pack,
+      categorie: CATEGORIE, prix: prixBinome + (pack ? PRIX_PACK_PHOTO : 0), statut_paiement: 'en_attente', pack_photo: pack,
       niveau: FORMATS[f.format].label,
-      tshirt_coupe: f.parent_genre, tshirt_taille: f.parent_taille,
+      tshirt_coupe: sansTshirtParent ? null : f.parent_genre, tshirt_taille: sansTshirtParent ? null : f.parent_taille,
       co1_prenom: f.enfant_prenom, co1_nom: f.enfant_nom, co1_date_naissance: f.enfant_dob, co1_tshirt: f.enfant_tshirt,
       contact_urgence_prenom: f.urg_prenom, contact_urgence_nom: f.urg_nom, contact_urgence_tel: f.urg_tel,
       sante_declaree: true,
@@ -115,9 +119,9 @@ export default async function handler(req, res) {
       locale: 'fr',
       customer_email: f.parent_email,
       client_reference_id: String(id),
-      allow_promotion_codes: true,
+      allow_promotion_codes: !sansTshirtParent,
       metadata: { type: TYPE_STRIPE, inscription_id: String(id), enfant: `${f.enfant_prenom} ${f.enfant_nom}`, format: f.format },
-      line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: PRIX * 100,
+      line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: prixBinome * 100,
         product_data: { name: 'Hyrox Parents / Enfants — 2e édition',
           description: `${f.parent_prenom} ${f.parent_nom} + ${f.enfant_prenom} ${f.enfant_nom} — ${FORMATS[f.format].label} — ${DATE_LABEL}` } } },
         ...(pack ? [{ quantity: 1, price_data: { currency: 'eur', unit_amount: PRIX_PACK_PHOTO * 100,

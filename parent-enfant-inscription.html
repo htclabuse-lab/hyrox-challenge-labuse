@@ -105,7 +105,7 @@
     </div>
     <div class="info prix">
       <h3>💰 Tarif</h3>
-      <p><span class="prix-big">68 €</span> <span class="prix-small">par binôme (parent + enfant), t-shirts compris</span></p>
+      <p><span class="prix-big" id="prix-big">68 €</span> <span class="prix-small">par binôme (parent + enfant), t-shirts compris</span></p>
       <p style="font-size:14px;color:#fff;margin-top:10px;padding:10px 12px;background:#2a0d1c;border:1px solid #ff3399;border-radius:10px;">📸 <strong>Pack photo : +20 €</strong> par binôme — des <strong>photos professionnelles</strong> de votre binôme en pleine course, à ajouter dans le formulaire.</p>
     </div>
   </div>
@@ -129,12 +129,12 @@
       <div class="field"><label>Téléphone *</label><input type="tel" id="parent_tel" placeholder="0692 …"></div>
       <div class="field"><label>Date de naissance *</label><input type="date" id="parent_dob"></div>
     </div>
-    <div class="row2">
+    <div class="row2" id="bloc-tshirt-parent">
       <div class="field"><label>T-shirt : coupe *</label>
         <select id="parent_genre" onchange="majTaillesParent()"><option value="">—</option><option>Homme</option><option>Femme</option></select></div>
       <div class="field"><label>T-shirt : taille *</label><select id="parent_taille"><option value="">—</option></select></div>
     </div>
-    <p style="font-size:12px;color:#FFA726;margin:-4px 0 10px;">👕 Les t-shirts taillent petit : n'hésite pas à prendre la taille au-dessus pour plus de confort.</p>
+    <p id="note-tshirt-parent" style="font-size:12px;color:#FFA726;margin:-4px 0 10px;">👕 Les t-shirts taillent petit : n'hésite pas à prendre la taille au-dessus pour plus de confort.</p>
 
     <div class="section-divider">🧒 Enfant (5 à 15 ans)</div>
     <div class="row2">
@@ -208,7 +208,14 @@
   const FERMETURE_PE = new Date('2026-10-26T20:00:00+04:00');
   // Lien d'invitation (places ouvertes exceptionnellement après la clôture, ex. famille RIVIÈRE le 27/10) :
   // parent-enfant-inscription.html?invite=riviere2 → formulaire visible malgré la date. Le quota de 84 reste actif.
-  const INVITE = ['riviere2'].includes(params.get('invite'));
+  const INVITE = ['riviere2', 'herubel'].includes(params.get('invite'));
+  // ?invite=herubel : 2e enfant de Guillaume HÉRUBEL (fiche 731), sans 2e t-shirt parent, 58 € (décision Stéphanie 27/10).
+  const SANS_TSHIRT_PARENT = params.get('invite') === 'herubel';
+  if (SANS_TSHIRT_PARENT) {
+    document.getElementById('bloc-tshirt-parent').style.display = 'none';
+    document.getElementById('note-tshirt-parent').textContent = '👕 Tu as déjà ton t-shirt avec ta première inscription : seul le t-shirt de l\'enfant est commandé.';
+    document.getElementById('prix-big').textContent = '58 €';
+  }
   // Complet (84 binomes) OU inscriptions closes : on masque le formulaire.
   function afficherComplet() {
     document.getElementById('form-block').style.display = 'none';
@@ -243,8 +250,10 @@
   async function envoyer() {
     err('');
     const ids = ['parent_prenom','parent_nom','parent_email','parent_tel','parent_dob','parent_genre','parent_taille',
-                 'enfant_prenom','enfant_nom','enfant_dob','enfant_tshirt','urg_prenom','urg_nom','urg_tel'];
+                 'enfant_prenom','enfant_nom','enfant_dob','enfant_tshirt','urg_prenom','urg_nom','urg_tel']
+      .filter(id => !(SANS_TSHIRT_PARENT && (id === 'parent_genre' || id === 'parent_taille')));
     const f = {};
+    if (INVITE) f.invite = params.get('invite');
     ids.forEach(id => f[id] = val(id));
     f.format = (document.querySelector('input[name="format"]:checked') || {}).value || '';
     f.sante = document.getElementById('sante').checked;
