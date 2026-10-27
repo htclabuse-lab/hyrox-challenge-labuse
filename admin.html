@@ -1051,6 +1051,12 @@ function shortTemps(t) {
       prevWeightGroup = weightGroup;
       var catsLabel = catsInVague.map(getCatLabel).join(' + ');
       var wgLabel = weightGroup === 'H' ? '👨 Poids H' : '👩 Poids F';
+      // Alerte poids mixte DANS une même vague (Duo Mixte RX + Duo Femme Scaled → setup différent)
+      var hasMixteRX = groupe.some(function(x){ var c=(x.categorie||'').toLowerCase(); return c.indexOf('mixte')!==-1 && c.indexOf('rx')!==-1; });
+      var hasFemmeScaled = groupe.some(function(x){ var c=(x.categorie||'').toLowerCase(); return c.indexOf('femme')!==-1 && c.indexOf('scaled')!==-1; });
+      if (hasMixteRX && hasFemmeScaled) {
+        html += '<div style="background:#C0392B;color:#fff;padding:10px 14px;border-radius:12px 12px 0 0;margin-top:14px;text-align:center;font-weight:900;font-size:13px;letter-spacing:0.5px;">⚠️ ATTENTION — Vague ' + v + ' : poids différents (Duo Mixte RX + Duo Femme Scaled) — adapter le setup</div>';
+      }
       html += '<div class="vague-block" style="margin-bottom:8px;">';
       html += '<div class="vague-header"><div class="vague-title">Vague ' + v + ' — ' + hr + '</div><div class="vague-info">' + groupe.length + ' ath. — ' + catsLabel + ' — ' + wgLabel + '</div></div>';
       groupe.forEach(function(d) {

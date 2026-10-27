@@ -659,6 +659,12 @@ async function loadVaguesHC3() {
         html += '<div style="background:linear-gradient(90deg,#C0392B,#FFEE00);color:#0a0a0a;padding:10px 14px;border-radius:8px;margin:14px 0 8px;font-weight:900;font-size:14px;letter-spacing:1px;text-align:center;">🏁 ' + mainCat + '</div>';
         prevMainCat = mainCat;
       }
+      // Alerte poids mixte DANS une même vague (Duo Mixte RX + Duo Femme Scaled → setup différent)
+      var hasMixteRX = rows.some(function(x){ var c=(x.categorie||'').toLowerCase(); return c.indexOf('mixte')!==-1 && c.indexOf('rx')!==-1; });
+      var hasFemmeScaled = rows.some(function(x){ var c=(x.categorie||'').toLowerCase(); return c.indexOf('femme')!==-1 && c.indexOf('scaled')!==-1; });
+      if (hasMixteRX && hasFemmeScaled) {
+        html += '<div style="background:#C0392B;color:#fff;padding:8px 12px;border-radius:8px;margin-bottom:4px;text-align:center;font-weight:800;font-size:12px;letter-spacing:0.5px;">⚠️ Vague ' + v + ' · poids différents (setup adapté le jour J)</div>';
+      }
       html += '<div style="background:#0d1400;border:1px solid #FFEE00;border-radius:8px;padding:10px 12px;margin-bottom:10px;">';
       html += '<div style="font-weight:800;color:#FFEE00;font-size:14px;margin-bottom:6px;">Vague ' + v + ' · <span style="color:#fff;">' + heure + '</span></div>';
       rows.forEach(function(d){
