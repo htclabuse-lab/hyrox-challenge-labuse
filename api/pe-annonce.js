@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL } from '../lib/kids.js';
-import { CATEGORIE, EDITION_2_DEPUIS, CODES_ANNONCE, mailAnnonce, mailRelance, mailRelancePE1, FROM, REPLY_TO } from '../lib/parent-enfant.js';
+import { CATEGORIE, EDITION_2_DEPUIS, CODES_ANNONCE, mailAnnonce, mailRelance, mailRelancePE1, mailVagues, FROM, REPLY_TO } from '../lib/parent-enfant.js';
 
 // ============================================================================
 // Mail d'annonce Hyrox Parents / Enfants #2 avec code de réduction.
@@ -70,6 +70,40 @@ export default async function handler(req, res) {
       const n = await resendBatch(resendKey, fiches.map(r => ({ from: FROM, to: r.email, reply_to: REPLY_TO, ...mailRelance(r) })),
         'pe-relance-' + fiches.map(r => r.id).sort().join('-'));
       return res.status(200).json({ envoye: true, envoyes: n, ids: fiches.map(r => r.id) });
+    } catch (e) { return res.status(500).json({ error: e.message }); }
+  }
+
+  // Mail des vagues (provisoires) : { vagues: true } → essai à blanc ; + test_to → 1 exemple ; + envoyer: true → envoi réel.
+  // Un mail par adresse email, qui liste tous ses binômes payés (Grondin, Hérubel, couples sur le même email…).
+  if (b.vagues === true) {
+    const db = createClient(SUPABASE_URL, serviceKey);
+    const { data, error } = await db.from('Inscriptions').select('id,prenom,nom,email,co1_prenom,co1_nom,niveau,vague,heure_depart')
+      .eq('categorie', CATEGORIE).gte('created_at', EDITION_2_DEPUIS).eq('statut_paiement', 'paye').not('vague', 'is', null);
+    if (error) return res.status(500).json({ error: error.message });
+    const parEmail = {};
+    data.forEach(r => { const e = String(r.email || '').trim().toLowerCase(); if (e.includes('@') && !EXCLUS.includes(e)) (parEmail[e] = parEmail[e] || []).push(r); });
+    const emails = Object.keys(parEmail).sort();
+    const sansEmail = data.filter(r => !String(r.email || '').includes('@')).map(r => `${r.id} ${r.prenom} ${r.nom}`);
+    try {
+      if (b.apercu) {
+        // Aperçu HTML (rien n'est envoyé) : apercu: 'multi' → un email à plusieurs binômes, sinon le premier.
+        const ex = b.apercu === 'multi' ? emails.find(e => parEmail[e].length > 1) : emails[0];
+        const m = mailVagues(parEmail[ex]);
+        return res.status(200).json({ apercu: true, exemple_de: ex, subject: m.subject, html: m.html });
+      }
+      if (b.test_to) {
+        // Exemple : un email à plusieurs binômes si demandé (exemple: 'multi'), sinon le premier.
+        const ex = b.exemple === 'multi' ? emails.find(e => parEmail[e].length > 1) : emails[0];
+        const n = await resendBatch(resendKey, [{ from: FROM, to: String(b.test_to).trim(), reply_to: REPLY_TO, ...mailVagues(parEmail[ex]) }], `pe-vagues-test-${Date.now()}`);
+        return res.status(200).json({ test: true, envoyes: n, exemple_de: ex, nb_destinataires_reels: emails.length });
+      }
+      if (b.envoyer !== true) return res.status(200).json({ dry_run: true, nombre: emails.length, binomes: data.length, sans_email: sansEmail,
+        plusieurs_binomes: emails.filter(e => parEmail[e].length > 1).map(e => e + ' : ' + parEmail[e].map(r => 'V' + r.vague).join(', ')) });
+      let envoyes = 0;
+      for (let i = 0; i < emails.length; i += 100) {
+        envoyes += await resendBatch(resendKey, emails.slice(i, i + 100).map(to => ({ from: FROM, to, reply_to: REPLY_TO, ...mailVagues(parEmail[to]) })), `pe-vagues-lot${i / 100}-v1`);
+      }
+      return res.status(200).json({ envoye: true, nombre: emails.length, envoyes, sans_email: sansEmail });
     } catch (e) { return res.status(500).json({ error: e.message }); }
   }
 

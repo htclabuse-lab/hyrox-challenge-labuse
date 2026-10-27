@@ -1153,7 +1153,9 @@ function isParentEnfant(d) {
 
     // --- Vagues du samedi 27 juin ---
     var waveHtml = statsHtml + '<div style="font-weight:800;color:#FFEE00;margin:0 0 0.5rem;font-size:16px;">⏱ Vagues — ' + (currentEvent === 'pe2' ? 'samedi 14 novembre 2026' : 'samedi 27 juin 2026') + '</div>';
-    waveHtml += '<div style="font-size:12px;color:#888;margin-bottom:1rem;">Triées par âge enfant (plus âgés d\'abord) · 4 binômes par vague · départ toutes les 10 minutes dès 13h00</div>';
+    waveHtml += '<div style="font-size:12px;color:#888;margin-bottom:1rem;">' + (currentEvent === 'pe2'
+      ? '<strong style="color:#FFA726;">Provisoire</strong> · XL d\'abord puis Standard · triées par âge enfant (plus âgés d\'abord) · 5 binômes par vague · départ toutes les 10 minutes dès 12h30'
+      : 'Triées par âge enfant (plus âgés d\'abord) · 4 binômes par vague · départ toutes les 10 minutes dès 13h00') + '</div>';
     var byWave = {};
     list.forEach(function(d) {
       var v = d.vague || 0;
