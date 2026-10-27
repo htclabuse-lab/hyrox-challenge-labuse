@@ -6,7 +6,7 @@ import { createClient } from '@supabase/supabase-js';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' });
 
-  const { password, dry_run, limit, extra_emails_test } = req.body || {};
+  const { password, dry_run, limit, extra_emails_test, only_emails, skip_emails } = req.body || {};
   if (!password || password !== process.env.JUGES_PASSWORD) {
     return res.status(401).json({ error: 'Non autorisé' });
   }
@@ -106,7 +106,15 @@ export default async function handler(req, res) {
     }
   }
 
-  const allEmails = Array.from(emailToHtml.keys());
+  let allEmails = Array.from(emailToHtml.keys());
+  if (Array.isArray(only_emails)) {
+    const whitelist = new Set(only_emails.map(e => String(e).trim().toLowerCase()));
+    allEmails = allEmails.filter(e => whitelist.has(e));
+  }
+  if (Array.isArray(skip_emails)) {
+    const blacklist = new Set(skip_emails.map(e => String(e).trim().toLowerCase()));
+    allEmails = allEmails.filter(e => !blacklist.has(e));
+  }
   const cap = (typeof limit === 'number' && limit >= 0) ? limit : allEmails.length;
   const targets = allEmails.slice(0, cap);
 
@@ -121,21 +129,26 @@ export default async function handler(req, res) {
 
   const sent = [];
   const failures = [];
-  // Envoi 1 par 1 (chaque mail a un HTML différent — pas de batch Resend simple possible)
-  for (const email of targets) {
+  // Batch Resend : 100 par appel max. Chaque entrée peut avoir son propre HTML.
+  for (let i = 0; i < targets.length; i += 100) {
+    const batch = targets.slice(i, i + 100);
+    const payload = batch.map(email => ({
+      from: FROM, to: email, subject, html: emailToHtml.get(email), reply_to: REPLY_TO
+    }));
     try {
-      const resp = await fetch('https://api.resend.com/emails', {
+      const resp = await fetch('https://api.resend.com/emails/batch', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from: FROM, to: email, subject, html: emailToHtml.get(email), reply_to: REPLY_TO
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await resp.json().catch(() => ({}));
-      if (!resp.ok) failures.push({ email, status: resp.status, error: data });
-      else sent.push(email);
+      if (!resp.ok) {
+        failures.push({ batch_start: i, batch_size: batch.length, status: resp.status, error: data });
+      } else {
+        sent.push(...batch);
+      }
     } catch (e) {
-      failures.push({ email, error: String(e) });
+      failures.push({ batch_start: i, batch_size: batch.length, error: String(e) });
     }
   }
 
