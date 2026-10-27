@@ -606,10 +606,22 @@ function showTab(tab) {
   window.scrollTo(0, 0);
 }
 
-// Deep-link via URL hash (#passes, #avenir, #hc, #pe, #accueil ; #epreuves = ancien lien → #hc)
+// Deep-link via URL hash (#passes, #avenir, #hc, #pe, #accueil ; #epreuves = ancien lien → #hc ; #vagues → onglet À venir + section vagues HC #3 auto-ouverte)
 (function() {
   var hash = (window.location.hash || '').replace('#', '');
   if (hash === 'epreuves') hash = 'hc';
+  if (hash === 'vagues') {
+    showTab('avenir');
+    setTimeout(function() {
+      var sec = document.getElementById('vagues-hc3');
+      if (sec) {
+        sec.style.display = 'block';
+        if (typeof loadVaguesHC3 === 'function') loadVaguesHC3();
+        setTimeout(function(){ sec.scrollIntoView({behavior:'smooth', block:'start'}); }, 300);
+      }
+    }, 200);
+    return;
+  }
   if (hash && ['accueil','hc','pe','avenir','passes'].indexOf(hash) !== -1) {
     showTab(hash);
     // Auto-déplie la section photos PE si on arrive sur #passes
