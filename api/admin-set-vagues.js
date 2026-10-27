@@ -24,8 +24,8 @@ export default async function handler(req, res) {
       if (!Number.isInteger(u.vague) || u.vague < 1 || u.vague > 200) {
         return res.status(400).json({ error: `updates[${i}].vague invalide` });
       }
-      if (typeof u.heure_depart !== 'string' || !/^\d{2}:\d{2}:\d{2}$/.test(u.heure_depart)) {
-        return res.status(400).json({ error: `updates[${i}].heure_depart invalide (attendu HH:MM:SS)` });
+      if (typeof u.heure_depart !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\+|-)\d{2}:\d{2}$/.test(u.heure_depart)) {
+        return res.status(400).json({ error: `updates[${i}].heure_depart invalide (attendu ISO YYYY-MM-DDTHH:MM:SS+HH:MM)` });
       }
     }
 
