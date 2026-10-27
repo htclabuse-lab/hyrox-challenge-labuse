@@ -441,9 +441,14 @@
           <button type="button" class="action-btn" disabled style="opacity:.4;cursor:not-allowed;">🏆 Leaderboard</button>
           <button type="button" class="action-btn" disabled style="opacity:.4;cursor:not-allowed;">🔍 Chercher mon résultat</button>
           <button type="button" class="action-btn" disabled style="opacity:.4;cursor:not-allowed;">📸 Photos</button>
-          <button type="button" class="action-btn" disabled style="opacity:.4;cursor:not-allowed;">📋 Vagues</button>
+          <button type="button" class="action-btn" onclick="toggleSection('vagues-hc3',this); loadVaguesHC3();">📋 Vagues (provisoire)</button>
         </div>
-        <p style="font-size:12px;color:#666;margin-top:12px;text-align:center;font-style:italic;">Les onglets seront actifs dès l'ouverture des inscriptions.</p>
+        <p style="font-size:12px;color:#666;margin-top:12px;text-align:center;font-style:italic;">Le planning est provisoire · dossards attribués automatiquement le jour J.</p>
+        <div class="sub-section" id="vagues-hc3">
+          <div class="sub-title">📋 Planning des vagues — provisoire</div>
+          <p style="font-size:13px;color:#aaa;margin-bottom:12px;line-height:1.5;">Les vagues sont fixées. Elles peuvent encore être ajustées à la marge si demande justifiée (jusqu'à début novembre). Pas de dossard : tout est informatisé le jour J.</p>
+          <div id="vagues-hc3-content" style="color:#888;font-size:13px;">Chargement…</div>
+        </div>
       </div>
     </div>
   </div>
@@ -620,6 +625,61 @@ function showTab(tab) {
   }
 })();
 
+var vaguesHC3Loaded = false;
+async function loadVaguesHC3() {
+  if (vaguesHC3Loaded) return;
+  vaguesHC3Loaded = true;
+  var target = document.getElementById('vagues-hc3-content');
+  try {
+    var db = supabase.createClient('https://mzyfnmjzlosranptwucr.supabase.co', 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC');
+    var { data, error } = await db.from('Inscriptions')
+      .select('prenom,nom,categorie,nom_equipe,vague,heure_depart')
+      .neq('categorie', 'Parent-Enfant')
+      .neq('categorie', 'Hyrox Kids Pré-inscription')
+      .neq('categorie', 'Bénévole')
+      .eq('statut_paiement', 'paye')
+      .gte('heure_depart', '2026-11-15')
+      .lt('heure_depart', '2026-11-16')
+      .not('vague', 'is', null)
+      .order('vague').order('nom');
+    if (error) throw error;
+    var byV = {};
+    (data||[]).forEach(function(d){ if(!byV[d.vague]) byV[d.vague]=[]; byV[d.vague].push(d); });
+    var vagues = Object.keys(byV).map(Number).sort(function(a,b){return a-b;});
+    if (vagues.length === 0) { target.innerHTML = 'Aucune vague publiée pour l\'instant.'; return; }
+    var html = '';
+    var prevMainCat = null;
+    vagues.forEach(function(v){
+      var rows = byV[v];
+      var heure = new Date(rows[0].heure_depart).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Indian/Reunion'});
+      var counts = {};
+      rows.forEach(function(r){ counts[r.categorie] = (counts[r.categorie]||0)+1; });
+      var mainCat = Object.keys(counts).sort(function(a,b){return counts[b]-counts[a];})[0];
+      if (mainCat !== prevMainCat) {
+        html += '<div style="background:linear-gradient(90deg,#C0392B,#FFEE00);color:#0a0a0a;padding:10px 14px;border-radius:8px;margin:14px 0 8px;font-weight:900;font-size:14px;letter-spacing:1px;text-align:center;">🏁 ' + mainCat + '</div>';
+        prevMainCat = mainCat;
+      }
+      html += '<div style="background:#0d1400;border:1px solid #FFEE00;border-radius:8px;padding:10px 12px;margin-bottom:10px;">';
+      html += '<div style="font-weight:800;color:#FFEE00;font-size:14px;margin-bottom:6px;">Vague ' + v + ' · <span style="color:#fff;">' + heure + '</span></div>';
+      rows.forEach(function(d){
+        var isDuo = (d.categorie||'').toLowerCase().indexOf('duo') !== -1;
+        var ligne;
+        if (isDuo) {
+          var equipe = (d.nom_equipe||'').trim() || '(sans nom d\'équipe)';
+          ligne = '<strong style="color:#fff;">' + equipe + '</strong> <span style="color:#888;font-size:11px;">— ' + d.categorie + '</span>';
+        } else {
+          ligne = (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong> <span style="color:#888;font-size:11px;">— ' + d.categorie + '</span>';
+        }
+        html += '<div style="font-size:13px;color:#ddd;padding:3px 0;line-height:1.4;">' + ligne + '</div>';
+      });
+      html += '</div>';
+    });
+    target.innerHTML = html;
+  } catch(e) {
+    target.innerHTML = 'Erreur de chargement : ' + (e.message||e);
+  }
+}
+
 var vaguesLoaded = false;
 async function loadVagues() {
   if (vaguesLoaded) return;
@@ -674,7 +734,7 @@ async function loadVagues() {
 }
 
 function toggleSection(id, btn) {
-  var sections = ['lb-passe', 'planning-passe', 'photos-passe', 'photos-pe', 'planning-avenir', 'rulebook-avenir', 'lb-avenir', 'photos-avenir'];
+  var sections = ['lb-passe', 'planning-passe', 'photos-passe', 'photos-pe', 'planning-avenir', 'rulebook-avenir', 'lb-avenir', 'photos-avenir', 'vagues-hc3'];
   sections.forEach(function(s) {
     var el = document.getElementById(s);
     if (el && s !== id) {
