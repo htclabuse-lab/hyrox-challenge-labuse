@@ -218,20 +218,6 @@
     const eligible = dispos.includes('journee') || (dispos.includes('matin') && dispos.includes('aprem'));
     if (eligible && !state.meal) return err('Choisis ton repas (poisson, poulet ou végé).');
 
-    // Vérif limite 27 équivalents-journée (veille ne compte pas)
-    // Filtre sur HC #3 uniquement : les bénévoles HC #2 (créés avant 2026-10-29) ne comptent pas.
-    const newValue = compterPersonne(dispos);
-    if (newValue > 0) {
-      const { data: existing } = await db.from('Benevoles').select('disponibilites').gte('created_at', '2026-10-29');
-      let total = 0;
-      (existing || []).forEach(b => {
-        total += compterPersonne((b.disponibilites || '').split(','));
-      });
-      if (total + newValue > 27) {
-        return err('Merci pour ton intérêt ! 💛 Nous avons déjà toutes les personnes nécessaires pour la journée du 15 novembre. Tu peux toujours t\'inscrire pour l\'Hyrox Parents-Enfants du samedi 14 novembre si ça t\'intéresse.');
-      }
-    }
-
     document.getElementById('btn').disabled = true;
     document.getElementById('btn').textContent = 'Envoi…';
 
