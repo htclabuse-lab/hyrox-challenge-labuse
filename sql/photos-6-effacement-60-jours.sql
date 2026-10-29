@@ -43,3 +43,12 @@ revoke execute on function public.photos_effacer_visages_expires() from public, 
 select cron.unschedule('photos-effacement-visages')
   where exists (select 1 from cron.job where jobname = 'photos-effacement-visages');
 select cron.schedule('photos-effacement-visages', '0 3 * * *', 'select public.photos_effacer_visages_expires()');
+
+-- ============================================================================
+-- Ajout du 29/10/2026 : conservation des PHOTOS 6 mois après la date de l'événement
+-- (fichiers R2 supprimés par une règle de cycle de vie Cloudflare).
+-- ============================================================================
+alter table public.photos_evenements add column if not exists conservation_photos_mois integer not null default 6;
+alter table public.photos_evenements add column if not exists photos_effacees_le timestamptz;
+-- + nouvelle version de photos_effacer_visages_expires() : bloc 2 qui supprime
+--   photos_acces, photos_gratuites et photos_fichiers de l'événement (voir Supabase).

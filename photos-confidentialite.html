@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Confidentialité — Retrouve tes photos — HTC La Buse</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #0a0a0a; color: #fff; font-family: Arial, Helvetica, sans-serif; padding: 1.5rem 1rem 3rem; }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  .logo { text-align: center; margin-bottom: 1rem; }
+  .logo img { width: 70px; height: 70px; border-radius: 16px; }
+  h1 { text-align: center; font-size: 22px; margin: 0 0 6px; }
+  h1 span { color: #FFEE00; }
+  .sub { text-align: center; color: #888; font-size: 13px; margin-bottom: 1.5rem; }
+  .card { background: #111; border: 1px solid #222; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
+  h2 { font-size: 16px; color: #FFEE00; margin: 0 0 10px; }
+  p, li { color: #ccc; font-size: 14px; line-height: 1.7; }
+  p { margin: 0 0 .75rem; }
+  ul { margin: 0; padding-left: 1.2rem; }
+  li { margin-bottom: 6px; }
+  strong { color: #fff; }
+  a { color: #FFEE00; }
+  .back { display: block; text-align: center; color: #888; text-decoration: none; font-size: 13px; margin-top: 1.5rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo"><img src="logo.jpg" alt="HTC La Buse"></div>
+  <h1>Tes photos et <span>tes données</span> 🔒</h1>
+  <div class="sub">Service « Retrouve tes photos » — mis à jour le <span id="maj">29 octobre 2026</span></div>
+
+  <div class="card">
+    <h2>Qui s'occupe de tes données ?</h2>
+    <p><strong>Hyrox Training Club La Buse</strong>, organisateur des événements Hyrox Challenge La Buse et Hyrox Parents / Enfants (Saint-Paul, La Réunion).<br>
+    Contact : <a href="mailto:htclabuse@gmail.com">htclabuse@gmail.com</a></p>
+  </div>
+
+  <div class="card">
+    <h2>À quoi ça sert ?</h2>
+    <p>Uniquement à te permettre de <strong>retrouver les photos de toi</strong> prises par les photographes de l'événement, et de les télécharger.</p>
+  </div>
+
+  <div class="card">
+    <h2>Quelles données, et comment ?</h2>
+    <ul>
+      <li><strong>Les photos de l'événement</strong>, prises par nos photographes.</li>
+      <li><strong>L'« empreinte » des visages</strong> présents sur ces photos : une suite de 128 nombres calculée pour chaque visage, qui sert seulement à comparer les visages entre eux. C'est une donnée biométrique.</li>
+      <li><strong>Ton selfie</strong> : il est analysé <strong>sur ton téléphone</strong> (ou ton ordinateur) et n'est <strong>jamais envoyé ni enregistré</strong>. Seule son empreinte est envoyée pour la recherche, et elle n'est pas conservée.</li>
+      <li><strong>L'email de ton inscription</strong> : pour vérifier que tu participais à l'événement et t'envoyer le lien de ton espace photo.</li>
+      <li><strong>Si tu débloques tes photos</strong> : ton email, ton inscription et la liste des photos débloquées. Le paiement est géré par Stripe : nous ne voyons pas tes coordonnées bancaires.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Sur quelle base ?</h2>
+    <p>Ton <strong>consentement</strong>, donné en cochant la case avant ta recherche. Pour un enfant, c'est son parent ou responsable légal qui donne son accord.</p>
+    <p>Les participants sont informés avant l'événement que les photos seront analysées pour ce service.</p>
+  </div>
+
+  <div class="card">
+    <h2>Combien de temps ?</h2>
+    <ul>
+      <li><strong>Empreintes des visages</strong> : effacées <strong>automatiquement 60 jours</strong> après la mise en ligne des photos de l'événement. Ensuite, la recherche par selfie n'est plus possible.</li>
+      <li><strong>Photos, espaces photo et liste des photos débloquées</strong> : conservés <strong>6 mois</strong> après l'événement, puis supprimés. Pense à télécharger tes photos avant !</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Qui y a accès ?</h2>
+    <p>L'organisation de l'événement uniquement. Les photos sont rangées dans un espace privé : on n'y accède que par des liens temporaires, après une recherche ou depuis ton espace photo.</p>
+    <p>Prestataires techniques utilisés : hébergement du site (Vercel), base de données (Supabase), stockage des photos (Cloudflare), envoi des mails (Resend), paiement (Stripe).</p>
+  </div>
+
+  <div class="card">
+    <h2>Tes droits</h2>
+    <p>Tu peux à tout moment demander l'accès à tes données, leur correction ou leur effacement, t'opposer à leur utilisation ou retirer ton consentement. Tu peux notamment demander que <strong>ton visage soit retiré de la recherche</strong>.</p>
+    <p>Écris-nous à <a href="mailto:htclabuse@gmail.com">htclabuse@gmail.com</a>. Si tu estimes que tes droits ne sont pas respectés, tu peux aussi contacter la CNIL (<a href="https://www.cnil.fr" target="_blank" rel="noopener">cnil.fr</a>).</p>
+  </div>
+
+  <a class="back" href="photos.html">← Retour à « Retrouve tes photos »</a>
+</div>
+</body>
+</html>
