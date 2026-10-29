@@ -48,7 +48,7 @@ export default async function handler(req, res) {
   if (!INSCRIPTIONS_OUVERTES) return res.status(403).json({ error: 'Les inscriptions ne sont pas encore ouvertes.' });
   const b = req.body || {};
   // ?invite=dagard|marie|marina|athlete-supplementaire : places exceptionnelles accordées en interne, bypass du quota (non publié).
-  const bypassQuota = ['dagard', 'marie', 'marina', 'athlete-supplementaire'].includes(b.invite);
+  const bypassQuota = ['marina'].includes(b.invite); // 29/10 : les autres liens réservés sont fermés
   try {
     if (!bypassQuota && await placesPrises(db) >= MAX_BINOMES) return res.status(409).json({ complet: true, error: 'Désolé, c\'est complet : les 84 binômes sont inscrits. Écris-nous à htclabuse@gmail.com pour être prévenu(e) si une place se libère.' });
   } catch (e) { return res.status(500).json({ error: e.message }); }
