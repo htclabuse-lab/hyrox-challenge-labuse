@@ -82,6 +82,12 @@
     <div id="msg-selfie"></div>
   </div>
 
+  <!-- Retour du paiement Stripe -->
+  <div class="card hidden" id="bloc-retour">
+    <h2>Paiement reçu ✅</h2>
+    <div id="msg-retour"></div>
+  </div>
+
   <!-- Chargement -->
   <div class="voile hidden" id="bloc-chargement">
     <div class="chargement"><div class="rond"></div><b>Recherche en cours…</b><span id="chargement-txt"></span></div>
@@ -311,7 +317,11 @@ $('btn-debloquer').onclick = async () => {
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(d.error || 'Erreur, réessaie dans un instant.');
     if (d.paiement_requis) {
-      msg('msg-debloquer', 'warn', "Ton inscription n'a pas encore le pack photo. Le paiement en ligne arrive très bientôt !");
+      const prix = (d.prix_cents / 100).toLocaleString('fr-FR') + ' €';
+      $('msg-debloquer').innerHTML = `<div class="msg msg-warn">Ton équipe n'a pas encore le pack photo. Un seul paiement suffit pour toute l'équipe (Duo ou binôme Parent / Enfant).</div>
+        <button class="btn" id="btn-payer">💳 Payer ${prix} et débloquer mes photos</button>
+        <div class="petit" style="margin-top:6px;">Paiement sécurisé par Stripe. Après le paiement, tu reviens ici et tu reçois le lien de tes photos par mail.</div>`;
+      $('btn-payer').onclick = payer;
     } else {
       msg('msg-debloquer', 'info', `✅ C'est envoyé ! Ouvre le mail reçu sur <strong>${d.email_masque}</strong> pour accéder à toutes tes photos. Pense à regarder dans les spams.`);
     }
@@ -322,7 +332,57 @@ $('btn-debloquer').onclick = async () => {
   }
 };
 
-demarrer();
+// ---------------------------------------------------------------- Paiement Stripe
+async function payer() {
+  $('btn-payer').disabled = true;
+  try {
+    // On garde la recherche pour la reprendre au retour de Stripe (même onglet).
+    try { sessionStorage.setItem('photos_paiement', JSON.stringify({ evt: evenement.id, email: emailRecherche, bons })); } catch (e) {}
+    const r = await fetch('/api/photos-acces', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'payer', evenement_id: evenement.id, email: emailRecherche }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.error || 'Erreur, réessaie dans un instant.');
+    if (d.deja_pack) { $('btn-debloquer').onclick(); return; }   // un coéquipier vient de payer
+    location.href = d.url;
+  } catch (e) {
+    msg('msg-debloquer', 'err', e.message);
+    $('btn-payer').disabled = false;
+  }
+}
+
+// Retour de Stripe (?paye=1) : le webhook coche le pack en quelques secondes ;
+// on relance le déblocage jusqu'à ce qu'il réussisse, ce qui envoie le mail.
+async function retourPaiement() {
+  if (!new URLSearchParams(location.search).has('paye')) return false;
+  history.replaceState(null, '', location.pathname + '?evt=' + encodeURIComponent(evenement.id));
+  let attente = null;
+  try { attente = JSON.parse(sessionStorage.getItem('photos_paiement') || 'null'); } catch (e) {}
+  if (!attente || attente.evt !== evenement.id) return false;
+  montrer('bloc-selfie', false);
+  montrer('bloc-retour');
+  msg('msg-retour', 'info', 'Merci ! On prépare l\'envoi de tes photos… (quelques secondes)');
+  for (let essai = 0; essai < 20; essai++) {
+    try {
+      const r = await fetch('/api/photos-acces', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'debloquer', evenement_id: attente.evt, email: attente.email, bons: attente.bons }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (r.ok && d.ok) {
+        try { sessionStorage.removeItem('photos_paiement'); } catch (e) {}
+        msg('msg-retour', 'info', `✅ C'est envoyé ! Ouvre le mail reçu sur <strong>${d.email_masque}</strong> pour accéder à toutes tes photos en haute définition. Pense à regarder dans les spams.`);
+        return true;
+      }
+    } catch (e) {}
+    await new Promise(ok => setTimeout(ok, 3000));
+  }
+  msg('msg-retour', 'warn', "Ton paiement est bien pris en compte, mais sa confirmation prend un peu plus de temps que prévu. Reviens sur cette page dans quelques minutes : refais ton selfie avec le même email, puis clique sur « Recevoir toutes mes photos par mail ». Rien à repayer.");
+  return true;
+}
+
+demarrer().then(retourPaiement);
 </script>
 </body>
 </html>

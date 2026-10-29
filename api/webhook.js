@@ -66,7 +66,8 @@ export default async function handler(req, res) {
             .update({ pack_photo: true, prix: nouveauPrix })
             .eq('id', insc.id);
           console.log('Pack photo ajouté à l\'inscription', insc.id);
-          if (resendKey && insc.email) {
+          // Achat depuis la plateforme photos : elle envoie elle-même le lien des photos.
+          if (resendKey && insc.email && session.metadata?.source !== 'plateforme-photos') {
             try {
               await fetch('https://api.resend.com/emails', {
                 method: 'POST',

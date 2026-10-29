@@ -1,6 +1,7 @@
+import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL } from '../lib/kids.js';
-import { FROM as FROM_PE, REPLY_TO } from '../lib/parent-enfant.js';
+import { FROM as FROM_PE, REPLY_TO, TYPE_STRIPE_PACK as TYPE_PACK_PE } from '../lib/parent-enfant.js';
 import { lienSigne, clesPhoto } from '../lib/r2.js';
 import {
   lireBon, emailValide, inscriptionsPourEmail, inscriptionEtPack, personnesCouvertes, SELFIES_PAR_PERSONNE,
@@ -13,6 +14,11 @@ import {
 //        → si l'inscription liée à cet email a le pack : crée/complète l'accès et
 //          ENVOIE LE LIEN PAR MAIL à cet email (jamais affiché à l'écran).
 //          Sinon : { paiement_requis: true }.
+//  POST { action: 'payer', evenement_id, email }
+//        → session de paiement Stripe du pack (bon compte selon l'événement). Le
+//          paiement est enregistré par les webhooks EXISTANTS, qui cochent déjà
+//          pack_photo sur l'inscription (même convention que les pages « Ajouter le
+//          pack photo ») ; au retour, la page relance 'debloquer'.
 //  POST { action: 'espace', jeton }        → photos de l'espace (nettes + HD)
 //  POST { action: 'ajouter', jeton, bon }  → ajoute les photos d'un nouveau selfie
 // ============================================================================
@@ -144,6 +150,47 @@ export default async function handler(req, res) {
         await db.from('photos_acces').update({ mail_envoye_le: new Date().toISOString() }).eq('id', acces.id);
       }
       return res.status(200).json({ ok: true, email_masque: masquer(email) });
+    }
+
+    // ------------------------------------------------------------ paiement
+    if (b.action === 'payer') {
+      const email = String(b.email || '').trim().toLowerCase();
+      if (!emailValide(email)) return res.status(400).json({ error: 'Adresse email invalide.' });
+      const { data: evt } = await db.from('photos_evenements').select('*').eq('id', String(b.evenement_id || '')).maybeSingle();
+      if (!evt || (evt.statut !== 'ouvert' && evt.id !== 'test')) return res.status(404).json({ error: 'Événement introuvable.' });
+      const inscriptions = await inscriptionsPourEmail(db, evt, email);
+      if (!inscriptions.length) {
+        return res.status(404).json({ error: "Aucune inscription trouvée avec cet email pour cet événement. Utilise bien l'adresse de ton inscription." });
+      }
+      const { insc, origine } = await inscriptionEtPack(db, evt, inscriptions);
+      if (origine) return res.status(200).json({ deja_pack: true });
+
+      const hyrox = evt.compte_stripe === 'hyrox';
+      const cle = hyrox ? process.env.STRIPE_SECRET_KEY : process.env.STRIPE_KIDS_SECRET_KEY;
+      if (!cle) return res.status(500).json({ error: 'Paiement non configuré.' });
+      const stripe = new Stripe(cle);
+      const origin = 'https://' + (req.headers['x-forwarded-host'] || req.headers.host);
+      const retour = `${origin}/photos.html?evt=${encodeURIComponent(evt.id)}`;
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        locale: 'fr',
+        customer_email: email,
+        // Conventions des webhooks existants :
+        //  - compte Hyrox : api/webhook.js reconnaît client_reference_id « pack-<id> » ;
+        //  - compte Training Club : api/kids-webhook.js reconnaît metadata.type pack P-E.
+        client_reference_id: 'pack-' + insc.id,
+        metadata: {
+          ...(hyrox ? {} : { type: TYPE_PACK_PE }),
+          inscription_id: String(insc.id),
+          evenement_id: evt.id,
+          source: 'plateforme-photos',
+        },
+        line_items: [{ quantity: 1, price_data: { currency: 'eur', unit_amount: evt.prix_pack_cents,
+          product_data: { name: `Pack photo — ${evt.nom}`, description: 'Toutes tes photos en haute définition, sans filigrane' } } }],
+        success_url: retour + '&paye=1',
+        cancel_url: retour,
+      });
+      return res.status(200).json({ url: session.url });
     }
 
     // ------------------------------------------------------------ espace photo
