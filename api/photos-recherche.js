@@ -21,7 +21,7 @@ import {
 // (128 nombres), qui n'est ni enregistrée ni journalisée.
 // ============================================================================
 
-const CHAMPS_EVT = 'id,nom,date_evenement,type,nb_gratuites,prix_pack_cents,statut,inscriptions_depuis';
+const CHAMPS_EVT = 'id,nom,date_evenement,type,nb_gratuites,prix_pack_cents,statut,inscriptions_depuis,visages_effaces_le';
 
 async function evenementVisible(db, id) {
   const { data } = await db.from('photos_evenements').select(CHAMPS_EVT).eq('id', String(id || '')).maybeSingle();
@@ -52,6 +52,10 @@ export default async function handler(req, res) {
     if (b.action === 'rechercher') {
       const evt = await evenementVisible(db, b.evenement_id);
       if (!evt) return res.status(404).json({ error: 'Événement introuvable ou pas encore ouvert.' });
+      // Après l'effacement automatique des visages (60 jours), la recherche n'est plus possible.
+      if (evt.visages_effaces_le) {
+        return res.status(410).json({ error: "La recherche par selfie est terminée pour cet événement : comme prévu, les données des visages ont été effacées. Si tu as débloqué tes photos, elles restent disponibles avec le lien reçu par mail." });
+      }
       if (!empreinteValide(b.empreinte)) return res.status(400).json({ error: 'Visage illisible, réessaie avec un autre selfie.' });
 
       // Qui cherche ? Un inscrit (email) ou un espace photo déjà débloqué (jeton).
