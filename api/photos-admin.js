@@ -8,7 +8,9 @@ import { rechercherPhotos, empreinteValide, SEUIL_SELFIE, SEUIL_DEUXIEME_TEMPS }
 // Protégé par le mot de passe PHOTOS_ADMIN_PASSWORD (variable Vercel).
 //
 //  POST { password, action: 'evenements' }
-//        → liste des événements + nombre de photos prêtes
+//        → événements + chiffres (photos, visages, espaces photo, inscriptions avec pack)
+//  POST { password, action: 'statut', evenement_id, statut: 'brouillon'|'ouvert'|'ferme' }
+//        → ouvre / ferme un événement aux athlètes
 //  POST { password, action: 'deja_faits', evenement_id, photographe }
 //        → noms des fichiers déjà traités (pour reprendre là où on s'était arrêté)
 //  POST { password, action: 'preparer', evenement_id, photographe, nom_origine, largeur, hauteur, taille_octets }
@@ -33,14 +35,34 @@ export default async function handler(req, res) {
   try {
     if (b.action === 'evenements') {
       const { data, error } = await db.from('photos_evenements')
-        .select('id,nom,date_evenement,statut').order('date_evenement', { ascending: false });
+        .select('id,nom,date_evenement,type,statut,inscriptions_depuis,ouvert_le,visages_effaces_le,photos_effacees_le,prix_pack_cents')
+        .order('date_evenement', { ascending: true });
       if (error) throw error;
+      const compter = q => q.then(r => r.count || 0);
       for (const e of data) {
-        const { count } = await db.from('photos_fichiers').select('id', { count: 'exact', head: true })
-          .eq('evenement_id', e.id).eq('statut', 'pret');
-        e.nb_photos = count || 0;
+        // Inscriptions payées de l'événement ayant le pack (à l'inscription OU acheté ensuite, en ligne compris)
+        let packs = db.from('Inscriptions').select('id', { count: 'exact', head: true })
+          .eq('pack_photo', true).in('statut_paiement', ['paye', 'payé']).gte('created_at', e.inscriptions_depuis);
+        packs = e.type === 'parent_enfant' ? packs.eq('categorie', 'Parent-Enfant')
+          : packs.neq('categorie', 'Parent-Enfant').not('categorie', 'ilike', '%kids%');
+        [e.nb_photos, e.nb_visages, e.nb_espaces, e.nb_packs] = await Promise.all([
+          compter(db.from('photos_fichiers').select('id', { count: 'exact', head: true }).eq('evenement_id', e.id).eq('statut', 'pret')),
+          compter(db.from('photos_visages').select('id', { count: 'exact', head: true }).eq('evenement_id', e.id)),
+          compter(db.from('photos_acces').select('id', { count: 'exact', head: true }).eq('evenement_id', e.id).eq('statut', 'actif')),
+          e.id === 'test' ? Promise.resolve(null) : compter(packs),
+        ]);
       }
       return res.status(200).json({ evenements: data });
+    }
+
+    if (b.action === 'statut') {
+      // Ouvrir / fermer un événement aux athlètes. À l'ouverture, Supabase note la date
+      // (début des 60 jours avant l'effacement automatique des visages).
+      if (!['brouillon', 'ouvert', 'ferme'].includes(b.statut)) return res.status(400).json({ error: 'Statut invalide' });
+      const { data, error } = await db.from('photos_evenements').update({ statut: b.statut })
+        .eq('id', String(b.evenement_id || '')).select('id,statut,ouvert_le').single();
+      if (error) throw error;
+      return res.status(200).json({ evenement: data });
     }
 
     if (b.action === 'deja_faits') {

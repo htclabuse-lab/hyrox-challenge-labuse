@@ -36,6 +36,14 @@
   .grille img { width: 100%; border-radius: 6px; display: block; }
   .grille figcaption { font-size: 11px; color: #888; margin-top: 3px; }
   .hidden { display: none; }
+  .evt { background: #0a0a0a; border: 1px solid #222; border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+  .evt-titre { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .evt-titre b { font-size: 15px; }
+  .pastille { font-size: 12px; font-weight: 800; padding: 3px 9px; border-radius: 20px; }
+  .p-brouillon { background: #222; color: #aaa; } .p-ouvert { background: #0e2a17; color: #4ade80; } .p-ferme { background: #2a0e0e; color: #ffb4b4; }
+  .chiffres { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: #aaa; margin: 8px 0; }
+  .chiffres b { color: #FFEE00; font-size: 16px; }
+  .evt .btn { margin-top: 6px; padding: 9px 14px; font-size: 14px; }
 </style>
 </head>
 <body>
@@ -53,6 +61,14 @@
   </div>
 
   <div id="bloc-app" class="hidden">
+    <!-- 0. Tableau de bord -->
+    <div class="card">
+      <h2>📊 Tableau de bord</h2>
+      <div id="tableau"></div>
+      <div id="tableau-msg"></div>
+      <div class="hint">« Ouvrir aux athlètes » rend la page « Retrouve tes photos » disponible pour cet événement. Les visages sont effacés automatiquement 60 jours après l'ouverture ; les photos, 6 mois après l'événement.</div>
+    </div>
+
     <!-- 2. Réglages -->
     <div class="card">
       <h2>1. Quel événement, quel photographe ?</h2>
@@ -155,6 +171,7 @@ async function connexion() {
     // (le 21/10, des photos de test sont parties par erreur dans HC #3, 1er de la liste).
     $('evt').innerHTML = '<option value="" selected disabled>— Choisis l\'événement —</option>' + d.evenements.map(e =>
       `<option value="${e.id}">${e.nom} — ${e.nb_photos} photo(s) en ligne${e.statut === 'brouillon' ? ' (brouillon)' : ''}</option>`).join('');
+    afficherTableau(d.evenements);
     $('bloc-login').classList.add('hidden');
     $('bloc-app').classList.remove('hidden');
     chargerModeles();
@@ -162,6 +179,58 @@ async function connexion() {
     msg('login-msg', 'err', e.message);
   }
 }
+// ---------------------------------------------------------------- Tableau de bord
+const LIBELLE_STATUT = { brouillon: 'Brouillon (invisible)', ouvert: 'Ouvert aux athlètes', ferme: 'Fermé' };
+let confirmationStatut = null;
+
+function afficherTableau(evenements) {
+  $('tableau').innerHTML = evenements.map(e => {
+    const date = new Date(e.date_evenement + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long' });
+    const action = e.statut === 'ouvert'
+      ? `<button class="btn sec" data-evt="${e.id}" data-statut="ferme">⏸ Fermer</button>`
+      : `<button class="btn" data-evt="${e.id}" data-statut="ouvert">🟢 Ouvrir aux athlètes</button>`;
+    const infos = [];
+    if (e.ouvert_le) infos.push('ouvert le ' + new Date(e.ouvert_le).toLocaleDateString('fr-FR'));
+    if (e.visages_effaces_le) infos.push('visages effacés le ' + new Date(e.visages_effaces_le).toLocaleDateString('fr-FR'));
+    if (e.photos_effacees_le) infos.push('photos supprimées le ' + new Date(e.photos_effacees_le).toLocaleDateString('fr-FR'));
+    return `<div class="evt">
+      <div class="evt-titre"><b>${e.nom}</b><span class="pastille p-${e.statut}">${LIBELLE_STATUT[e.statut] || e.statut}</span></div>
+      <div style="font-size:12px;color:#777;">${date}${infos.length ? ' · ' + infos.join(' · ') : ''}</div>
+      <div class="chiffres">
+        <span><b>${e.nb_photos}</b> photos</span>
+        <span><b>${e.nb_visages}</b> visages</span>
+        ${e.nb_packs === null ? '' : `<span><b>${e.nb_packs}</b> inscriptions avec pack</span>`}
+        <span><b>${e.nb_espaces}</b> espaces photo ouverts</span>
+      </div>
+      ${action}
+    </div>`;
+  }).join('');
+  $('tableau').querySelectorAll('button[data-evt]').forEach(b => {
+    b.onclick = () => changerStatut(b.dataset.evt, b.dataset.statut, evenements.find(e => e.id === b.dataset.evt));
+  });
+}
+
+async function changerStatut(id, statut, e) {
+  const cle = id + '|' + statut;
+  // Confirmation dans la page (2e clic), comme pour l'analyse.
+  if (confirmationStatut !== cle) {
+    confirmationStatut = cle;
+    msg('tableau-msg', 'info', statut === 'ouvert'
+      ? `Ouvrir <strong>${e.nom}</strong> aux athlètes ? (${e.nb_photos} photos en ligne)${e.nb_photos ? '' : '<br>⚠️ Aucune photo en ligne pour cet événement !'}<br>Si oui, clique à nouveau sur le bouton.`
+      : `Fermer <strong>${e.nom}</strong> ? Plus personne ne pourra chercher ni acheter. Les espaces photo déjà débloqués restent accessibles.<br>Si oui, clique à nouveau sur le bouton.`);
+    return;
+  }
+  confirmationStatut = null;
+  try {
+    await api('statut', { evenement_id: id, statut });
+    const d = await api('evenements');
+    afficherTableau(d.evenements);
+    msg('tableau-msg', 'ok', statut === 'ouvert' ? `✅ ${e.nom} est ouvert aux athlètes.` : `⏸ ${e.nom} est fermé.`);
+  } catch (err) {
+    msg('tableau-msg', 'err', err.message);
+  }
+}
+
 $('btn-login').onclick = connexion;
 $('pwd').addEventListener('keydown', e => { if (e.key === 'Enter') connexion(); });
 try {
