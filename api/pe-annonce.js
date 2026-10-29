@@ -77,9 +77,12 @@ export default async function handler(req, res) {
   // Un mail par adresse email, qui liste tous ses binômes payés (Grondin, Hérubel, couples sur le même email…).
   if (b.vagues === true) {
     const db = createClient(SUPABASE_URL, serviceKey);
-    const { data, error } = await db.from('Inscriptions').select('id,prenom,nom,email,co1_prenom,co1_nom,niveau,vague,heure_depart')
+    let { data, error } = await db.from('Inscriptions').select('id,prenom,nom,email,co1_prenom,co1_nom,niveau,vague,heure_depart')
       .eq('categorie', CATEGORIE).gte('created_at', EDITION_2_DEPUIS).eq('statut_paiement', 'paye').not('vague', 'is', null);
     if (error) return res.status(500).json({ error: error.message });
+    // ids: [..] → seulement ces binômes (ex. inscrits ajoutés après le premier envoi)
+    const ids = Array.isArray(b.ids) ? b.ids.map(Number) : null;
+    if (ids) data = data.filter(r => ids.includes(r.id));
     const parEmail = {};
     data.forEach(r => { const e = String(r.email || '').trim().toLowerCase(); if (e.includes('@') && !EXCLUS.includes(e)) (parEmail[e] = parEmail[e] || []).push(r); });
     const emails = Object.keys(parEmail).sort();
@@ -101,7 +104,7 @@ export default async function handler(req, res) {
         plusieurs_binomes: emails.filter(e => parEmail[e].length > 1).map(e => e + ' : ' + parEmail[e].map(r => 'V' + r.vague).join(', ')) });
       let envoyes = 0;
       for (let i = 0; i < emails.length; i += 100) {
-        envoyes += await resendBatch(resendKey, emails.slice(i, i + 100).map(to => ({ from: FROM, to, reply_to: REPLY_TO, ...mailVagues(parEmail[to]) })), `pe-vagues-lot${i / 100}-v1`);
+        envoyes += await resendBatch(resendKey, emails.slice(i, i + 100).map(to => ({ from: FROM, to, reply_to: REPLY_TO, ...mailVagues(parEmail[to]) })), ids ? `pe-vagues-ids-${ids.join('-')}` : `pe-vagues-lot${i / 100}-v1`);
       }
       return res.status(200).json({ envoye: true, nombre: emails.length, envoyes, sans_email: sansEmail });
     } catch (e) { return res.status(500).json({ error: e.message }); }
