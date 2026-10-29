@@ -223,7 +223,7 @@
   }
   if (new Date() >= FERMETURE_PE && !INVITE) {
     afficherComplet();
-  } else if (params.get('succes') !== '1') {
+  } else if (params.get('succes') !== '1' && !INVITE) {
     fetch('/api/pe-checkout').then(r => r.json()).then(j => { if (j && j.complet) afficherComplet(); }).catch(() => {});
     // Re-check la fermeture auto chaque minute (bascule 20h00 sans reload).
     setInterval(function(){ if (new Date() >= FERMETURE_PE && !INVITE) afficherComplet(); }, 60 * 1000);
