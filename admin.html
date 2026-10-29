@@ -1085,6 +1085,7 @@ function isParentEnfant(d) {
     var counts = {};
     eventData().forEach(function(d) {
       if (isParentEnfant(d) && currentEvent !== 'pe') return; // Parent-Enfant compté à part sauf dans son onglet
+      if (d.statut_paiement !== 'paye') return; // Ne compter que les inscriptions payées (sinon t-shirts fantômes des paiements abandonnés)
       if (d.tshirt_taille && d.tshirt_coupe) {
         var key = d.tshirt_taille + ' ' + d.tshirt_coupe;
         counts[key] = (counts[key] || 0) + 1;
