@@ -296,6 +296,7 @@
     renderInventaire();
     renderPackPhoto();
     renderParentEnfant();
+    renderBenevoles();
   }
 
   var CAT_ORDER = [
@@ -718,8 +719,14 @@
   }
 
   function renderBenevoles() {
-    var list = allBenevoles;
-    var DISPO_LABELS = {veille:'🛠️ Veille (sam 11/07)', matin:'🌅 Matin (7h30-13h)', aprem:'🌇 Après-midi (13h-18h)', journee:'☀️ Journée (7h30-18h)'};
+    var list = allBenevoles.filter(function(b){
+      var d = b.created_at || '';
+      if (currentEvent === 'hc2') return d < '2026-09-01';
+      if (currentEvent === 'hc3') return d >= '2026-09-01';
+      return true;
+    });
+    var veilleLbl = currentEvent === 'hc3' ? '👨‍👧 Veille (sam 14/11 — PE)' : '🛠️ Veille (sam 11/07)';
+    var DISPO_LABELS = {veille:veilleLbl, matin:'🌅 Matin (7h30-13h)', aprem:'🌇 Après-midi (13h-18h)', journee:'☀️ Journée (7h30-18h)'};
     var REPAS_LABELS = {poisson:'🐟 Poisson', poulet:'🍗 Poulet', vege:'🥗 Végé'};
 
     // Stats
@@ -753,7 +760,8 @@
     var pct = Math.round((equivJournee / 27) * 100);
     var equivColor = equivJournee >= 27 ? '#C0392B' : equivJournee >= 22 ? '#FFA726' : '#4caf50';
 
-    var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + nbTotal + '</strong> bénévole(s) inscrit(s) pour le 12 juillet 2026</div>';
+    var dateEvent = currentEvent === 'hc3' ? '15 novembre 2026' : '12 juillet 2026';
+    var html = '<div style="font-size:13px;color:#888;margin-bottom:1rem;"><strong style="color:#FFEE00;">' + nbTotal + '</strong> bénévole(s) inscrit(s) pour le ' + dateEvent + '</div>';
 
     // Stat "équivalent journée" (visible uniquement admin)
     html += '<div style="background:#1a1a1a;border:2px solid ' + equivColor + ';border-radius:12px;padding:16px;margin-bottom:1rem;text-align:center;">';
