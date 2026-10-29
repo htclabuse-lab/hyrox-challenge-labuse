@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🙌 Bénévoles — Hyrox Challenge La Buse</title>
+  <title>🙌 Bénévoles — Hyrox Challenge La Buse #3</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,12 +52,33 @@
 <div class="wrap">
   <div class="header">
     <h1>🙌 Devenir bénévole</h1>
-    <div class="sub">Hyrox Challenge La Buse — Dimanche 12 juillet 2026</div>
+    <div class="sub">Hyrox Challenge La Buse #3 — Dimanche 15 novembre 2026</div>
   </div>
 
   <div class="intro">
-    Tu veux nous donner un <strong>coup de main</strong> pour l'organisation ? 💪<br>
-    Remplis ce formulaire et on te recontacte pour caler les détails (mission, planning précis…). Pour ceux qui restent la journée, <strong>le repas est offert</strong> ! 🍽
+    🚨 <strong>Rejoins la TEAM STAFF LA BUSE !</strong> 🚨<br><br>
+    Derrière chaque événement réussi, il y a une équipe de bénévoles passionnés et toujours prêts à donner le meilleur ❤️<br><br>
+    <strong>Sans bénévoles, pas de compétition.</strong> Et parce que votre engagement mérite d'être récompensé, voici les dotations prévues 🎁
+  </div>
+
+  <div class="card" style="border:1px solid #FFEE00;">
+    <div class="section-title">🎁 Les dotations bénévoles</div>
+    <div style="font-size:14px;color:#ddd;line-height:1.7;">
+      <div style="margin-bottom:14px;">
+        <div style="color:#FFEE00;font-weight:800;margin-bottom:6px;">🕘 Bénévole — demi-journée</div>
+        🥐 1 collation offerte<br>
+        👕 1 t-shirt STAFF<br>
+        🛍️ 1 carnet de remises de 20 % chez INTERSPORT
+      </div>
+      <div>
+        <div style="color:#FFEE00;font-weight:800;margin-bottom:6px;">🏆 Bénévole — journée complète</div>
+        🥐 1 collation offerte<br>
+        👕 1 t-shirt STAFF<br>
+        🍽️ 1 repas offert<br>
+        🛍️ 1 carnet de remises de 20 % chez INTERSPORT<br>
+        🎟️ 20 € de remise chez HTC La Buse, à valoir sur un abonnement ou un événement HYROX
+      </div>
+    </div>
   </div>
 
   <div id="form-block">
@@ -99,18 +120,18 @@
       <div class="checkboxes">
         <label>
           <input type="checkbox" value="veille" onchange="updateMeal()">🛠️ <strong>Veille</strong> — mise en place
-          <span class="hint">Samedi 11 juillet</span>
+          <span class="hint">Samedi 14 novembre</span>
         </label>
         <label>
-          <input type="checkbox" value="matin" onchange="updateMeal()">🌅 <strong>Matin</strong> du dimanche 12
+          <input type="checkbox" value="matin" onchange="updateMeal()">🌅 <strong>Matin</strong> du dimanche 15
           <span class="hint">7h30 – 13h</span>
         </label>
         <label>
-          <input type="checkbox" value="aprem" onchange="updateMeal()">🌇 <strong>Après-midi</strong> du dimanche 12
+          <input type="checkbox" value="aprem" onchange="updateMeal()">🌇 <strong>Après-midi</strong> du dimanche 15
           <span class="hint">13h – 18h</span>
         </label>
         <label>
-          <input type="checkbox" value="journee" onchange="updateMeal()">☀️ <strong>Journée entière</strong> du dimanche 12
+          <input type="checkbox" value="journee" onchange="updateMeal()">☀️ <strong>Journée entière</strong> du dimanche 15
           <span class="hint">7h30 – 18h · <strong style="color:#FFEE00;">🍽 repas offert</strong></span>
         </label>
       </div>
@@ -196,15 +217,16 @@
     if (eligible && !state.meal) return err('Choisis ton repas (poisson, poulet ou végé).');
 
     // Vérif limite 27 équivalents-journée (veille ne compte pas)
+    // Filtre sur HC #3 uniquement : les bénévoles HC #2 (créés avant 2026-10-29) ne comptent pas.
     const newValue = compterPersonne(dispos);
     if (newValue > 0) {
-      const { data: existing } = await db.from('Benevoles').select('disponibilites');
+      const { data: existing } = await db.from('Benevoles').select('disponibilites').gte('created_at', '2026-10-29');
       let total = 0;
       (existing || []).forEach(b => {
         total += compterPersonne((b.disponibilites || '').split(','));
       });
       if (total + newValue > 27) {
-        return err('Merci pour ton intérêt ! 💛 Nous avons déjà toutes les personnes nécessaires pour la journée du 12 juillet. Tu peux toujours t\'inscrire pour la veille (mise en place) si ça t\'intéresse.');
+        return err('Merci pour ton intérêt ! 💛 Nous avons déjà toutes les personnes nécessaires pour la journée du 15 novembre. Tu peux toujours t\'inscrire pour la veille (mise en place) si ça t\'intéresse.');
       }
     }
 
