@@ -693,8 +693,9 @@ async function loadVaguesPE2() {
     vagues.forEach(function(v){
       var rows = byV[v];
       var heure = new Date(rows[0].heure_depart).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',timeZone:'Indian/Reunion'});
-      var xl = (rows[0].niveau||'').indexOf('XL') === 0;
-      var format = xl ? 'XL — 400 m' : 'Standard — 200 m';
+      var nbXL = rows.filter(function(d){ return (d.niveau||'').indexOf('XL') === 0; }).length;
+      var mixte = nbXL > 0 && nbXL < rows.length;
+      var format = mixte ? 'XL + Standard' : (nbXL ? 'XL — 400 m' : 'Standard — 200 m');
       if (format !== prevFormat) {
         html += '<div style="background:linear-gradient(90deg,#ff3399,#FFA726,#FFEE00);color:#0a0a0a;padding:10px 14px;border-radius:8px;margin:14px 0 8px;font-weight:900;font-size:14px;letter-spacing:1px;text-align:center;">🏁 ' + format + '</div>';
         prevFormat = format;
@@ -703,7 +704,8 @@ async function loadVaguesPE2() {
       html += '<div style="font-weight:800;color:#ff3399;font-size:14px;margin-bottom:6px;">Vague ' + v + ' · <span style="color:#fff;">' + heure + '</span></div>';
       rows.forEach(function(d){
         html += '<div style="font-size:13px;color:#ddd;padding:3px 0;line-height:1.4;">' + (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong>'
-          + (d.co1_prenom ? ' <span style="color:#888;">+</span> ' + d.co1_prenom.trim() : '') + '</div>';
+          + (d.co1_prenom ? ' <span style="color:#888;">+</span> ' + d.co1_prenom.trim() : '')
+          + (mixte ? ' <span style="color:#888;font-size:11px;">(' + ((d.niveau||'').indexOf('XL') === 0 ? 'XL' : 'Standard') + ')</span>' : '') + '</div>';
       });
       html += '</div>';
     });
