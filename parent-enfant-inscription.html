@@ -208,7 +208,7 @@
   const FERMETURE_PE = new Date('2026-10-26T20:00:00+04:00');
   // Lien d'invitation (places ouvertes exceptionnellement après la clôture, ex. famille RIVIÈRE le 27/10) :
   // parent-enfant-inscription.html?invite=riviere2 → formulaire visible malgré la date. Le quota de 84 reste actif.
-  const INVITE = ['marina'].includes(params.get('invite'));
+  const INVITE = [].includes(params.get('invite'));
   // ?invite=herubel : 2e enfant de Guillaume HÉRUBEL (fiche 731), sans 2e t-shirt parent, 58 € (décision Stéphanie 27/10).
   const SANS_TSHIRT_PARENT = params.get('invite') === 'herubel';
   if (SANS_TSHIRT_PARENT) {
