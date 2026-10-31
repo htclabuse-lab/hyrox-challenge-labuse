@@ -3,19 +3,22 @@ import { SUPABASE_URL } from '../lib/kids.js';
 import { CATEGORIE, EDITION_2_DEPUIS, FROM, REPLY_TO } from '../lib/parent-enfant.js';
 
 // ============================================================================
-// Écritures des pages juges Hyrox Parents / Enfants (juge-pe-depart / fin / pack).
+// Écritures des pages juges Hyrox Parents / Enfants (juge-pe.html, juge-pe-pack.html).
 // La clé publique ne peut plus faire d'UPDATE : tout passe par ici, avec la clé serveur.
 //
-//  POST { password, action: 'maj', ids: [..], champs: { temps_estime | dossard | nom_equipe } }
-//       → départ de vague (temps_estime), temps d'arrivée en secondes (dossard), pack remis (nom_equipe)
+//  POST { password, action: 'maj', ids: [..], champs: { heure_debut_reelle | temps_final_s | pack_remis_at } }
+//       → heure_debut_reelle : ISO datetime du top départ de la vague
+//       → temps_final_s      : temps total en secondes à l'arrivée
+//       → pack_remis_at      : ISO datetime de remise du pack photo
 //  POST { password, action: 'mail', id, subject, html }
 //       → mail « bravo » envoyé à l'email de la fiche (jamais à une autre adresse)
 //
 // Limité aux fiches Parent-Enfant de la 2e édition.
+// La colonne dossard est RÉSERVÉE au numéro physique (1-95), pas au temps.
 // ============================================================================
 
 const JUGE_PWD = process.env.JUGE_PE_PASSWORD || 'labuse'; // même mot de passe que l'écran de connexion des pages juges
-const CHAMPS = ['temps_estime', 'dossard', 'nom_equipe'];
+const CHAMPS = ['heure_debut_reelle', 'temps_final_s', 'pack_remis_at'];
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' });

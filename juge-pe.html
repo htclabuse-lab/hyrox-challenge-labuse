@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>👨‍👧 Juge Parent-Enfant</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 800px; margin: 0 auto; }
+    .header { padding: 16px; border-radius: 12px; margin-bottom: 1rem; text-align: center; background: #1B7B49; }
+    .header h1 { font-size: 20px; }
+    .header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+    .login { background: #1a1a1a; border-radius: 12px; padding: 1.5rem; text-align: center; }
+    .login input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 16px; margin: 10px 0; }
+    .login button { width: 100%; padding: 12px; background: #1B7B49; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; }
+    .mode-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }
+    .mode-tab { padding: 16px; background: #1a1a1a; color: #888; border: 2px solid #333; border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; text-align: center; }
+    .mode-tab.active { background: #1B7B49; color: #fff; border-color: #1B7B49; }
+    .mode-tab.active.fin { background: #C0392B; border-color: #C0392B; }
+    .vague { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+    .vague.started { border-color: #4caf50; background: #0a1a0a; }
+    .vague.done { opacity: 0.55; }
+    .vague-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .vague-name { font-size: 18px; font-weight: 800; color: #FFEE00; }
+    .vague-heure { font-size: 16px; font-weight: 700; color: #fff; }
+    .vague-binomes { font-size: 12px; color: #888; margin-bottom: 10px; line-height: 1.6; }
+    .btn-start { width: 100%; padding: 14px; background: #C0392B; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 1px; }
+    .btn-cancel { width: 100%; padding: 10px; background: transparent; color: #888; border: 1px solid #444; border-radius: 8px; font-size: 13px; cursor: pointer; margin-top: 6px; }
+    .status { font-size: 14px; color: #4caf50; font-weight: 700; padding: 8px 0; }
+    .chrono { font-size: 32px; font-weight: 800; color: #4caf50; text-align: center; font-family: monospace; padding: 12px 0; }
+    .filter { margin-bottom: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter button { background: #1a1a1a; color: #888; border: 1px solid #333; padding: 8px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; }
+    .filter button.active { background: #C0392B; color: #fff; border-color: #C0392B; }
+    .vague-chrono { font-size: 22px; font-weight: 800; color: #4caf50; font-family: monospace; }
+    .vague-status-pending { font-size: 13px; color: #666; font-style: italic; }
+    .binome { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-top: 1px solid #2a2a2a; gap: 10px; }
+    .binome-info { flex: 1; font-size: 14px; }
+    .binome-info b { color: #fff; }
+    .binome-info .sub { font-size: 11px; color: #888; }
+    .badge-format { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-right: 6px; font-weight: 800; letter-spacing: 1px; }
+    .badge-std { background: #FFA726; color: #0a0a0a; }
+    .badge-xl { background: #C0392B; color: #fff; }
+    .btn-fini { background: #4caf50; color: #fff; border: none; padding: 12px 14px; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer; min-width: 100px; }
+    .btn-undo { background: transparent; color: #888; border: 1px solid #444; padding: 8px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+    .temps-fini { background: #0a3a0a; color: #4caf50; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-weight: 800; font-size: 16px; min-width: 100px; text-align: center; }
+    .dossard-pill { background: #FFEE00; color: #0a0a0a; padding: 3px 9px; border-radius: 5px; font-weight: 800; font-size: 14px; font-family: monospace; margin-right: 6px; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header" id="header">
+    <h1>👨‍👧 Juge Parent-Enfant</h1>
+    <p>Samedi 14 novembre 2026 — Crossfit La Buse</p>
+  </div>
+
+  <div id="login" class="login">
+    <div style="font-size:14px;color:#888;margin-bottom:10px;">Mot de passe juge</div>
+    <input type="password" id="pwd" placeholder="••••••••">
+    <button onclick="login()">Connexion</button>
+    <div id="login-error" style="color:#C0392B;font-size:13px;margin-top:8px;"></div>
+  </div>
+
+  <div id="app" style="display:none;">
+    <div class="mode-tabs">
+      <button id="tab-depart" class="mode-tab active" onclick="setMode('depart')">🚩 Je suis au<br>DÉPART</button>
+      <button id="tab-fin" class="mode-tab" onclick="setMode('fin')">🏁 Je suis à<br>L'ARRIVÉE</button>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const JUGE_PWD = 'labuse';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let data = [];
+  let mode = sessionStorage.getItem('pe_juge_mode') || 'depart';
+  let filterMode = 'active';
+
+  async function majPE(ids, champs) {
+    const r = await fetch('/api/juge-pe', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: JUGE_PWD, action: 'maj', ids: ids, champs: champs }) });
+    if (!r.ok) { alert('⚠️ Pas enregistré (réseau ?). Réessaie.'); throw new Error('juge-pe ' + r.status); }
+  }
+
+  function login() {
+    const p = document.getElementById('pwd').value.trim();
+    if (p !== JUGE_PWD) { document.getElementById('login-error').textContent = '❌ Mot de passe incorrect'; return; }
+    sessionStorage.setItem('pe_juge_auth', '1');
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    setMode(mode);
+  }
+  if (sessionStorage.getItem('pe_juge_auth') === '1') {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    setTimeout(() => setMode(mode), 0);
+  }
+
+  function setMode(m) {
+    mode = m;
+    sessionStorage.setItem('pe_juge_mode', m);
+    document.getElementById('tab-depart').classList.toggle('active', m === 'depart');
+    document.getElementById('tab-fin').classList.toggle('active', m === 'fin');
+    document.getElementById('tab-fin').classList.toggle('fin', m === 'fin');
+    const header = document.getElementById('header');
+    header.style.background = m === 'depart' ? '#1B7B49' : '#C0392B';
+    load();
+  }
+
+  function setFilter(f) { filterMode = f; render(); }
+
+  async function load() {
+    const { data: rows } = await db.from('Inscriptions')
+      .select('id,prenom,nom,co1_prenom,co1_nom,vague,heure_depart,niveau,heure_debut_reelle,temps_final_s,dossard,statut_paiement')
+      .eq('categorie', 'Parent-Enfant')
+      .gte('created_at', '2026-09-01')
+      .eq('statut_paiement', 'paye')
+      .order('vague');
+    data = rows || [];
+    render();
+  }
+  setInterval(load, 20000);
+
+  function fmtHeure(iso) { return new Date(iso).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion'}); }
+  function fmtChrono(ms) { const s = Math.floor(ms/1000); return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0'); }
+  function isStarted(d) { return d.heure_debut_reelle; }
+  function isFini(d) { return d.temps_final_s !== null && d.temps_final_s !== undefined; }
+  function isAbsent(d) { return d.niveau && d.niveau.indexOf('ABSENT') !== -1; }
+
+  function render() {
+    const byVague = {};
+    data.forEach(d => { if (d.vague) (byVague[d.vague] ||= []).push(d); });
+    const vagues = Object.keys(byVague).map(Number).sort((a,b)=>a-b);
+    document.getElementById('content').innerHTML = mode === 'depart' ? renderDepart(byVague, vagues) : renderFin(byVague, vagues);
+    tickChronos();
+  }
+
+  function renderDepart(byVague, vagues) {
+    const showStarted = window._showStarted || false;
+    const nbStarted = vagues.filter(v => byVague[v].some(isStarted)).length;
+    const nbPending = vagues.length - nbStarted;
+    let html = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;">`;
+    html += `<div style="background:#1a1a1a;border:1px solid #C0392B;border-radius:8px;padding:8px 14px;font-size:13px;"><strong style="color:#C0392B;">${nbPending}</strong> <span style="color:#888;">à démarrer</span></div>`;
+    html += `<div style="background:#1a1a1a;border:1px solid #4caf50;border-radius:8px;padding:8px 14px;font-size:13px;"><strong style="color:#4caf50;">${nbStarted}</strong> <span style="color:#888;">démarrées</span></div>`;
+    html += `<button onclick="window._showStarted=!window._showStarted;render()" style="background:${showStarted?'#C0392B':'#1a1a1a'};color:#fff;border:1px solid ${showStarted?'#C0392B':'#444'};padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;margin-left:auto;">${showStarted?'✓ Démarrées affichées':'👁 Voir démarrées'}</button>`;
+    html += `<button onclick="load()" style="background:#1a1a1a;color:#fff;border:1px solid #444;padding:8px 14px;border-radius:8px;font-size:12px;cursor:pointer;">↻</button></div>`;
+    let shown = 0;
+    vagues.forEach(v => {
+      const rows = byVague[v];
+      const started = rows.find(isStarted);
+      if (started && !showStarted) return;
+      shown++;
+      const heurePrevue = fmtHeure(rows[0].heure_depart);
+      const binNames = rows.map(r => `<span class="dossard-pill">N°${r.dossard || '?'}</span>${(r.prenom||'').trim()} + ${(r.co1_prenom||'').trim()}`).join(' · ');
+      html += `<div class="vague ${started ? 'started' : ''}">`;
+      html += `<div class="vague-head"><div class="vague-name">Vague ${v}</div><div class="vague-heure">${heurePrevue} <span style="font-size:11px;color:#666;">prévu</span></div></div>`;
+      html += `<div class="vague-binomes">${binNames}</div>`;
+      if (started) {
+        html += `<div class="status">🟢 Démarrée à ${fmtHeure(started.heure_debut_reelle)}</div>`;
+        html += `<div class="chrono" id="chrono-${v}" data-start="${new Date(started.heure_debut_reelle).getTime()}">00:00</div>`;
+        html += `<button class="btn-cancel" onclick="cancelStart(${v})">↺ Annuler le départ</button>`;
+      } else {
+        html += `<button class="btn-start" onclick="startVague(${v})">▶ TOP DÉPART V${v}</button>`;
+      }
+      html += '</div>';
+    });
+    if (shown === 0) html += `<div style="text-align:center;color:#666;padding:2rem;font-size:14px;">${showStarted ? 'Aucune vague' : 'Toutes les vagues sont démarrées.'}</div>`;
+    return html;
+  }
+
+  function renderFin(byVague, vagues) {
+    let html = `<div class="filter">
+      <button class="${filterMode==='active'?'active':''}" onclick="setFilter('active')">🟢 En cours</button>
+      <button class="${filterMode==='all'?'active':''}" onclick="setFilter('all')">Tout voir</button>
+      <button class="${filterMode==='done'?'active':''}" onclick="setFilter('done')">✅ Terminées</button>
+      <button style="margin-left:auto;" onclick="load()">↻</button>
+    </div>`;
+    let shown = 0;
+    vagues.forEach(v => {
+      const rows = byVague[v];
+      const started = rows.some(isStarted);
+      const allFini = rows.every(r => isAbsent(r) || isFini(r));
+      let state = 'pending';
+      if (started && !allFini) state = 'active';
+      else if (started && allFini) state = 'done';
+      if (filterMode === 'active' && state !== 'active') return;
+      if (filterMode === 'done' && state !== 'done') return;
+      shown++;
+      const startISO = started ? rows.find(isStarted).heure_debut_reelle : null;
+      const startMs = startISO ? new Date(startISO).getTime() : null;
+      const heurePrevue = fmtHeure(rows[0].heure_depart);
+      html += `<div class="vague ${state === 'active' ? 'started' : state === 'done' ? 'done' : ''}">`;
+      html += `<div class="vague-head"><div class="vague-name">Vague ${v} <span style="font-size:11px;color:#666;font-weight:400;">prévu ${heurePrevue}</span></div>`;
+      if (startMs) html += `<div class="vague-chrono" data-start="${startMs}" id="vc-${v}">00:00</div>`;
+      else html += `<div class="vague-status-pending">⏳ Pas démarrée</div>`;
+      html += `</div>`;
+      rows.forEach(d => {
+        const abs = isAbsent(d);
+        const fini = isFini(d);
+        if (filterMode === 'active' && (fini || abs)) return;
+        const fmtBadge = (d.niveau && d.niveau.indexOf('XL') !== -1) ? '<span class="badge-format badge-xl">XL</span>' : '<span class="badge-format badge-std">STD</span>';
+        html += `<div class="binome${abs ? ' row-abs' : ''}">`;
+        html += `<div class="binome-info"><span class="dossard-pill">N°${d.dossard || '?'}</span>${fmtBadge}<b>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</b><div class="sub">+ ${(d.co1_prenom||'').trim()} ${(d.co1_nom||'').trim()}</div></div>`;
+        if (abs) html += `<div style="font-size:11px;color:#666;">—</div>`;
+        else if (fini) {
+          html += `<div class="temps-fini">${fmtChrono(d.temps_final_s*1000)}</div>`;
+          html += `<button class="btn-undo" onclick="undo(${d.id})">↺</button>`;
+        } else if (startMs) html += `<button class="btn-fini" onclick="finish(${d.id}, ${startMs})">✅ Terminé</button>`;
+        else html += `<div style="font-size:11px;color:#666;">en attente départ</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    });
+    if (shown === 0) html += `<div style="text-align:center;color:#666;padding:2rem;font-size:14px;">Aucune vague dans ce filtre.</div>`;
+    return html;
+  }
+
+  function tickChronos() {
+    document.querySelectorAll('[id^="chrono-"], [id^="vc-"]').forEach(el => {
+      const start = parseInt(el.dataset.start);
+      el.textContent = fmtChrono(Date.now() - start);
+    });
+  }
+  setInterval(tickChronos, 1000);
+
+  async function startVague(v) {
+    if (!confirm(`Démarrer la vague ${v} maintenant ?`)) return;
+    const now = new Date().toISOString();
+    const ids = data.filter(d => d.vague === v).map(d => d.id);
+    await majPE(ids, {heure_debut_reelle: now});
+    await load();
+  }
+  async function cancelStart(v) {
+    if (!confirm(`Annuler le départ de la vague ${v} ?`)) return;
+    const ids = data.filter(d => d.vague === v).map(d => d.id);
+    await majPE(ids, {heure_debut_reelle: null, temps_final_s: null});
+    await load();
+  }
+  async function finish(id, startMs) {
+    const elapsed = Math.round((Date.now() - startMs) / 1000);
+    const mm = Math.floor(elapsed/60), ss = elapsed % 60;
+    const tempsStr = String(mm).padStart(2,'0') + ':' + String(ss).padStart(2,'0');
+    if (!confirm(`Confirmer arrivée — temps ${tempsStr} ?`)) return;
+    await majPE([id], {temps_final_s: elapsed});
+    sendBravoMail(id, tempsStr).catch(e => console.warn('Erreur mail bravo:', e));
+    await load();
+  }
+  async function undo(id) {
+    if (!confirm('Annuler ce temps ?')) return;
+    await majPE([id], {temps_final_s: null});
+    await load();
+  }
+
+  async function sendBravoMail(id, tempsStr) {
+    const { data: d } = await db.from('Inscriptions').select('*').eq('id', id).single();
+    if (!d || !d.email || !d.email.includes('@')) return;
+    const niveau = d.niveau || 'Standard — 200 m';
+    const formatLabel = niveau.indexOf('XL') !== -1 ? '🟥 XL — 400 m' : '🟧 Standard — 200 m';
+    const formatColor = niveau.indexOf('XL') !== -1 ? '#C0392B' : '#FFA726';
+    const prenom = (d.prenom || '').trim();
+    const co1Prenom = (d.co1_prenom || '').trim();
+    const html = `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a;line-height:1.6;">
+<div style="background:#1B7B49;color:#fff;padding:24px;text-align:center;border-radius:12px 12px 0 0;">
+<div style="font-size:48px;margin-bottom:8px;">🎉</div>
+<h1 style="margin:0;font-size:24px;">BRAVO ${prenom} !</h1>
+<p style="margin:6px 0 0;font-size:14px;opacity:0.9;">Hyrox Parent-Enfant La Buse — 14 novembre 2026</p></div>
+<div style="background:#fff;padding:24px;border:1px solid #ddd;border-top:none;">
+<p style="margin-top:0;font-size:15px;">Tu viens de terminer le Hyrox Parent-Enfant avec ${co1Prenom} 🙌</p>
+<div style="background:#f0f8f3;border:3px solid #1B7B49;border-radius:12px;padding:20px;margin:18px 0;text-align:center;">
+<div style="font-size:13px;color:#888;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">⏱ Votre temps final</div>
+<div style="font-size:48px;font-weight:800;color:#1B7B49;font-family:monospace;">${tempsStr}</div>
+<div style="margin-top:10px;background:${formatColor};color:#fff;display:inline-block;padding:6px 14px;border-radius:6px;font-weight:800;font-size:13px;letter-spacing:1px;">${formatLabel}</div></div>
+<p style="font-size:14px;">Merci d'avoir partagé ce moment avec ton enfant et d'avoir donné le meilleur de vous-mêmes ! 💪</p>
+<p style="font-size:13px;color:#888;">Les photos arriveront prochainement.</p>
+<hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
+<p style="margin-bottom:0;font-size:14px;">À très vite ! 💪<br><strong>L'équipe Hyrox La Buse</strong></p>
+</div></div>`;
+    await fetch('/api/juge-pe', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({password: JUGE_PWD, action: 'mail', id: id, subject: `🎉 BRAVO ${prenom} ! Ton temps Hyrox Parent-Enfant : ${tempsStr}`, html: html})
+    });
+  }
+</script>
+</body>
+</html>

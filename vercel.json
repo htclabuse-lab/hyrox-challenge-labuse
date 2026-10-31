@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/relance-abandons",
+      "schedule": "0 * * * *"
+    }
+  ]
+}
