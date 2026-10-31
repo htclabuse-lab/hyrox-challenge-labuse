@@ -14,7 +14,7 @@ const AUTORISES = [
   'tshirt_coupe', 'tshirt_taille', 'niveau', 'prix', 'statut_paiement', 'pack_photo', 'droit_image', 'sante_declaree',
   'co1_prenom', 'co1_nom', 'co1_date_naissance', 'co1_tshirt',
   'contact_urgence_prenom', 'contact_urgence_nom', 'contact_urgence_tel',
-  'vague', 'heure_depart',
+  'vague', 'heure_depart', 'dossard',
 ];
 
 export default async function handler(req, res) {
