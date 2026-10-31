@@ -22,8 +22,8 @@ export default async function handler(req, res) {
       .neq('categorie', 'Parent-Enfant')
       .neq('categorie', 'Hyrox Kids Pré-inscription')
       .neq('categorie', 'Bénévole')
-      .gte('heure_depart', '2026-07-12')
-      .lt('heure_depart', '2026-07-13');
+      .gte('heure_depart', '2026-11-15')
+      .lt('heure_depart', '2026-11-16');
 
     if (error) {
       console.error('Erreur Supabase juge-vagues:', error);
