@@ -198,6 +198,21 @@
   setInterval(load, 20000);
   load();
 
+  function formatInfo(d) {
+    // Duos (et équipes avec nom d'équipe) : nom d'équipe en gros + participants en petit en dessous.
+    // Solo : prénom + nom en gros.
+    const isDuo = (d.categorie || '').toLowerCase().startsWith('duo');
+    if (isDuo && d.nom_equipe) {
+      const equipe = d.nom_equipe.trim();
+      const p1 = ((d.prenom||'') + ' ' + (d.nom||'')).trim();
+      const p2 = ((d.co1_prenom||'') + ' ' + (d.co1_nom||'')).trim();
+      const participants = [p1, p2].filter(Boolean).join(' + ');
+      return `<div class="name"><span class="dossard">${d.dossard}</span>${equipe}</div><div class="team">👥 ${participants}</div>`;
+    }
+    const nom = ((d.prenom||'').trim() + ' ' + (d.nom||'').trim()).trim();
+    return `<div class="name"><span class="dossard">${d.dossard}</span>${nom}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}`;
+  }
+
   function computePodiums(all) {
     // Podium par catégorie = heure_depart max + 2h (vagues normales ≤ 41 uniquement, hors tests)
     const map = {};
@@ -280,7 +295,7 @@
         const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
         html += `<div class="athlete done">`;
         html += `<div class="rank ${rankClass}">${medal}</div>`;
-        html += `<div class="info"><div class="name"><span class="dossard">${d.dossard}</span>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}</div>`;
+        html += `<div class="info">${formatInfo(d)}</div>`;
         html += `<div class="time-box">${fmtTime(d.temps_final_s)}</div>`;
         html += `</div>`;
       });
@@ -290,7 +305,7 @@
         const st = getMaxStation(d.id);
         html += `<div class="athlete running">`;
         html += `<div class="rank running">🏃</div>`;
-        html += `<div class="info"><div class="name"><span class="dossard">${d.dossard}</span>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}</div>`;
+        html += `<div class="info">${formatInfo(d)}</div>`;
         html += `<div class="station-badge">Station ${st}</div>`;
         html += `</div>`;
       });
@@ -299,7 +314,7 @@
       pending.forEach(d => {
         html += `<div class="athlete">`;
         html += `<div class="rank other">–</div>`;
-        html += `<div class="info"><div class="name"><span class="dossard">${d.dossard}</span>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}</div>`;
+        html += `<div class="info">${formatInfo(d)}</div>`;
         html += `<div class="pending-badge">V${d.vague} · ${new Date(d.heure_depart).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', timeZone:'Indian/Reunion'})}</div>`;
         html += `</div>`;
       });
@@ -308,7 +323,7 @@
       abandoned.forEach(d => {
         html += `<div class="athlete abandon">`;
         html += `<div class="rank other">🚫</div>`;
-        html += `<div class="info"><div class="name"><span class="dossard">${d.dossard}</span>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}</div>`;
+        html += `<div class="info">${formatInfo(d)}</div>`;
         html += `<div class="abandon-badge">ABANDON</div>`;
         html += `</div>`;
       });

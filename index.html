@@ -727,7 +727,7 @@ async function loadVaguesHC3() {
   try {
     var db = supabase.createClient('https://mzyfnmjzlosranptwucr.supabase.co', 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC');
     var { data, error } = await db.from('Inscriptions')
-      .select('prenom,nom,categorie,nom_equipe,vague,heure_depart')
+      .select('prenom,nom,categorie,nom_equipe,co1_prenom,co1_nom,vague,heure_depart')
       .neq('categorie', 'Parent-Enfant')
       .neq('categorie', 'Hyrox Kids Pré-inscription')
       .neq('categorie', 'Bénévole')
@@ -764,11 +764,15 @@ async function loadVaguesHC3() {
         var ligne;
         if (isDuo) {
           var equipe = (d.nom_equipe||'').trim() || '(sans nom d\'équipe)';
-          ligne = '<strong style="color:#fff;">' + equipe + '</strong> <span style="color:#888;font-size:11px;">— ' + d.categorie + '</span>';
+          var p1 = ((d.prenom||'').trim() + ' ' + (d.nom||'').trim()).trim();
+          var p2 = ((d.co1_prenom||'').trim() + ' ' + (d.co1_nom||'').trim()).trim();
+          var participants = [p1, p2].filter(Boolean).join(' + ');
+          ligne = '<strong style="color:#FFEE00;">' + equipe + '</strong> <span style="color:#888;font-size:11px;">— ' + d.categorie + '</span>'
+                + '<div style="font-size:11px;color:#aaa;margin-left:0;padding-top:2px;">👥 ' + participants + '</div>';
         } else {
           ligne = (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong> <span style="color:#888;font-size:11px;">— ' + d.categorie + '</span>';
         }
-        html += '<div class="vhc3-athlete" style="font-size:13px;color:#ddd;padding:3px 0;line-height:1.4;">' + ligne + '</div>';
+        html += '<div class="vhc3-athlete" style="font-size:13px;color:#ddd;padding:4px 0;line-height:1.4;">' + ligne + '</div>';
       });
       html += '</div>';
     });
