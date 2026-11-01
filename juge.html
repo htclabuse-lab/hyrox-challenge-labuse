@@ -789,9 +789,21 @@ async function refreshStarterData() {
     const rows = parVague[numero] || [];
     if (rows.length === 0) return '';
     return '<div class="vague-athletes">' + rows.map(r => {
-      const nom = ((r.prenom || '') + ' ' + (r.nom || '')).trim();
-      const team = r.nom_equipe ? ' · ' + r.nom_equipe : '';
-      return '<div class="vague-athlete"><span class="doss">#' + r.dossard + '</span>' + nom + team + '</div>';
+      // Même règle que labelFor : nom d'équipe si fourni, sinon 2 participants pour Duo, sinon prénom nom
+      let label;
+      if (r.nom_equipe && String(r.nom_equipe).trim()) {
+        label = String(r.nom_equipe).trim();
+      } else {
+        const isDuo = (r.categorie || '').toLowerCase().startsWith('duo');
+        if (isDuo) {
+          const p1 = ((r.prenom||'') + ' ' + (r.nom||'')).trim();
+          const p2 = ((r.co1_prenom||'') + ' ' + (r.co1_nom||'')).trim();
+          label = [p1, p2].filter(Boolean).join(' + ');
+        } else {
+          label = ((r.prenom || '') + ' ' + (r.nom || '')).trim();
+        }
+      }
+      return '<div class="vague-athlete"><span class="doss">#' + r.dossard + '</span>' + escapeHtml(label) + '</div>';
     }).join('') + '</div>';
   }
 
