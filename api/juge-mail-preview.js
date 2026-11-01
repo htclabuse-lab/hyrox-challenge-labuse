@@ -1,7 +1,14 @@
 // Preview du mail « bravo » qui part automatiquement quand un athlète pointe la station 8.
 // Envoie une copie à une adresse de test (sans toucher au vrai flow).
 //
-//  POST { password, to: 'x@y.fr' } → envoie un exemple à cette adresse
+//  POST { password, to: 'x@y.fr' }                        → données simulées
+//  POST { password, to: 'x@y.fr', inscription_id: 436 }   → vrais pointages de cette fiche
+//  POST { password, to: 'x@y.fr', nom_equipe: 'Les esc…' } → cherche par nom d'équipe
+
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+const STATIONS = { 1: 'Ski-Erg', 2: 'Sled Push', 3: 'Sled Pull', 4: 'Burpee Broad Jump', 5: 'Rowing', 6: 'Farmers Carry', 7: 'Sandbag Lunges', 8: 'Wall Balls' };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' });
@@ -12,24 +19,50 @@ export default async function handler(req, res) {
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) return res.status(500).json({ error: 'Pas de resend key' });
 
-  // Données simulées (athlète fictif + 8 segments)
-  const inscr = {
-    prenom: 'Stéphanie',
-    nom: 'CARO (TEST)',
-    categorie: 'Solo Femme Scaled',
-    dossard: 999,
-    nom_equipe: null,
-  };
-  const segments = [
-    { station: 1, name: 'Ski-Erg',             duree_s: 420, pen30: 0, pen5: 0 },
-    { station: 2, name: 'Sled Push',           duree_s: 300, pen30: 0, pen5: 0 },
-    { station: 3, name: 'Sled Pull',           duree_s: 360, pen30: 1, pen5: 0 },
-    { station: 4, name: 'Burpee Broad Jump',   duree_s: 500, pen30: 0, pen5: 0 },
-    { station: 5, name: 'Rowing',              duree_s: 450, pen30: 0, pen5: 0 },
-    { station: 6, name: 'Farmers Carry',       duree_s: 240, pen30: 0, pen5: 0 },
-    { station: 7, name: 'Sandbag Lunges',      duree_s: 480, pen30: 0, pen5: 0 },
-    { station: 8, name: 'Wall Balls',          duree_s: 390, pen30: 2, pen5: 0 },
-  ];
+  let inscr, segments;
+
+  if (b.inscription_id || b.nom_equipe) {
+    // Lecture des vraies données depuis la base
+    if (!process.env.SUPABASE_SERVICE_KEY) return res.status(500).json({ error: 'Pas de service key' });
+    const db = createClient(SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+    let query = db.from('Inscriptions').select('*');
+    if (b.inscription_id) query = query.eq('id', Number(b.inscription_id));
+    else query = query.ilike('nom_equipe', `%${b.nom_equipe}%`);
+    const { data: ins, error: eIns } = await query.limit(1).maybeSingle();
+    if (eIns || !ins) return res.status(404).json({ error: 'Inscription introuvable', detail: eIns?.message });
+    inscr = ins;
+    if (!inscr.heure_debut_reelle) return res.status(400).json({ error: 'Pas de heure_debut_reelle sur la fiche' });
+    const { data: pts, error: ePts } = await db.from('Pointages').select('*').eq('inscription_id', inscr.id).order('station');
+    if (ePts) return res.status(500).json({ error: ePts.message });
+    const startMs = new Date(inscr.heure_debut_reelle).getTime();
+    let prevMs = startMs;
+    segments = (pts || []).map(p => {
+      const curMs = new Date(p.timestamp_pointage).getTime();
+      const seg = {
+        station: p.station,
+        name: STATIONS[p.station] || `Station ${p.station}`,
+        duree_s: Math.max(0, Math.floor((curMs - prevMs) / 1000)),
+        pen30: p.penalite_30s || 0,
+        pen5: p.penalite_5min || 0,
+      };
+      prevMs = curMs;
+      return seg;
+    });
+  } else {
+    // Données simulées (athlète fictif + 8 segments)
+    inscr = { prenom: 'Stéphanie', nom: 'CARO (TEST)', categorie: 'Solo Femme Scaled', dossard: 999, nom_equipe: null };
+    segments = [
+      { station: 1, name: 'Ski-Erg',             duree_s: 420, pen30: 0, pen5: 0 },
+      { station: 2, name: 'Sled Push',           duree_s: 300, pen30: 0, pen5: 0 },
+      { station: 3, name: 'Sled Pull',           duree_s: 360, pen30: 1, pen5: 0 },
+      { station: 4, name: 'Burpee Broad Jump',   duree_s: 500, pen30: 0, pen5: 0 },
+      { station: 5, name: 'Rowing',              duree_s: 450, pen30: 0, pen5: 0 },
+      { station: 6, name: 'Farmers Carry',       duree_s: 240, pen30: 0, pen5: 0 },
+      { station: 7, name: 'Sandbag Lunges',      duree_s: 480, pen30: 0, pen5: 0 },
+      { station: 8, name: 'Wall Balls',          duree_s: 390, pen30: 2, pen5: 0 },
+    ];
+  }
+
   const chronoS = segments.reduce((s, x) => s + x.duree_s, 0);
   const totalPen30 = segments.reduce((s, x) => s + x.pen30, 0);
   const totalPen5  = segments.reduce((s, x) => s + x.pen5,  0);
