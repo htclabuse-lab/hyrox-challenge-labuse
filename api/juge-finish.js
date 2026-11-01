@@ -193,7 +193,7 @@ function buildBravoHtml(inscr, segments, chronoS, penTotalS, tempsFinalS) {
 ${cardSub ? `<div style="font-size:12px;color:#aaa;margin-bottom:14px;">${cardSub}</div>` : '<div style="height:14px;"></div>'}
 <div style="background:#FFEE00;color:#0a0a0a;display:inline-block;padding:6px 16px;border-radius:6px;font-weight:900;font-size:12px;letter-spacing:1.5px;margin-bottom:18px;">${cat}</div>
 <div style="font-size:12px;color:#aaa;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">⏱ Temps final</div>
-<div style="font-size:64px;font-weight:900;color:#FFEE00;font-family:monospace;line-height:1;">${fmtTime(tempsFinalS)}</div>
+<div style="font-size:46px;font-weight:900;color:#FFEE00;font-family:monospace;line-height:1;">${fmtTime(tempsFinalS)}</div>
 <div style="margin-top:20px;padding-top:16px;border-top:1px dashed #333;font-size:11px;color:#666;letter-spacing:1px;">#HYROX · #LABUSE · #HCLABUSE3</div>
 </div>
 <p style="text-align:center;font-size:12px;color:#888;margin:-10px 0 18px;font-style:italic;">📸 Fais un screenshot pour partager sur Instagram !</p>`;
