@@ -716,10 +716,11 @@
   async function loadBenevoles() {
     var r = await db.from('Benevoles').select('*').order('created_at', {ascending: true});
     allBenevoles = r.data || [];
-    // Croise les emails avec les inscrits payés PE #2 (14/11) et HC #3 (15/11)
+    // Croise les emails avec les inscrits payés HC #3 (15/11) uniquement — pas le Parent-Enfant du 14.
     var r2 = await db.from('Inscriptions')
       .select('email,prenom,nom,categorie,vague,heure_depart')
-      .gte('heure_depart', '2026-11-14').lt('heure_depart', '2026-11-16')
+      .gte('heure_depart', '2026-11-15').lt('heure_depart', '2026-11-16')
+      .neq('categorie', 'Parent-Enfant')
       .eq('statut_paiement', 'paye');
     benevolesAthletesMap = {};
     (r2.data || []).forEach(function(ins) {
@@ -831,10 +832,8 @@
         // Croise avec les inscrits (par email). Un bénévole peut avoir plusieurs matches (couple, famille PE…).
         var athletes = benevolesAthletesMap[String(b.email||'').trim().toLowerCase()] || [];
         var athBadges = athletes.map(function(a) {
-          var dayPrefix = (a.heure_depart || '').indexOf('2026-11-14') === 0 ? '👨‍👧' : '🏃';
-          var color = (a.heure_depart || '').indexOf('2026-11-14') === 0 ? '#1B7B49' : '#C0392B';
           var h = a.heure_depart ? new Date(a.heure_depart).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', timeZone:'Indian/Reunion'}) : '—';
-          return '<div style="background:#1a1a1a;border-left:3px solid ' + color + ';padding:3px 8px;margin-bottom:3px;font-size:11px;border-radius:3px;"><strong style="color:#FFEE00;">' + dayPrefix + ' V' + (a.vague||'?') + '</strong> — ' + h + '<br><span style="color:#888;font-size:10px;">' + (a.categorie||'') + '</span></div>';
+          return '<div style="background:#1a1a1a;border-left:3px solid #C0392B;padding:3px 8px;margin-bottom:3px;font-size:11px;border-radius:3px;"><strong style="color:#FFEE00;">🏃 V' + (a.vague||'?') + '</strong> — ' + h + '<br><span style="color:#888;font-size:10px;">' + (a.categorie||'') + '</span></div>';
         }).join('');
         if (!athBadges) athBadges = '<span style="color:#444;font-size:11px;">—</span>';
         html += '<tr>';

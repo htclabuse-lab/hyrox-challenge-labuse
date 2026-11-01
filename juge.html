@@ -257,6 +257,37 @@ function shortCat(cat) {
     .replace(/\bScaled\b/i, 'Sc.');
 }
 
+function tempsRank(t) {
+  // Rang du temps estimé (1 = plus rapide, 99 = inconnu).
+  if (!t) return 99;
+  const s = String(t).toLowerCase();
+  if (s.indexOf('moins') !== -1) return 1;
+  if (s.indexOf('1h et 1h10') !== -1 || s.indexOf('1h-1h10') !== -1) return 2;
+  if (s.indexOf('1h10') !== -1) return 3;
+  if (s.indexOf('1h20') !== -1) return 4;
+  if (s.indexOf('1h30') !== -1) return 5;
+  if (s.indexOf('1h40') !== -1) return 6;
+  return 99;
+}
+
+function computeEliteIds(inscriptions) {
+  // Elite 12 (candidats potentiels pour la finale) : par catégorie RX, les 12 meilleurs
+  // temps estimés — plus les ex-aequo au même temps que le 12e.
+  // Scaled non concerné pour l'instant.
+  const groups = {};
+  (inscriptions || []).forEach(i => {
+    if (!i.categorie || !/RX/i.test(i.categorie)) return;
+    (groups[i.categorie] ||= []).push(i);
+  });
+  const eliteIds = new Set();
+  Object.keys(groups).forEach(cat => {
+    const sorted = groups[cat].slice().sort((a, b) => tempsRank(a.temps_estime) - tempsRank(b.temps_estime));
+    const seuil = sorted.length <= 12 ? 99 : tempsRank(sorted[11].temps_estime);
+    sorted.forEach(x => { if (tempsRank(x.temps_estime) <= seuil) eliteIds.add(x.id); });
+  });
+  return eliteIds;
+}
+
 function formatHMS(totalSec) {
   totalSec = Math.max(0, Math.floor(totalSec));
   const h = Math.floor(totalSec / 3600);
@@ -441,6 +472,7 @@ function renderDossardGrid() {
     return;
   }
   $('station-empty').hidden = true;
+  const eliteIds = computeEliteIds(state.inscriptions);
   grid.innerHTML = eligible.map(i => {
     const pending = state.pendingPenalties[i.id];
     const hasPenalty = pending && (pending.pen30 > 0 || pending.pen5 > 0);
@@ -454,7 +486,9 @@ function renderDossardGrid() {
       if (pending.pen5 > 0) parts.push(`+${pending.pen5}×5m`);
       badge = `<span class="penalty-badge">${parts.join(' ')}</span>`;
     }
+    const elite = eliteIds.has(i.id) ? '<span class="elite" title="Candidat Elite 12 — à juger de près">E</span>' : '';
     return `<button class="${classes.join(' ')}" data-id="${i.id}">
+      ${elite}
       ${badge}
       <span class="num">${i.dossard}</span>
       <span class="name">${escapeHtml(label)}</span>
