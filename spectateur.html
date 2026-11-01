@@ -25,20 +25,31 @@
   .screen-title { font-size: 56px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; text-align: center; margin-bottom: 2rem; color: #FFEE00; }
   .screen-sub { font-size: 20px; color: #ddd; text-align: center; margin-top: -1.5rem; margin-bottom: 2rem; }
 
-  /* VUE A : Classement — podium par catégorie */
-  .podium-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; flex: 1; overflow: hidden; }
-  .cat-card { background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border: 2px solid #333; border-radius: 16px; padding: 20px 24px; display: flex; flex-direction: column; }
-  .cat-card-title { font-size: 18px; font-weight: 800; color: #FFEE00; letter-spacing: 1px; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #333; text-transform: uppercase; display: flex; justify-content: space-between; align-items: baseline; }
-  .cat-card-title .nb { font-size: 12px; color: #888; font-weight: 500; letter-spacing: 0.5px; }
-  .ranked-row { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-bottom: 1px solid #1a1a1a; }
+  /* VUE A : Classement — défilement continu générique */
+  .scroll-container { flex: 1; overflow: hidden; position: relative; mask-image: linear-gradient(to bottom, transparent 0%, #000 5%, #000 95%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 5%, #000 95%, transparent 100%); }
+  .scroll-content { animation: scrollUp 120s linear infinite; }
+  .scroll-container:hover .scroll-content { animation-play-state: paused; }
+  @keyframes scrollUp {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-50%); }
+  }
+  .trance-block { background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border: 2px solid #333; border-radius: 14px; padding: 18px 22px; margin-bottom: 16px; }
+  .trance-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #333; }
+  .trance-cat { font-size: 20px; font-weight: 900; color: #FFEE00; text-transform: uppercase; letter-spacing: 1px; }
+  .trance-age { font-size: 14px; font-weight: 800; color: #FFA726; background: #1a1400; padding: 4px 10px; border-radius: 6px; margin-left: 10px; }
+  .trance-status { font-size: 13px; font-weight: 700; }
+  .trance-status.done { color: #4caf50; }
+  .trance-status.running { color: #FFA726; animation: pulse 1.2s infinite; }
+  .ranked-row { display: flex; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px solid #1a1a1a; }
   .ranked-row:last-child { border-bottom: none; }
-  .rank-medal { font-size: 28px; width: 44px; text-align: center; flex-shrink: 0; }
+  .rank-medal { font-size: 24px; width: 42px; text-align: center; flex-shrink: 0; font-weight: 900; color: #FFA726; font-family: monospace; }
+  .rank-medal.gold { font-size: 28px; }
   .rank-info { flex: 1; min-width: 0; overflow: hidden; }
-  .rank-name { font-size: 18px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .rank-participants { font-size: 12px; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rank-name { font-size: 17px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rank-participants { font-size: 12px; color: #888; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .rank-dossard { background: #FFEE00; color: #0a0a0a; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 900; font-family: monospace; margin-right: 6px; }
-  .rank-time { font-size: 24px; font-weight: 900; color: #4caf50; font-family: monospace; font-variant-numeric: tabular-nums; flex-shrink: 0; }
-  .no-finisher { color: #666; font-size: 13px; font-style: italic; padding: 20px 0; text-align: center; }
+  .rank-time { font-size: 22px; font-weight: 900; color: #4caf50; font-family: monospace; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .no-finisher { color: #FFA726; font-size: 14px; font-style: italic; padding: 10px 0; text-align: center; font-weight: 700; }
 
   /* VUE B : Prochaine vague */
   .vague-big { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px; text-align: center; }
@@ -96,9 +107,11 @@
       <div class="header-date">Dimanche 15 novembre 2026</div>
     </div>
   </div>
-  <div class="screen-title">🏆 Top 3 par catégorie</div>
-  <div class="warn-ageband">⚠️ Classement général par catégorie — les 3 par tranche d'âge seront annoncés au podium (16-24 · 25-34 · 35-44 · 45-54 · 55+)</div>
-  <div class="podium-grid" id="podium-grid" style="margin-top:1.5rem;"></div>
+  <div class="screen-title">🏆 Classement live par catégorie d'âge</div>
+  <div class="warn-ageband">⚠️ Les 3 premiers de chaque tranche d'âge seront appelés au podium — reste à proximité !</div>
+  <div class="scroll-container" style="margin-top:1.5rem;">
+    <div class="scroll-content" id="scroll-content"></div>
+  </div>
 </div>
 
 <!-- VUE B : PROCHAINE VAGUE -->
@@ -216,7 +229,7 @@ async function loadAllPointages() {
 async function loadData() {
   const [insR, pts] = await Promise.all([
     db.from('Inscriptions')
-      .select('id,prenom,nom,categorie,nom_equipe,co1_prenom,co1_nom,dossard,vague,heure_depart,heure_debut_reelle,temps_final_s,absent,abandon')
+      .select('id,prenom,nom,date_naissance,categorie,nom_equipe,co1_prenom,co1_nom,co1_date_naissance,dossard,vague,temps_estime,heure_depart,heure_debut_reelle,temps_final_s,absent,abandon')
       .neq('categorie', 'Parent-Enfant')
       .neq('categorie', 'Hyrox Kids Pré-inscription')
       .neq('categorie', 'Bénévole')
@@ -239,43 +252,118 @@ function renderAll() {
   renderFinishers();
 }
 
-// ============ VUE A : TOP 3 PAR CATÉGORIE ============
+// ============ VUE A : CLASSEMENT COMPLET PAR CAT × TRANCHE ============
+const EVENT_DATE = new Date('2026-11-15');
+function getAge(iso) {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return null;
+  let age = EVENT_DATE.getFullYear() - d.getFullYear();
+  const m = EVENT_DATE.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && EVENT_DATE.getDate() < d.getDate())) age--;
+  return age;
+}
+function trancheOfAge(age) {
+  if (age == null || age < 16) return '?';
+  if (age < 25) return '16-24';
+  if (age < 35) return '25-34';
+  if (age < 45) return '35-44';
+  if (age < 55) return '45-54';
+  return '55+';
+}
+// Pour les Duos : tranche d'âge = âge du plus jeune des 2 (règle Hyrox officielle)
+function trancheOf(d) {
+  const isDuo = (d.categorie || '').toLowerCase().startsWith('duo');
+  const a1 = getAge(d.date_naissance);
+  if (!isDuo) return trancheOfAge(a1);
+  const a2 = getAge(d.co1_date_naissance);
+  const ages = [a1, a2].filter(x => x != null);
+  if (ages.length === 0) return '?';
+  return trancheOfAge(Math.min(...ages));
+}
+
+// Minutes max du temps estimé (pour calcul horaire podium)
+function tempsMinMax(t) {
+  if (!t) return 100;
+  const s = String(t).toLowerCase();
+  if (s.indexOf('moins') !== -1) return 60;
+  if (s.indexOf('1h et 1h10') !== -1 || s.indexOf('1h-1h10') !== -1) return 70;
+  if (s.indexOf('1h10') !== -1) return 80;
+  if (s.indexOf('1h20') !== -1) return 90;
+  if (s.indexOf('1h30') !== -1) return 100;
+  if (s.indexOf('1h40') !== -1) return 105;
+  return 100;
+}
+
+const CATS_ORDER = [
+  'Solo Homme RX', 'Solo Femme RX',
+  'Solo Homme Scaled', 'Solo Femme Scaled',
+  'Duo Homme RX', 'Duo Femme RX', 'Duo Mixte RX',
+  'Duo Homme Scaled', 'Duo Femme Scaled', 'Duo Mixte Scaled',
+];
+const TRANCHES_ORDER = ['16-24', '25-34', '35-44', '45-54', '55+', '?'];
+
 function renderClassement() {
-  const CATS_ORDER = [
-    'Solo Homme RX', 'Solo Femme RX',
-    'Solo Homme Scaled', 'Solo Femme Scaled',
-    'Duo Homme RX', 'Duo Femme RX', 'Duo Mixte RX',
-    'Duo Homme Scaled', 'Duo Femme Scaled', 'Duo Mixte Scaled',
-  ];
-  const grid = document.getElementById('podium-grid');
-  let html = '';
+  // Pour chaque catégorie globale : savoir si terminée + horaire podium
+  const catInfo = {};
   CATS_ORDER.forEach(cat => {
     const liste = inscriptions.filter(i => i.categorie === cat && !i.absent && !i.abandon);
     if (liste.length === 0) return;
-    const finished = liste.filter(i => i.temps_final_s != null).sort((a, b) => a.temps_final_s - b.temps_final_s).slice(0, 3);
-    const nbTotal = liste.length;
-    const nbDone = liste.filter(i => i.temps_final_s != null).length;
-    html += '<div class="cat-card">';
-    html += '<div class="cat-card-title">' + cat + ' <span class="nb">' + nbDone + ' / ' + nbTotal + '</span></div>';
-    if (finished.length === 0) {
-      html += '<div class="no-finisher">En cours — pas encore de finisher</div>';
-    } else {
-      finished.forEach((d, idx) => {
-        const medal = ['🥇', '🥈', '🥉'][idx];
-        const lbl = labelFor(d);
-        html += '<div class="ranked-row">';
-        html += '<div class="rank-medal">' + medal + '</div>';
-        html += '<div class="rank-info">';
-        html += '<div class="rank-name"><span class="rank-dossard">' + d.dossard + '</span>' + lbl.nom + '</div>';
-        if (lbl.sub) html += '<div class="rank-participants">👥 ' + lbl.sub + '</div>';
-        html += '</div>';
-        html += '<div class="rank-time">' + fmtTime(d.temps_final_s) + '</div>';
-        html += '</div>';
-      });
-    }
-    html += '</div>';
+    const allDone = liste.every(i => i.temps_final_s != null);
+    // Horaire podium (par cat globale)
+    let maxMin = 0, lastDep = null;
+    liste.forEach(i => {
+      if (!i.heure_depart) return;
+      if (!lastDep || i.heure_depart > lastDep) lastDep = i.heure_depart;
+      const m = tempsMinMax(i.temps_estime);
+      if (m > maxMin) maxMin = m;
+    });
+    const podiumTs = lastDep ? new Date(lastDep).getTime() + (maxMin + 5) * 60000 : null;
+    const podiumH = podiumTs ? new Date(podiumTs).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion' }) : null;
+    catInfo[cat] = { allDone, podiumH };
   });
-  grid.innerHTML = html;
+
+  let html = '';
+  CATS_ORDER.forEach(cat => {
+    if (!catInfo[cat]) return;
+    const liste = inscriptions.filter(i => i.categorie === cat && !i.absent && !i.abandon);
+    // Grouper par tranche d'âge
+    const byTranche = {};
+    liste.forEach(i => {
+      const t = trancheOf(i);
+      (byTranche[t] = byTranche[t] || []).push(i);
+    });
+    TRANCHES_ORDER.forEach(tr => {
+      if (!byTranche[tr] || byTranche[tr].length === 0) return;
+      const group = byTranche[tr];
+      const finished = group.filter(i => i.temps_final_s != null).sort((a, b) => a.temps_final_s - b.temps_final_s);
+      const statusHtml = catInfo[cat].allDone
+        ? '<span class="trance-status done">✅ Terminé — Podium à ' + (catInfo[cat].podiumH || '?') + '</span>'
+        : '<span class="trance-status running">⏱ En cours</span>';
+      html += '<div class="trance-block">';
+      html += '<div class="trance-head"><div><span class="trance-cat">' + cat + '</span><span class="trance-age">' + tr + ' ans</span></div>' + statusHtml + '</div>';
+      if (finished.length === 0) {
+        html += '<div class="no-finisher">⏱ Pas encore de finisher</div>';
+      } else {
+        finished.forEach((d, idx) => {
+          const rank = idx + 1;
+          const medalIcon = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
+          const lbl = labelFor(d);
+          html += '<div class="ranked-row">';
+          html += '<div class="rank-medal' + (rank === 1 ? ' gold' : '') + '">' + medalIcon + '</div>';
+          html += '<div class="rank-info">';
+          html += '<div class="rank-name"><span class="rank-dossard">' + d.dossard + '</span>' + lbl.nom + '</div>';
+          if (lbl.sub) html += '<div class="rank-participants">👥 ' + lbl.sub + '</div>';
+          html += '</div>';
+          html += '<div class="rank-time">' + fmtTime(d.temps_final_s) + '</div>';
+          html += '</div>';
+        });
+      }
+      html += '</div>';
+    });
+  });
+  // Duplique le contenu pour défilement en boucle
+  document.getElementById('scroll-content').innerHTML = html + html;
 }
 
 // ============ VUE B : PROCHAINE VAGUE ============
