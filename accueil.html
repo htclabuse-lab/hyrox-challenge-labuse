@@ -197,7 +197,18 @@
       html += `<div class="athlete ${cls}">`;
       html += `<div class="a-head">`;
       html += `<div class="dossard">#${d.dossard}</div>`;
-      html += `<div class="a-info"><b>${(d.prenom || '').trim()} ${(d.nom || '').trim()}</b><div class="sub">${d.email || ''} · ${d.telephone || ''}</div><div class="cat">${d.categorie}</div></div>`;
+      // Pour les Duos : nom d'équipe en gros + participants ; sinon : prénom nom
+      const isDuo = (d.categorie || '').toLowerCase().startsWith('duo');
+      let titre;
+      if (isDuo && d.nom_equipe) {
+        const p1 = `${(d.prenom || '').trim()} ${(d.nom || '').trim()}`.trim();
+        const p2 = `${(d.co1_prenom || '').trim()} ${(d.co1_nom || '').trim()}`.trim();
+        const parts = [p1, p2].filter(Boolean).join(' + ');
+        titre = `<b style="color:#FFEE00;">${d.nom_equipe}</b><div style="font-size:11px;color:#888;margin-top:2px;">👥 ${parts}</div>`;
+      } else {
+        titre = `<b>${(d.prenom || '').trim()} ${(d.nom || '').trim()}</b>`;
+      }
+      html += `<div class="a-info">${titre}<div class="sub">${d.email || ''} · ${d.telephone || ''}</div><div class="cat">${d.categorie}</div></div>`;
       html += `<div class="a-meta">V${d.vague}<br><strong>${fmtHeure(d.heure_depart)}</strong></div>`;
       html += `</div>`;
 
@@ -207,8 +218,6 @@
         if (d.abandon) html += `<span class="status-badge badge-abandon">🚫 ABANDON</span>`;
         html += `</div>`;
       }
-
-      if (d.nom_equipe) html += `<div class="team">🏷 ${d.nom_equipe}</div>`;
 
       // T-shirts (parent + co-équipiers)
       html += `<div class="tshirts">`;

@@ -936,6 +936,21 @@
     document.getElementById('pack-photo-content').innerHTML = html;
   }
 
+  // Helper : contenu de la cellule « Équipe ». Pour les Duos avec nom d'équipe, affiche
+  // nom équipe en jaune + les participants en dessous (uniforme avec live / vagues publiques).
+  function cellEquipe(d) {
+    if (!d || !d.nom_equipe) return '—';
+    var isDuo = (d.categorie||'').toLowerCase().startsWith('duo');
+    var equipe = '<strong style="color:#FFEE00;">' + d.nom_equipe + '</strong>';
+    if (isDuo) {
+      var p1 = ((d.prenom||'') + ' ' + (d.nom||'')).trim();
+      var p2 = ((d.co1_prenom||'') + ' ' + (d.co1_nom||'')).trim();
+      var parts = [p1, p2].filter(Boolean).join(' + ');
+      if (parts) equipe += '<div style="font-size:10px;color:#888;margin-top:2px;">👥 ' + parts + '</div>';
+    }
+    return equipe;
+  }
+
   function showMainTab(tab, btn) {
     document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
@@ -977,7 +992,7 @@
       html += '<td>' + (d.prenom||'—') + '</td>';
       html += '<td style="font-size:12px;">' + (d.email||'—') + '</td>';
       html += '<td>' + (d.categorie||'—') + '</td>';
-      html += '<td>' + (d.nom_equipe||'—') + '</td>';
+      html += '<td>' + cellEquipe(d) + '</td>';
       var tshirts = (d.tshirt_taille||'—') + ' ' + (d.tshirt_coupe||'');
 if (d.co1_tshirt) tshirts += ' / ' + d.co1_tshirt;
 if (d.co2_tshirt) tshirts += ' / ' + d.co2_tshirt;
@@ -1053,7 +1068,7 @@ html += '<td style="font-size:12px;color:#FFEE00;">' + ageCell + '</td>';
         html += '<td style="color:#FFEE00;font-weight:700;">' + (i+1) + '</td>';
         html += '<td><strong style="color:#fff;">' + (d.nom||'—') + '</strong></td>';
         html += '<td>' + (d.prenom||'—') + '</td>';
-        html += '<td>' + (d.nom_equipe||'—') + '</td>';
+        html += '<td>' + cellEquipe(d) + '</td>';
         html += '<td>' + (d.temps_estime||'—') + '</td>';
         html += '<td>' + (d.tshirt_taille||'—') + ' ' + (d.tshirt_coupe||'') + '</td>';
         html += '<td>' + getStatut(d.statut_paiement) + '</td>';
@@ -1122,11 +1137,22 @@ function shortTemps(t) {
       html += '<div class="vague-header"><div class="vague-title">Vague ' + v + ' — ' + hr + '</div><div class="vague-info">' + groupe.length + ' ath. — ' + catsLabel + ' — ' + wgLabel + '</div></div>';
       groupe.forEach(function(d) {
         var key = getCatKey(d.categorie);
-        var equipe = d.nom_equipe ? ' <span style="color:#888;font-weight:400;">— ' + d.nom_equipe + '</span>' : '';
+        var isDuo = (d.categorie||'').toLowerCase().startsWith('duo');
+        var p1 = ((d.prenom||'') + ' ' + (d.nom||'')).trim();
+        var p2 = ((d.co1_prenom||'') + ' ' + (d.co1_nom||'')).trim();
+        var participants = [p1, p2].filter(Boolean).join(' + ');
+        var titreLigne;
+        if (isDuo && d.nom_equipe) {
+          titreLigne = '<strong style="color:#FFEE00;">' + d.nom_equipe + '</strong>'
+                     + '<div style="font-size:11px;color:#aaa;font-weight:400;margin-top:2px;">👥 ' + participants + '</div>';
+        } else {
+          titreLigne = (d.nom||'—') + ' ' + (d.prenom||'');
+          if (d.nom_equipe) titreLigne += ' <span style="color:#888;font-weight:400;">— ' + d.nom_equipe + '</span>';
+        }
         html += '<div style="padding:10px 12px;border-bottom:1px solid #1a1a1a;">';
         html += '<div style="display:flex;gap:10px;align-items:center;">';
         html += '<div style="width:26px;height:26px;border-radius:50%;background:#FFEE00;color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;">' + athleteNum + '</div>';
-        html += '<div style="flex:1;min-width:0;color:#fff;font-weight:600;font-size:13px;line-height:1.3;">' + (d.nom||'—') + ' ' + (d.prenom||'') + equipe + '</div>';
+        html += '<div style="flex:1;min-width:0;color:#fff;font-weight:600;font-size:13px;line-height:1.3;">' + titreLigne + '</div>';
         html += '<div style="color:#FFEE00;font-size:13px;font-weight:800;padding:4px 9px;border-radius:6px;background:#1a1a00;border:1px solid #3a3a00;flex-shrink:0;white-space:nowrap;font-variant-numeric:tabular-nums;">' + shortTemps(d.temps_estime) + '</div>';
         html += '</div>';
         html += '<div style="font-size:11px;color:#888;margin-top:4px;padding-left:36px;">' + getCatLabel(key) + '</div>';
