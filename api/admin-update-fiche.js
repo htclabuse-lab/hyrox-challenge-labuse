@@ -15,6 +15,7 @@ const AUTORISES = [
   'co1_prenom', 'co1_nom', 'co1_date_naissance', 'co1_tshirt',
   'contact_urgence_prenom', 'contact_urgence_nom', 'contact_urgence_tel',
   'vague', 'heure_depart', 'dossard',
+  'absent', 'abandon',
 ];
 
 export default async function handler(req, res) {
