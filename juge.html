@@ -670,13 +670,16 @@ $('sheet-point').addEventListener('click', async () => {
   if (state.role.station === 8 && ath && ath.heure_debut_reelle) {
     const brutSec = Math.floor((new Date(data.pointage.timestamp_pointage).getTime() - new Date(ath.heure_debut_reelle).getTime()) / 1000);
     const myPointages = state.allPointages.filter(p => p.inscription_id === id);
-    const totalPen30 = myPointages.reduce((s, p) => s + (p.penalite_30s || 0), 0);
-    const totalPen5 = myPointages.reduce((s, p) => s + (p.penalite_5min || 0), 0);
-    const penSec = totalPen30 * 30 + totalPen5 * 300;
+    // Nouveau format HC #3 : penalite_s (secondes directes). Fallback HC #2 : pen30*30 + pen5*300.
+    function penSecOf(p) {
+      if (p && p.penalite_s && p.penalite_s > 0) return p.penalite_s;
+      return (p.penalite_30s || 0) * 30 + (p.penalite_5min || 0) * 300;
+    }
+    const penSec = myPointages.reduce((s, p) => s + penSecOf(p), 0);
     const totalSec = brutSec + penSec;
     showFinalBanner({
       label: `Dossard ${ath.dossard} — ${label}`,
-      brutSec, totalPen30, totalPen5, penSec, totalSec,
+      brutSec, penSec, totalSec,
     });
   } else {
     let elapsedText = '';
@@ -698,16 +701,13 @@ function showUndoBanner(msg) {
   startUndoCountdown($('undo-btn'));
 }
 
-function showFinalBanner({ label, brutSec, totalPen30, totalPen5, penSec, totalSec }) {
+function showFinalBanner({ label, brutSec, penSec, totalSec }) {
   $('undo-banner').hidden = true;
   $('final-time').textContent = formatHMS(totalSec);
   let detail = `<strong>${escapeHtml(label)}</strong><br>`;
   detail += `<span class="row-label">Temps brut</span> ${formatHMS(brutSec)}<br>`;
-  if (totalPen30 > 0 || totalPen5 > 0) {
-    const parts = [];
-    if (totalPen5 > 0) parts.push(`${totalPen5}×5min`);
-    if (totalPen30 > 0) parts.push(`${totalPen30}×30s`);
-    detail += `<span class="row-label">Pénalités</span> ${parts.join(' + ')} <strong>(+${formatHMS(penSec)})</strong>`;
+  if (penSec > 0) {
+    detail += `<span class="row-label">Pénalités</span> <strong>+${formatHMS(penSec)}</strong>`;
   } else {
     detail += `<span class="row-label">Pénalités</span> aucune`;
   }
