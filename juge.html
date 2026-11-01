@@ -625,16 +625,8 @@ $('sheet-point').addEventListener('click', async () => {
   } else {
     let elapsedText = '';
     if (ath && ath.heure_debut_reelle) {
-      const pointageMs = new Date(data.pointage.timestamp_pointage).getTime();
-      const totalSec = Math.floor((pointageMs - new Date(ath.heure_debut_reelle).getTime()) / 1000);
-      // Temps du segment : run + station = depuis le pointage précédent (ou le départ pour la station 1)
-      const prevStation = state.role.station - 1;
-      const prevPointage = prevStation > 0
-        ? state.allPointages.find(p => p.inscription_id === id && p.station === prevStation)
-        : null;
-      const prevMs = prevPointage ? new Date(prevPointage.timestamp_pointage).getTime() : new Date(ath.heure_debut_reelle).getTime();
-      const segmentSec = Math.floor((pointageMs - prevMs) / 1000);
-      elapsedText = ` · segment ${formatHMS(segmentSec)} · total ${formatHMS(totalSec)}`;
+      const elapsedSec = Math.floor((new Date(data.pointage.timestamp_pointage).getTime() - new Date(ath.heure_debut_reelle).getTime()) / 1000);
+      elapsedText = ` · ${formatHMS(elapsedSec)} de course`;
     }
     showUndoBanner(`✓ Dossard ${ath ? ath.dossard : '?'} — ${label} pointé${elapsedText}`);
   }
