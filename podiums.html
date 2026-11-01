@@ -20,9 +20,7 @@
     @media (max-width: 640px) { .podium-list { grid-template-columns: 1fr; } }
     .podium-card { background: #fffef0; border: 3px solid #FFA726; border-radius: 12px; padding: 16px; text-align: center; page-break-inside: avoid; }
     .podium-card .cat { font-size: 14px; font-weight: 800; color: #C0392B; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .podium-card .time { font-size: 42px; font-weight: 900; color: #FFA726; font-family: monospace; line-height: 1; }
-    .podium-card .detail { font-size: 11px; color: #888; margin-top: 10px; line-height: 1.5; }
-    .podium-card .detail b { color: #333; }
+    .podium-card .time { font-size: 48px; font-weight: 900; color: #FFA726; font-family: monospace; line-height: 1; margin-top: 4px; }
     #loading { text-align: center; padding: 2rem; color: #888; }
     .footer { text-align: center; color: #999; font-size: 12px; margin-top: 1.5rem; line-height: 1.6; }
     .footer strong { color: #C0392B; }
@@ -54,8 +52,7 @@
   <div id="content" class="podium-list"></div>
   <div class="footer">
     <strong>Crossfit La Buse — La Réunion</strong><br>
-    Horaires = dernier départ de la catégorie + temps estimé le plus long du groupe + 5 min de marge.<br>
-    Indicatifs, susceptibles d'évoluer selon le déroulé de la course.
+    Horaires indicatifs — susceptibles d'évoluer selon le déroulé de la course.
   </div>
 </div>
 
@@ -119,17 +116,11 @@
     let html = '';
     cats.forEach(cat => {
       const g = map[cat];
-      const lastDepTs = new Date(g.last).getTime();
-      const podiumTs = lastDepTs + (g.maxMin + 5) * 60000;
-      const lastDep = fmtHeure(g.last);
+      const podiumTs = new Date(g.last).getTime() + (g.maxMin + 5) * 60000;
       const podium = fmtHeure(new Date(podiumTs).toISOString());
       html += '<div class="podium-card">';
       html += '<div class="cat">' + cat + '</div>';
       html += '<div class="time">' + podium + '</div>';
-      html += '<div class="detail">'
-           + g.nb + ' athlète(s) — dernier départ <b>' + lastDep + '</b><br>'
-           + 'temps max du groupe : <b>' + fmtDuree(g.maxMin) + '</b> + 5 min marge'
-           + '</div>';
       html += '</div>';
     });
     loading.style.display = 'none';
