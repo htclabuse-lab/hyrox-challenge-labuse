@@ -42,8 +42,7 @@ export default async function handler(req, res) {
         station: p.station,
         name: STATIONS[p.station] || `Station ${p.station}`,
         duree_s: Math.max(0, Math.floor((curMs - prevMs) / 1000)),
-        pen30: p.penalite_30s || 0,
-        pen5: p.penalite_5min || 0,
+        pen_s: (p.penalite_s && p.penalite_s > 0) ? p.penalite_s : ((p.penalite_30s || 0) * 30 + (p.penalite_5min || 0) * 300),
       };
       prevMs = curMs;
       return seg;
@@ -52,21 +51,19 @@ export default async function handler(req, res) {
     // Données simulées (athlète fictif + 8 segments)
     inscr = { prenom: 'Stéphanie', nom: 'CARO (TEST)', categorie: 'Solo Femme Scaled', dossard: 999, nom_equipe: null };
     segments = [
-      { station: 1, name: 'Ski-Erg',             duree_s: 420, pen30: 0, pen5: 0 },
-      { station: 2, name: 'Sled Push',           duree_s: 300, pen30: 0, pen5: 0 },
-      { station: 3, name: 'Sled Pull',           duree_s: 360, pen30: 1, pen5: 0 },
-      { station: 4, name: 'Burpee Broad Jump',   duree_s: 500, pen30: 0, pen5: 0 },
-      { station: 5, name: 'Rowing',              duree_s: 450, pen30: 0, pen5: 0 },
-      { station: 6, name: 'Farmers Carry',       duree_s: 240, pen30: 0, pen5: 0 },
-      { station: 7, name: 'Sandbag Lunges',      duree_s: 480, pen30: 0, pen5: 0 },
-      { station: 8, name: 'Wall Balls',          duree_s: 390, pen30: 2, pen5: 0 },
+      { station: 1, name: 'Ski-Erg',             duree_s: 420, pen_s: 0 },
+      { station: 2, name: 'Sled Push',           duree_s: 300, pen_s: 0 },
+      { station: 3, name: 'Sled Pull',           duree_s: 360, pen_s: 15 },
+      { station: 4, name: 'Burpee Broad Jump',   duree_s: 500, pen_s: 0 },
+      { station: 5, name: 'Rowing',              duree_s: 450, pen_s: 0 },
+      { station: 6, name: 'Farmers Carry',       duree_s: 240, pen_s: 30 },
+      { station: 7, name: 'Sandbag Lunges',      duree_s: 480, pen_s: 0 },
+      { station: 8, name: 'Wall Balls',          duree_s: 390, pen_s: 0 },
     ];
   }
 
   const chronoS = segments.reduce((s, x) => s + x.duree_s, 0);
-  const totalPen30 = segments.reduce((s, x) => s + x.pen30, 0);
-  const totalPen5  = segments.reduce((s, x) => s + x.pen5,  0);
-  const penTotalS  = totalPen30 * 30 + totalPen5 * 300;
+  const penTotalS = segments.reduce((s, x) => s + (x.pen_s || 0), 0);
   const tempsFinalS = chronoS + penTotalS;
 
   const html = buildBravoHtml(inscr, segments, chronoS, penTotalS, tempsFinalS);
@@ -106,8 +103,7 @@ function buildBravoHtml(inscr, segments, chronoS, penTotalS, tempsFinalS) {
 
   const segmentsHtml = segments.map((s) => {
     const parts = [`<span style="color:#1B7B49;font-weight:800;font-family:monospace;font-size:15px;">${fmtTime(s.duree_s)}</span>`];
-    if (s.pen30 > 0) parts.push(`<span style="color:#C0392B;font-size:12px;">+${s.pen30}×30s</span>`);
-    if (s.pen5 > 0) parts.push(`<span style="color:#C0392B;font-size:12px;">+${s.pen5}×5min</span>`);
+    if (s.pen_s && s.pen_s > 0) parts.push(`<span style="color:#C0392B;font-size:12px;">+${fmtTime(s.pen_s)} pén.</span>`);
     return `<tr>
       <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:13px;">
         <span style="color:#888;">🏃 Course ${s.station} +</span> <strong>${s.name}</strong>
