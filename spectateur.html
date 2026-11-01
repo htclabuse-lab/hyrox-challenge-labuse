@@ -68,14 +68,22 @@
   .vague-athlete-card .nom { color: #fff; font-size: 15px; font-weight: 700; line-height: 1.3; }
   .vague-athlete-card .cat { color: #FFA726; font-size: 11px; font-weight: 700; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
 
-  /* VUE C : Derniers finishers */
-  .finishers-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; flex: 1; align-content: flex-start; }
-  .finisher-card { background: linear-gradient(135deg, #0d2d1a, #0a0a0a); border: 2px solid #4caf50; border-radius: 14px; padding: 18px 22px; display: flex; align-items: center; gap: 18px; }
-  .finisher-dossard { background: #FFEE00; color: #0a0a0a; padding: 6px 14px; border-radius: 8px; font-size: 20px; font-weight: 900; font-family: monospace; flex-shrink: 0; }
-  .finisher-info { flex: 1; min-width: 0; }
-  .finisher-name { color: #fff; font-size: 20px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .finisher-detail { color: #888; font-size: 13px; margin-top: 2px; }
-  .finisher-time { color: #4caf50; font-size: 28px; font-weight: 900; font-family: monospace; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  /* VUE C : Qui est à quelle station */
+  .stations-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; flex: 1; align-content: flex-start; overflow: hidden; }
+  @media (max-width: 1400px) { .stations-grid { grid-template-columns: repeat(2, 1fr); } }
+  .station-cell { background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border: 2px solid #333; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; min-height: 180px; }
+  .station-cell.active { border-color: #FFEE00; box-shadow: 0 0 20px rgba(255,238,0,0.15); }
+  .station-cell-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #333; }
+  .station-cell-num { font-size: 32px; font-weight: 900; color: #FFEE00; font-family: monospace; line-height: 1; }
+  .station-cell-name { font-size: 15px; font-weight: 800; color: #fff; text-align: right; flex: 1; margin-left: 10px; }
+  .station-cell-count { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-left: 10px; white-space: nowrap; }
+  .station-athletes { flex: 1; overflow: hidden; }
+  .station-athlete { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #1a1a1a; font-size: 13px; }
+  .station-athlete:last-child { border-bottom: none; }
+  .station-athlete .doss { background: #FFEE00; color: #0a0a0a; padding: 1px 6px; border-radius: 3px; font-weight: 900; font-family: monospace; font-size: 11px; flex-shrink: 0; }
+  .station-athlete .nom { color: #ddd; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  .station-athlete .cat-short { color: #FFA726; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .station-empty { color: #555; font-size: 13px; font-style: italic; padding: 20px 0; text-align: center; }
 
   /* INDICATEUR DE VUE EN COURS */
   .screen-dots { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 100; }
@@ -135,7 +143,7 @@
   </div>
 </div>
 
-<!-- VUE C : DERNIERS FINISHERS -->
+<!-- VUE C : QUI EST À QUELLE STATION -->
 <div id="screen-finishers" class="screen">
   <div class="header-bar">
     <div class="header-left">
@@ -147,8 +155,8 @@
       <div class="header-date">Dimanche 15 novembre 2026</div>
     </div>
   </div>
-  <div class="screen-title">🎉 Derniers arrivés</div>
-  <div class="finishers-grid" id="finishers-grid"></div>
+  <div class="screen-title">📍 Qui est à quelle station ?</div>
+  <div class="stations-grid" id="stations-grid"></div>
 </div>
 
 <div class="screen-dots">
@@ -421,38 +429,63 @@ function renderVague() {
 }
 setInterval(() => { if (currentView === 1) renderVague(); }, 1000); // live countdown
 
-// ============ VUE C : DERNIERS FINISHERS ============
+// ============ VUE C : QUI EST À QUELLE STATION ============
+const STATION_NAMES = {
+  1: 'SkiErg', 2: 'Sled Push', 3: 'Sled Pull', 4: 'Burpee BJ',
+  5: 'Row', 6: 'Farmers', 7: 'Sandbag Lunges', 8: 'Wall Balls',
+};
+function shortCat(cat) {
+  if (!cat) return '';
+  return cat.replace(/\bHomme\b/i, 'H').replace(/\bFemme\b/i, 'F').replace(/\bMixte\b/i, 'Mx').replace(/\bScaled\b/i, 'Sc.');
+}
 function renderFinishers() {
-  const grid = document.getElementById('finishers-grid');
-  // Trier par ordre d'arrivée (dernier pointage station 8)
-  const map = {};
-  pointages.filter(p => p.station === 8).forEach(p => {
-    if (!map[p.inscription_id] || p.timestamp_pointage > map[p.inscription_id]) {
-      map[p.inscription_id] = p.timestamp_pointage;
+  const grid = document.getElementById('stations-grid');
+  // Max station pointée par athlète
+  const maxStation = {};
+  pointages.forEach(p => {
+    if (!maxStation[p.inscription_id] || p.station > maxStation[p.inscription_id]) {
+      maxStation[p.inscription_id] = p.station;
     }
   });
-  const finishers = inscriptions
-    .filter(i => i.temps_final_s != null && !i.absent && !i.abandon)
-    .map(i => ({ ...i, arrival: map[i.id] || null }))
-    .sort((a, b) => (b.arrival || '').localeCompare(a.arrival || ''))
-    .slice(0, 10);
-  if (finishers.length === 0) {
-    grid.innerHTML = '<div style="grid-column:1/-1;color:#666;font-size:24px;text-align:center;padding:3rem;">Aucun finisher pour le moment.</div>';
-    return;
-  }
-  let html = '';
-  finishers.forEach(d => {
-    const lbl = labelFor(d);
-    const arrivedAt = d.arrival ? fmtHeure(d.arrival) : '';
-    html += '<div class="finisher-card">';
-    html += '<div class="finisher-dossard">#' + d.dossard + '</div>';
-    html += '<div class="finisher-info">';
-    html += '<div class="finisher-name">' + lbl.nom + '</div>';
-    html += '<div class="finisher-detail">' + d.categorie + (arrivedAt ? ' · arrivée ' + arrivedAt : '') + '</div>';
-    html += '</div>';
-    html += '<div class="finisher-time">' + fmtTime(d.temps_final_s) + '</div>';
-    html += '</div>';
+  // Athlètes actuellement sur le parcours : démarrés, pas fini, pas abandonné
+  const enCours = inscriptions.filter(i => i.heure_debut_reelle && i.temps_final_s == null && !i.absent && !i.abandon);
+  // Station courante = max pointée + 1 (sauf si pas encore pointé → station 1)
+  const parStation = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [], 8: [] };
+  enCours.forEach(i => {
+    const max = maxStation[i.id] || 0;
+    const station = Math.min(max + 1, 8);
+    parStation[station].push(i);
   });
+
+  let html = '';
+  for (let s = 1; s <= 8; s++) {
+    const athletes = parStation[s];
+    const hasAthlete = athletes.length > 0;
+    html += '<div class="station-cell' + (hasAthlete ? ' active' : '') + '">';
+    html += '<div class="station-cell-head">';
+    html += '<div style="display:flex;align-items:baseline;gap:8px;"><div class="station-cell-num">' + s + '</div><div class="station-cell-name">' + STATION_NAMES[s] + '</div></div>';
+    html += '<div class="station-cell-count">' + athletes.length + '</div>';
+    html += '</div>';
+    html += '<div class="station-athletes">';
+    if (athletes.length === 0) {
+      html += '<div class="station-empty">—</div>';
+    } else {
+      // Trier par dossard croissant
+      athletes.sort((a, b) => (a.dossard || 0) - (b.dossard || 0));
+      athletes.slice(0, 12).forEach(d => {
+        const lbl = labelFor(d);
+        html += '<div class="station-athlete">';
+        html += '<span class="doss">' + d.dossard + '</span>';
+        html += '<span class="nom">' + lbl.nom + '</span>';
+        html += '<span class="cat-short">' + shortCat(d.categorie) + '</span>';
+        html += '</div>';
+      });
+      if (athletes.length > 12) {
+        html += '<div class="station-athlete" style="justify-content:center;color:#888;font-style:italic;">+' + (athletes.length - 12) + ' autres…</div>';
+      }
+    }
+    html += '</div></div>';
+  }
   grid.innerHTML = html;
 }
 
