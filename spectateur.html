@@ -27,7 +27,7 @@
 
   /* VUE A : Classement — défilement continu générique */
   .scroll-container { flex: 1; overflow: hidden; position: relative; mask-image: linear-gradient(to bottom, transparent 0%, #000 5%, #000 95%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 5%, #000 95%, transparent 100%); }
-  .scroll-content { animation: scrollUp 90s linear infinite; }
+  .scroll-content { animation: scrollUp 70s linear infinite; }
   .scroll-container:hover .scroll-content { animation-play-state: paused; }
   @keyframes scrollUp {
     0% { transform: translateY(0); }
@@ -69,22 +69,22 @@
   .vague-athlete-card .cat { color: #FFA726; font-size: 11px; font-weight: 700; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
 
   /* VUE C : Qui est à quelle station */
-  .stations-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; flex: 1; align-content: flex-start; overflow: hidden; }
+  .stations-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; flex: 1; align-content: stretch; overflow: hidden; }
   @media (max-width: 1400px) { .stations-grid { grid-template-columns: repeat(2, 1fr); } }
-  .station-cell { background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border: 2px solid #333; border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; min-height: 180px; }
+  .station-cell { background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border: 2px solid #333; border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; }
   .station-cell.active { border-color: #FFEE00; box-shadow: 0 0 20px rgba(255,238,0,0.15); }
-  .station-cell-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #333; }
-  .station-cell-num { font-size: 32px; font-weight: 900; color: #FFEE00; font-family: monospace; line-height: 1; }
-  .station-cell-name { font-size: 15px; font-weight: 800; color: #fff; text-align: right; flex: 1; margin-left: 10px; }
-  .station-cell-count { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-left: 10px; white-space: nowrap; }
+  .station-cell-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 2px solid #333; }
+  .station-cell-num { font-size: 42px; font-weight: 900; color: #FFEE00; font-family: monospace; line-height: 1; }
+  .station-cell-name { font-size: 20px; font-weight: 800; color: #fff; text-align: right; flex: 1; margin-left: 14px; }
+  .station-cell-count { font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-left: 10px; white-space: nowrap; font-weight: 700; }
   .station-athletes { flex: 1; overflow: hidden; }
-  .station-athlete { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #1a1a1a; font-size: 13px; }
+  .station-athlete { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid #1a1a1a; font-size: 17px; }
   .station-athlete:last-child { border-bottom: none; }
-  .station-athlete .doss { background: #FFEE00; color: #0a0a0a; padding: 1px 6px; border-radius: 3px; font-weight: 900; font-family: monospace; font-size: 11px; flex-shrink: 0; }
-  .station-athlete .nom { color: #ddd; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
-  .station-athlete .chrono { color: #4caf50; font-family: monospace; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; flex-shrink: 0; }
-  .station-athlete .cat-short { color: #FFA726; font-size: 10px; font-weight: 700; flex-shrink: 0; }
-  .station-empty { color: #555; font-size: 13px; font-style: italic; padding: 20px 0; text-align: center; }
+  .station-athlete .doss { background: #FFEE00; color: #0a0a0a; padding: 3px 10px; border-radius: 5px; font-weight: 900; font-family: monospace; font-size: 15px; flex-shrink: 0; }
+  .station-athlete .nom { color: #fff; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 700; }
+  .station-athlete .chrono { color: #4caf50; font-family: monospace; font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  .station-athlete .cat-short { color: #FFA726; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  .station-empty { color: #555; font-size: 15px; font-style: italic; padding: 24px 0; text-align: center; }
 
   /* INDICATEUR DE VUE EN COURS */
   .screen-dots { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 100; }
@@ -171,9 +171,9 @@ const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Rotation : 3 vues · classement 95s · vague 15s · stations 25s
+// Rotation : 3 vues · classement 75s · vague 15s · stations 25s
 const ROTATION = [
-  { id: 'screen-classement', duree: 95000 },
+  { id: 'screen-classement', duree: 75000 },
   { id: 'screen-vague',      duree: 15000 },
   { id: 'screen-finishers',  duree: 25000 },
 ];
