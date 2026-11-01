@@ -34,9 +34,12 @@
     100% { transform: translateY(-50%); }
   }
   .trance-block { background: linear-gradient(135deg, #1a1a1a, #0a0a0a); border: 2px solid #333; border-radius: 14px; padding: 18px 22px; margin-bottom: 16px; }
-  .trance-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #333; }
+  .trance-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid #333; gap: 12px; flex-wrap: wrap; }
+  .trance-head-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .trance-cat { font-size: 20px; font-weight: 900; color: #FFEE00; text-transform: uppercase; letter-spacing: 1px; }
-  .trance-age { font-size: 14px; font-weight: 800; color: #FFA726; background: #1a1400; padding: 4px 10px; border-radius: 6px; margin-left: 10px; }
+  .trance-age { font-size: 14px; font-weight: 800; color: #FFA726; background: #1a1400; padding: 4px 10px; border-radius: 6px; }
+  .trance-podium { font-size: 13px; font-weight: 800; color: #0a0a0a; background: linear-gradient(135deg, #FFEE00, #FFA726); padding: 5px 12px; border-radius: 6px; }
+  .trance-podium b { font-family: monospace; font-size: 15px; }
   .trance-status { font-size: 13px; font-weight: 700; }
   .trance-status.done { color: #4caf50; }
   .trance-status.running { color: #FFA726; animation: pulse 1.2s infinite; }
@@ -338,10 +341,13 @@ function renderClassement() {
       const group = byTranche[tr];
       const finished = group.filter(i => i.temps_final_s != null).sort((a, b) => a.temps_final_s - b.temps_final_s);
       const statusHtml = catInfo[cat].allDone
-        ? '<span class="trance-status done">✅ Terminé — Podium à ' + (catInfo[cat].podiumH || '?') + '</span>'
+        ? '<span class="trance-status done">✅ Terminé</span>'
         : '<span class="trance-status running">⏱ En cours</span>';
+      const podiumBadge = catInfo[cat].podiumH
+        ? '<span class="trance-podium">🏆 Podium <b>' + catInfo[cat].podiumH + '</b></span>'
+        : '';
       html += '<div class="trance-block">';
-      html += '<div class="trance-head"><div><span class="trance-cat">' + cat + '</span><span class="trance-age">' + tr + ' ans</span></div>' + statusHtml + '</div>';
+      html += '<div class="trance-head"><div class="trance-head-left"><span class="trance-cat">' + cat + '</span><span class="trance-age">' + tr + ' ans</span>' + podiumBadge + '</div>' + statusHtml + '</div>';
       if (finished.length === 0) {
         html += '<div class="no-finisher">⏱ Pas encore de finisher</div>';
       } else {
