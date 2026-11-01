@@ -89,8 +89,10 @@ export default async function handler(req, res) {
     if (uErr) console.error('Erreur update temps_final_s:', uErr);
 
     // Envoi mail bravo si email valide
+    // ⚠️ MAIL_ENABLED = false pendant les tests. Repasser à true avant le 15/11.
+    const MAIL_ENABLED = false;
     let mailStatus = 'skipped';
-    if (inscr.email && inscr.email.includes('@')) {
+    if (MAIL_ENABLED && inscr.email && inscr.email.includes('@')) {
       const html = buildBravoHtml(inscr, segments, chronoS, penTotalS, tempsFinalS);
       const subject = `🎉 BRAVO ${(inscr.prenom || '').trim()} ! Ton temps Hyrox : ${fmtTime(tempsFinalS)}`;
       const resendKey = process.env.RESEND_API_KEY;
