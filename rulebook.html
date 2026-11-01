@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Règlement — Hyrox Challenge La Buse #3</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0a0a; color: #fff; font-family: -apple-system, BlinkMacSystemFont, sans-serif; line-height: 1.55; padding: 0; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 1.25rem; }
+  .header { background: linear-gradient(135deg, #C0392B, #FFEE00); padding: 28px 20px; text-align: center; border-radius: 14px; margin-bottom: 1.5rem; color: #0a0a0a; }
+  .header h1 { font-size: 28px; letter-spacing: 1px; margin-bottom: 4px; }
+  .header p { font-size: 14px; font-weight: 700; opacity: 0.85; }
+  .section { background: #141414; border: 1px solid #222; border-radius: 12px; padding: 20px; margin-bottom: 1.25rem; }
+  .section-title { color: #FFEE00; font-weight: 900; font-size: 18px; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .section p { margin-bottom: 10px; color: #ddd; font-size: 14px; }
+  .section ul { margin: 10px 0 10px 20px; }
+  .section li { margin-bottom: 6px; color: #ddd; font-size: 14px; }
+  .section strong { color: #fff; }
+  .section em { color: #FFA726; font-style: normal; font-weight: 600; }
+  .consignes { background: linear-gradient(135deg, #1a1400, #0a0a0a); border: 2px solid #FFEE00; }
+  .consigne-item { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; border-bottom: 1px dashed #333; }
+  .consigne-item:last-child { border-bottom: none; }
+  .consigne-icon { font-size: 32px; flex-shrink: 0; }
+  .consigne-text { flex: 1; }
+  .consigne-text b { color: #FFEE00; display: block; font-size: 15px; margin-bottom: 2px; }
+  .consigne-text span { color: #ccc; font-size: 13px; }
+  .station-card { background: #0f0f0f; border: 1px solid #2a2a2a; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+  .station-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .station-num { background: #FFEE00; color: #0a0a0a; font-weight: 900; font-size: 20px; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: monospace; flex-shrink: 0; }
+  .station-icon { font-size: 28px; }
+  .station-name { flex: 1; }
+  .station-name b { color: #fff; font-size: 15px; display: block; }
+  .station-name .reps { color: #FFA726; font-size: 13px; font-weight: 700; font-family: monospace; }
+  .station-poids { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; padding: 8px; background: #0a0a0a; border-radius: 6px; font-size: 12px; }
+  .station-poids b { color: #FFEE00; }
+  .station-standard { color: #ccc; font-size: 13px; margin: 6px 0; line-height: 1.5; }
+  .station-penal { color: #C0392B; font-size: 12px; font-weight: 700; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #333; }
+  .penal-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .penal-table th, .penal-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #222; color: #ddd; }
+  .penal-table th { color: #FFEE00; font-weight: 800; background: #0a0a0a; }
+  .penal-table .pen { color: #FFA726; font-weight: 700; font-family: monospace; white-space: nowrap; }
+  .penal-table .dq { color: #C0392B; font-weight: 800; }
+  .notice-duo { background: #0d1400; border: 2px solid #4caf50; border-radius: 10px; padding: 14px; margin: 10px 0; }
+  .notice-duo b { color: #4caf50; }
+  .footer { text-align: center; font-size: 12px; color: #666; padding: 20px 0 10px; }
+  .print-btn { display: block; margin: 0 auto 1rem; background: #FFEE00; color: #0a0a0a; border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; }
+  @media print {
+    body { background: #fff; color: #000; }
+    .print-btn { display: none; }
+    .header { color: #000; }
+    .section, .station-card, .consignes, .notice-duo { background: #fff; border: 1px solid #ccc; color: #000; }
+    .section p, .section li, .consigne-text span, .station-standard { color: #000; }
+    .section-title, .consigne-text b, .station-name b, .station-poids b, .penal-table th { color: #C0392B; }
+    .station-num { background: #000; color: #FFEE00; }
+    .station-penal { color: #C0392B; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+<button class="print-btn" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
+
+<div class="header">
+  <h1>📘 RÈGLEMENT</h1>
+  <p>Hyrox Challenge La Buse #3 — Dimanche 15 novembre 2026</p>
+</div>
+
+<!-- CONSIGNES ESSENTIELLES -->
+<div class="section consignes">
+  <div class="section-title">⚠️ 3 consignes essentielles le jour J</div>
+  <div class="consigne-item">
+    <div class="consigne-icon">📣</div>
+    <div class="consigne-text">
+      <b>Annonce ton dossard au juge en arrivant à chaque station</b>
+      <span>Pas de puce chrono cette année : le pointage est manuel. Si tu ne te présentes pas, le juge ne saura pas que tu es là.</span>
+    </div>
+  </div>
+  <div class="consigne-item">
+    <div class="consigne-icon">🙋</div>
+    <div class="consigne-text">
+      <b>Suis les instructions des juges et bénévoles</b>
+      <span>Leurs décisions sont finales. En cas de doute, demande — plutôt que de risquer une pénalité.</span>
+    </div>
+  </div>
+  <div class="consigne-item">
+    <div class="consigne-icon">💧</div>
+    <div class="consigne-text">
+      <b>Mange, bois et échauffe-toi avant ton départ</b>
+      <span>Dossards 1 à 240. Vérifie ton horaire de départ et sois à l'aire de départ 15 min avant ta vague.</span>
+    </div>
+  </div>
+</div>
+
+<!-- DÉROULEMENT -->
+<div class="section">
+  <div class="section-title">🏁 Déroulement</div>
+  <p>Format Hyrox classique adapté par CrossFit La Buse : <strong>8 stations + 1 km de course entre chaque</strong> (500 m en Scaled). Durée moyenne : 1h à 1h30.</p>
+  <ul>
+    <li><strong>RX</strong> : course 1 km, poids maximum sur les stations</li>
+    <li><strong>Scaled</strong> : course 500 m, mêmes mouvements avec poids identiques</li>
+    <li><strong>Duo (RX, Scaled, Mixte)</strong> : les deux coéquipiers courent ensemble ; les répétitions des stations se partagent (YGIG — You Go I Go)</li>
+  </ul>
+  <p>✨ Adaptations spécifiques La Buse : Sled Push/Pull sur <strong>5 × 10 m</strong> (au lieu de 4 × 12,5 m), pas de puce de chrono (pointage manuel au dossard).</p>
+</div>
+
+<!-- LES 8 STATIONS -->
+<div class="section">
+  <div class="section-title">💪 Les 8 stations</div>
+
+  <div class="station-card">
+    <div class="station-head">
+      <div class="station-num">1</div><div class="station-icon">🚣</div>
+      <div class="station-name"><b>SkiErg</b><span class="reps">1 000 m</span></div>
+    </div>
+    <div class="station-standard">Pieds sur la plateforme, talons peuvent dépasser mais ne doivent pas toucher le sol. <strong>Interdit de lâcher les poignées</strong> pendant l'exercice. Lève le bras pour signaler la fin au juge.</div>
+    <div class="station-penal">⏱ Pénalité : +15 s par pied au sol · +2 min si lâcher les poignées</div>
+  </div>
+
+  <div class="station-card">
+    <div class="station-head">
+      <div class="station-num">2</div><div class="station-icon">🛷</div>
+      <div class="station-name"><b>Sled Push</b><span class="reps">50 m — 5 aller/retour × 10 m</span></div>
+    </div>
+    <div class="station-poids">
+      <div><b>RX Homme / Mixte</b> 152 kg</div>
+      <div><b>RX Femme</b> 102 kg</div>
+    </div>
+    <div class="station-standard">Respecte la voie assignée. Dépasse complètement la ligne des 10 m avant de changer de direction.</div>
+    <div class="station-penal">⏱ Pénalité : +15 s par voie non respectée / changement anticipé</div>
+  </div>
+
+  <div class="station-card">
+    <div class="station-head">
+      <div class="station-num">3</div><div class="station-icon">💪</div>
+      <div class="station-name"><b>Sled Pull</b><span class="reps">50 m — 5 aller/retour × 10 m</span></div>
+    </div>
+    <div class="station-poids">
+      <div><b>RX Homme / Mixte</b> 103 kg</div>
+      <div><b>RX Femme</b> 78 kg</div>
+    </div>
+    <div class="station-standard"><strong>Debout uniquement</strong> (pas assis). Dépasse complètement les lignes avant de changer de direction.</div>
+    <div class="station-penal">⏱ Pénalité : +15 s par infraction</div>
+  </div>
+
+  <div class="station-card">
+    <div class="station-head">
+      <div class="station-num">4</div><div class="station-icon">🤸</div>
+      <div class="station-name"><b>Burpee Broad Jumps</b><span class="reps">80 m</span></div>
+    </div>
+    <div class="station-standard">Poitrine au sol à chaque burpee, saut à deux pieds joints (écart max 5 cm), mains posées à moins de 30 cm des orteils au burpee suivant.</div>
+    <div class="station-penal">⏱ Pénalité : +15 s par infraction</div>
+  </div>
+
+  <div class="station-card">
+    <div class="station-head">
+      <div class="station-num">5</div><div class="station-icon">🚣‍♂️</div>
+      <div class="station-name"><b>Row (rameur)</b><span class="reps">1 000 m</span></div>
+    </div>
+    <div class="station-standard">Reste <strong>assis jusqu'à la fin</strong>. Ne te lève pas tant que le juge n'a pas validé la distance.</div>
+    <div class="station-penal">Aucune pénalité spécifique — mais toujours sanctionnable au cas par cas si manquement grave.</div>
+  </div>
+
+  <div class="station-card">
+    <div class="station-head">
+      <div class="station-num">6</div><div class="station-icon">🏋️</div>
+      <div class="station-name"><b>Farmer's Carry</b><span class="reps">200 m</span></div>
+    </div>
+    <div class="station-poids">
+      <div><b>RX Homme / Mixte</b> 2 × 24 kg</div>
+      <div><b>RX Femme</b> 2 × 16 kg</div>
+    </div>
+    <div class="station-standard">2 kettlebells portés bras tendus le long du corps. Repose autorisée si les KB ne reculent pas. <strong>Rends les KB à leur emplacement</strong> à la fin.</div>
+    <div class="station-penal">⏱ Pénalité : +30 s si kettlebells mal remis</div>
+  </div>
+
+  <div class="station-card">
+    <div class="station-head">
+      <div class="station-num">7</div><div class="station-icon">🎒</div>
+      <div class="station-name"><b>Sandbag Lunges</b><span class="reps">100 m</span></div>
+    </div>
+    <div class="station-poids">
+      <div><b>RX Homme / Mixte</b> 20 kg</div>
+      <div><b>RX Femme</b> 10 kg</div>
+    </div>
+    <div class="station-standard">Genou arrière touche le sol à chaque fente, jambes en extension complète en haut, alternance obligatoire. Sac porté sur les épaules — repose autorisée mais pénalisée.</div>
+    <div class="station-penal">⏱ Pénalité : +15 s par pose du sac au sol</div>
+  </div>
+
+  <div class="station-card">
+    <div class="station-head">
+      <div class="station-num">8</div><div class="station-icon">🏀</div>
+      <div class="station-name"><b>Wall Balls (arrivée)</b><span class="reps">100 répétitions</span></div>
+    </div>
+    <div class="station-poids">
+      <div><b>RX Homme / Mixte</b> 6 kg</div>
+      <div><b>RX Femme</b> 4 kg</div>
+    </div>
+    <div class="station-standard">Squat complet (hanche sous les genoux), balle au-dessus de la ligne cible à chaque rep. Compte à voix haute. Au <strong>100e wall ball</strong>, lève le bras — c'est l'arrivée.</div>
+    <div class="station-penal">Aucune pénalité spécifique — répétition non valide = non comptée.</div>
+  </div>
+</div>
+
+<!-- SPÉCIFIQUE DUO -->
+<div class="section">
+  <div class="section-title">🤝 Spécifique Duo</div>
+  <p><strong>Les 2 coéquipiers courent toujours ensemble.</strong> Sur chaque station, les répétitions se partagent librement (YGIG — tour à tour, pas forcément 50/50).</p>
+  <div class="notice-duo">
+    <b>⚠️ Règle du jour J (saison Hyrox 2026/27)</b><br>
+    <span style="color:#ddd;">Si, à l'arrivée sur une station, un partenaire est <strong>plus de 10 secondes</strong> en avance sur l'autre, <strong>le juge lui interdit de commencer</strong> la station tant que son coéquipier n'est pas arrivé.</span>
+  </div>
+  <p>Sur Sled Push/Pull et Farmer's Carry : <strong>un seul coéquipier à la fois</strong> sur la station (l'autre attend derrière la ligne, pas sur le parcours).</p>
+</div>
+
+<!-- PÉNALITÉS PRINCIPALES -->
+<div class="section">
+  <div class="section-title">🚫 Pénalités principales</div>
+  <table class="penal-table">
+    <thead><tr><th>Motif</th><th style="text-align:right;">Pénalité</th></tr></thead>
+    <tbody>
+      <tr><td>Manquer un tour de course</td><td style="text-align:right;" class="dq">DQ</td></tr>
+      <tr><td>Manquer une station complète</td><td style="text-align:right;" class="dq">DQ</td></tr>
+      <tr><td>Mauvais ordre des stations (1<sup>re</sup>)</td><td style="text-align:right;" class="pen">+3 min</td></tr>
+      <tr><td>Mauvais ordre des stations (2<sup>e</sup>)</td><td style="text-align:right;" class="dq">DQ</td></tr>
+      <tr><td>Lâcher les poignées du SkiErg</td><td style="text-align:right;" class="pen">+2 min</td></tr>
+      <tr><td>Comportement antisportif / insulte</td><td style="text-align:right;" class="pen">+2 min ou DQ</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:12px;font-size:12px;color:#888;font-style:italic;">Les pénalités de chaque station figurent dans le détail des 8 stations ci-dessus.</p>
+</div>
+
+<!-- CODE DE CONDUITE -->
+<div class="section">
+  <div class="section-title">💛 Code de conduite</div>
+  <p>Respect, fair-play, honnêteté. Tricherie, insultes, obstructions envers les juges, bénévoles ou autres athlètes = pénalité, DQ ou bannissement.</p>
+  <p>Les décisions du Race Director et des juges sont <strong>finales</strong>. En cas de litige, viens voir le Race Director à la fin de ta course.</p>
+  <p>🫶 Ambiance familiale avant tout : encourage les autres, respecte le matériel, prends soin de ton partenaire.</p>
+</div>
+
+<div class="footer">
+  Hyrox Training Club La Buse — CrossFit La Buse, La Réunion<br>
+  <a href="https://hyrox-challenge-labuse.vercel.app/#accueil" style="color:#FFA726;">hyrox-challenge-labuse.vercel.app</a>
+</div>
+
+</div>
+</body>
+</html>
