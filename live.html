@@ -258,12 +258,10 @@
     if (catFilter !== 'all') list = list.filter(d => d.categorie === catFilter);
     if (ageFilter !== 'all') list = list.filter(d => getTranche(d) === ageFilter);
 
-    // Stats
-    const total = list.length;
+    // Stats : juste Terminés et En course (plus de Total global)
     const done = list.filter(d => d.temps_final_s != null).length;
     const running = list.filter(d => d.temps_final_s == null && d.heure_debut_reelle != null && getMaxStation(d.id) > 0 && getMaxStation(d.id) < 8).length;
     document.getElementById('stats').innerHTML = `
-      <div class="stat"><div class="stat-n total">${total}</div><div class="stat-l">Total</div></div>
       <div class="stat"><div class="stat-n done">${done}</div><div class="stat-l">Terminés</div></div>
       <div class="stat"><div class="stat-n running">${running}</div><div class="stat-l">En course</div></div>
     `;
@@ -304,10 +302,10 @@
       const pending = active.filter(d => !finished.includes(d) && !running.includes(d));
 
       const nbDone = finished.length;
-      const totalRacing = items.length - absents.length; // exclut absents du total "attendus"
+      const nbRunning = running.length;
       const podium = podiums[g.cat];
       html += `<div class="group">`;
-      html += `<div class="group-head"><span>🏆 ${k}${podium ? ' <span class="podium-time">🏆 Podium ~ ' + podium + '</span>' : ''}</span><span class="count">${nbDone} terminé${nbDone>1?'s':''} / ${totalRacing}${absents.length ? ' · ' + absents.length + ' absent' + (absents.length>1?'s':'') : ''}${abandoned.length ? ' · ' + abandoned.length + ' abandon' + (abandoned.length>1?'s':'') : ''}</span></div>`;
+      html += `<div class="group-head"><span>🏆 ${k}${podium ? ' <span class="podium-time">🏆 Podium ~ ' + podium + '</span>' : ''}</span><span class="count">${nbDone} terminé${nbDone>1?'s':''} · ${nbRunning} en course${absents.length ? ' · ' + absents.length + ' absent' + (absents.length>1?'s':'') : ''}${abandoned.length ? ' · ' + abandoned.length + ' abandon' + (abandoned.length>1?'s':'') : ''}</span></div>`;
 
       // Finished (podium)
       finished.forEach((d, idx) => {
