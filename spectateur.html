@@ -27,7 +27,7 @@
 
   /* VUE A : Classement — défilement continu générique */
   .scroll-container { flex: 1; overflow: hidden; position: relative; mask-image: linear-gradient(to bottom, transparent 0%, #000 5%, #000 95%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 5%, #000 95%, transparent 100%); }
-  .scroll-content { animation: scrollUp 60s linear infinite; }
+  .scroll-content { animation: scrollUp 90s linear infinite; }
   .scroll-container:hover .scroll-content { animation-play-state: paused; }
   @keyframes scrollUp {
     0% { transform: translateY(0); }
@@ -170,9 +170,9 @@ const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Rotation : 3 vues · classement 65s (laisse le temps au défilement 60s) · vague 15s · stations 15s
+// Rotation : 3 vues · classement 95s (laisse le temps au défilement 90s) · vague 15s · stations 15s
 const ROTATION = [
-  { id: 'screen-classement', duree: 65000 },
+  { id: 'screen-classement', duree: 95000 },
   { id: 'screen-vague',      duree: 15000 },
   { id: 'screen-finishers',  duree: 15000 },
 ];
