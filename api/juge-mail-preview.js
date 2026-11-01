@@ -31,7 +31,19 @@ export default async function handler(req, res) {
     const { data: ins, error: eIns } = await query.limit(1).maybeSingle();
     if (eIns || !ins) return res.status(404).json({ error: 'Inscription introuvable', detail: eIns?.message });
     inscr = ins;
-    if (!inscr.heure_debut_reelle) return res.status(400).json({ error: 'Pas de heure_debut_reelle sur la fiche' });
+    if (!inscr.heure_debut_reelle) {
+      // Fallback : fiche réelle (nom équipe, prénoms, catégorie, dossard...) + segments simulés
+      segments = [
+        { station: 1, name: 'Ski-Erg',             duree_s: 420, pen_s: 0 },
+        { station: 2, name: 'Sled Push',           duree_s: 300, pen_s: 0 },
+        { station: 3, name: 'Sled Pull',           duree_s: 360, pen_s: 15 },
+        { station: 4, name: 'Burpee Broad Jump',   duree_s: 500, pen_s: 0 },
+        { station: 5, name: 'Rowing',              duree_s: 450, pen_s: 0 },
+        { station: 6, name: 'Farmers Carry',       duree_s: 240, pen_s: 30 },
+        { station: 7, name: 'Sandbag Lunges',      duree_s: 480, pen_s: 0 },
+        { station: 8, name: 'Wall Balls',          duree_s: 390, pen_s: 0 },
+      ];
+    } else {
     const { data: pts, error: ePts } = await db.from('Pointages').select('*').eq('inscription_id', inscr.id).order('station');
     if (ePts) return res.status(500).json({ error: ePts.message });
     const startMs = new Date(inscr.heure_debut_reelle).getTime();
@@ -47,6 +59,7 @@ export default async function handler(req, res) {
       prevMs = curMs;
       return seg;
     });
+    }
   } else {
     // Données simulées (athlète fictif + 8 segments)
     inscr = { prenom: 'Stéphanie', nom: 'CARO (TEST)', categorie: 'Solo Femme Scaled', dossard: 999, nom_equipe: null };
