@@ -91,13 +91,18 @@ export default async function handler(req, res) {
       .eq('id', inscription_id);
     if (uErr) console.error('Erreur update temps_final_s:', uErr);
 
-    // Envoi mail bravo si email valide
-    // ⚠️ MAIL_ENABLED = false pendant les tests. Repasser à true avant le 15/11.
-    const MAIL_ENABLED = false;
+    // Envoi mail bravo
+    // ⚠️ MODE TEST : MAIL_ENABLED=true + MAIL_REDIRECT_TO force la destination
+    // pour PROTÉGER les vrais athlètes pendant les tests end-to-end.
+    // AVANT HC #3 : MAIL_ENABLED reste true mais MAIL_REDIRECT_TO = null pour envoi réel.
+    const MAIL_ENABLED = true;
+    const MAIL_REDIRECT_TO = 'stephanie.caro31@gmail.com'; // ← mettre à null le jour J pour envoyer aux vrais athlètes
     let mailStatus = 'skipped';
-    if (MAIL_ENABLED && inscr.email && inscr.email.includes('@')) {
+    const emailDestination = MAIL_REDIRECT_TO || inscr.email;
+    if (MAIL_ENABLED && emailDestination && emailDestination.includes('@')) {
       const html = buildBravoHtml(inscr, segments, chronoS, penTotalS, tempsFinalS);
-      const subject = `🎉 BRAVO ${(inscr.prenom || '').trim()} ! Ton temps Hyrox : ${fmtTime(tempsFinalS)}`;
+      const subjectPrefix = MAIL_REDIRECT_TO ? '[TEST → ' + (inscr.prenom || '').trim() + '] ' : '';
+      const subject = subjectPrefix + `🎉 BRAVO ${(inscr.prenom || '').trim()} ! Ton temps Hyrox : ${fmtTime(tempsFinalS)}`;
       const resendKey = process.env.RESEND_API_KEY;
       if (resendKey) {
         try {
@@ -106,13 +111,13 @@ export default async function handler(req, res) {
             headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
             body: JSON.stringify({
               from: 'Hyrox Challenge La Buse <noreply@htclabuse.fr>',
-              to: inscr.email,
+              to: emailDestination,
               subject,
               html,
               reply_to: 'htclabuse@gmail.com',
             }),
           });
-          mailStatus = r.ok ? 'sent' : `error_${r.status}`;
+          mailStatus = r.ok ? (MAIL_REDIRECT_TO ? 'test_sent_to_' + MAIL_REDIRECT_TO : 'sent') : `error_${r.status}`;
         } catch (e) {
           mailStatus = 'exception';
         }
