@@ -175,8 +175,27 @@
     return max;
   }
 
+  // Pagination : lève la limite Supabase à 1000 lignes par requête.
+  async function loadAllPointages() {
+    const pageSize = 1000;
+    let all = [];
+    let from = 0;
+    while (true) {
+      const { data, error } = await db.from('Pointages')
+        .select('inscription_id,station,timestamp_pointage')
+        .order('timestamp_pointage', { ascending: true })
+        .range(from, from + pageSize - 1);
+      if (error) break;
+      all = all.concat(data || []);
+      if (!data || data.length < pageSize) break;
+      from += pageSize;
+      if (from > 20000) break; // safety
+    }
+    return all;
+  }
+
   async function load() {
-    const [insR, pR] = await Promise.all([
+    const [insR, pts] = await Promise.all([
       db.from('Inscriptions')
         .select('id,prenom,nom,date_naissance,categorie,nom_equipe,co1_prenom,co1_nom,co1_date_naissance,co2_prenom,co2_nom,co2_date_naissance,co3_prenom,co3_nom,co3_date_naissance,dossard,vague,heure_depart,heure_debut_reelle,temps_final_s,absent,abandon')
         .neq('categorie', 'Parent-Enfant')
@@ -186,14 +205,12 @@
         .gte('heure_depart', '2026-11-15')
         .lt('heure_depart', '2026-11-16')
         .order('dossard'),
-      db.from('Pointages')
-        .select('inscription_id,station,timestamp_pointage')
-        .order('timestamp_pointage', { ascending: true })
+      loadAllPointages()
     ]);
     inscriptions = insR.data || [];
-    pointages = pR.data || [];
+    pointages = pts || [];
     render();
-    document.getElementById('refresh-info').textContent = 'Dernière mise à jour : ' + new Date().toLocaleTimeString('fr-FR') + ' · rafraîchissement auto toutes les 20 s';
+    document.getElementById('refresh-info').textContent = 'Dernière mise à jour : ' + new Date().toLocaleTimeString('fr-FR') + ' · rafraîchissement auto toutes les 20 s · ' + pointages.length + ' pointages chargés';
   }
   setInterval(load, 20000);
   load();
