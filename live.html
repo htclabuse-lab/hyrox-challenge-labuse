@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Hyrox Challenge La Buse — 12 juillet 2026</title>
+  <title>Live Hyrox Challenge La Buse #3 — 15 novembre 2026</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -59,8 +59,8 @@
 <body>
 <div class="wrap">
   <div class="header">
-    <h1><span class="live-dot"></span>LIVE — Hyrox Challenge La Buse</h1>
-    <p>Dimanche 12 juillet 2026 · Crossfit La Buse, Saint-Paul</p>
+    <h1><span class="live-dot"></span>LIVE — Hyrox Challenge La Buse #3</h1>
+    <p>Dimanche 15 novembre 2026 · Crossfit La Buse</p>
   </div>
 
   <div class="filters">
@@ -183,8 +183,8 @@
         .neq('categorie', 'Hyrox Kids Pré-inscription')
         .neq('categorie', 'Bénévole')
         .eq('statut_paiement', 'paye')
-        .gte('heure_depart', '2026-07-12')
-        .lt('heure_depart', '2026-07-13')
+        .gte('heure_depart', '2026-11-15')
+        .lt('heure_depart', '2026-11-16')
         .order('dossard'),
       db.from('Pointages')
         .select('inscription_id,station,timestamp_pointage')

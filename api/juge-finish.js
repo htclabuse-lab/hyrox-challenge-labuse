@@ -162,7 +162,7 @@ function buildBravoHtml(inscr, segments, chronoS, penTotalS, tempsFinalS) {
 <div style="background:linear-gradient(135deg,#C0392B,#FFEE00);padding:28px 20px;text-align:center;border-radius:12px 12px 0 0;">
 <div style="font-size:56px;margin-bottom:8px;">🎉🔥🏆</div>
 <h1 style="margin:0;color:#0a0a0a;font-size:28px;letter-spacing:1px;">BRAVO ${prenom} !</h1>
-<p style="margin:8px 0 0;color:#0a0a0a;font-size:14px;font-weight:600;">Hyrox Challenge La Buse — 12 juillet 2026</p>
+<p style="margin:8px 0 0;color:#0a0a0a;font-size:14px;font-weight:600;">Hyrox Challenge La Buse #3 — 15 novembre 2026</p>
 </div>
 <div style="background:#fff;padding:24px;border:1px solid #ddd;border-top:none;">
 <p style="margin-top:0;font-size:15px;">Tu viens de terminer la course 🙌</p>
@@ -180,12 +180,8 @@ ${penaltiesLine}
 <table style="width:100%;border-collapse:collapse;">${segmentsHtml}</table>
 </div>
 
-<div style="background:#f0f8f3;border:2px solid #1B7B49;border-radius:12px;padding:16px;margin:20px 0;">
-<div style="font-size:13px;color:#1B7B49;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center;">📱 À découvrir</div>
-<table cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-<tr><td style="padding:6px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="background:#C0392B;border-radius:8px;"><a href="https://hyrox-challenge-labuse.vercel.app/live.html" style="display:inline-block;padding:12px 20px;color:#fff;text-decoration:none;font-weight:800;font-size:14px;">🏆 Voir le classement live</a></td></tr></table></td></tr>
-<tr><td style="padding:6px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="background:#FFEE00;border-radius:8px;"><a href="https://hyrox-challenge-labuse.vercel.app/resultats.html" style="display:inline-block;padding:12px 20px;color:#0a0a0a;text-decoration:none;font-weight:800;font-size:14px;">📊 Retrouver mes résultats</a></td></tr></table></td></tr>
-</table>
+<div style="text-align:center;margin:22px 0;">
+<table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="background:#C0392B;border-radius:8px;"><a href="https://hyrox-challenge-labuse.vercel.app/live.html" style="display:inline-block;padding:14px 26px;color:#fff;text-decoration:none;font-weight:800;font-size:15px;">🏆 Voir le classement live</a></td></tr></table>
 </div>
 
 <div style="background:#1a1a1a;color:#fff;border-radius:12px;padding:20px;margin:18px 0;text-align:center;">
@@ -196,15 +192,15 @@ ${penaltiesLine}
 <a href="https://wodz.app/form/contact/crossfit-la-buse-tester-crossfit-la-buse-2" style="display:inline-block;padding:14px 26px;color:#fff;text-decoration:none;font-weight:800;font-size:15px;">💪 Réserve ta séance d'essai</a>
 </td></tr></table>
 <div style="border-top:1px solid #333;margin:16px 0;"></div>
-<div style="font-size:13px;color:#ccc;line-height:1.6;margin-bottom:12px;">Tu as un enfant qui veut s'y mettre ?<br>Nos <strong style="color:#FFEE00;">cours Hyrox Kids</strong> démarrent le 1<sup>er</sup> septembre.</div>
+<div style="font-size:13px;color:#ccc;line-height:1.6;margin-bottom:12px;">Tu as un enfant qui veut s'y mettre ?<br>Nos <strong style="color:#FFEE00;">cours Hyrox Kids</strong> (6-9 ans et 10-14 ans) le samedi.</div>
 <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="background:#FFA726;border-radius:8px;">
-<a href="https://hyrox-challenge-labuse.vercel.app/kids-preinscription.html" style="display:inline-block;padding:12px 22px;color:#0a0a0a;text-decoration:none;font-weight:800;font-size:14px;">🧒 Pré-inscrire mon enfant</a>
+<a href="https://hyrox-challenge-labuse.vercel.app/kids-inscription.html" style="display:inline-block;padding:12px 22px;color:#0a0a0a;text-decoration:none;font-weight:800;font-size:14px;">🧒 Inscrire mon enfant</a>
 </td></tr></table>
 </div>
 
 <p style="font-size:15px;font-weight:700;color:#C0392B;margin:20px 0 0;">Chapeau ! 🎉</p>
 <p style="margin-bottom:0;font-size:14px;">Repose-toi bien 💪<br><strong>L'équipe Hyrox La Buse</strong></p>
 </div>
-<div style="text-align:center;padding:12px;font-size:11px;color:#999;">Hyrox Training Club La Buse — Crossfit La Buse, Saint-Paul, La Réunion</div>
+<div style="text-align:center;padding:12px;font-size:11px;color:#999;">Hyrox Training Club La Buse — Crossfit La Buse, La Réunion</div>
 </div>`;
 }
