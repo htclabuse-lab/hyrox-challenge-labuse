@@ -6,7 +6,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { password, inscription_id, station, penalite_30s, penalite_5min, juge_nom } = req.body || {};
+    const { password, inscription_id, station, penalite_s, penalite_30s, penalite_5min, juge_nom } = req.body || {};
 
     if (!password || password !== process.env.JUGES_PASSWORD) {
       return res.status(401).json({ error: 'Non autorisé' });
@@ -20,15 +20,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'station doit être un entier entre 1 et 8' });
     }
 
+    // Nouveau format HC #3 : penalite_s (total en secondes). Compat ancien format HC #2 : pen30+pen5.
+    const penS = Number.isInteger(penalite_s) ? penalite_s : 0;
     const pen30 = Number.isInteger(penalite_30s) ? penalite_30s : 0;
     const pen5 = Number.isInteger(penalite_5min) ? penalite_5min : 0;
-
-    if (pen30 < 0 || pen5 < 0) {
-      return res.status(400).json({ error: 'Les pénalités doivent être supérieures ou égales à 0' });
-    }
-
-    if (pen5 > 0 && station !== 1 && station !== 2) {
-      return res.status(400).json({ error: 'penalite_5min n\'est autorisée que sur les stations 1 et 2' });
+    if (penS < 0 || pen30 < 0 || pen5 < 0) {
+      return res.status(400).json({ error: 'Les pénalités doivent être >= 0' });
     }
 
     const supabaseUrl = 'https://mzyfnmjzlosranptwucr.supabase.co';
@@ -39,6 +36,7 @@ export default async function handler(req, res) {
       station,
       penalite_30s: pen30,
       penalite_5min: pen5,
+      penalite_s: penS,
     };
     if (typeof juge_nom === 'string' && juge_nom.trim()) {
       insertData.juge_nom = juge_nom.trim();

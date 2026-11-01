@@ -163,22 +163,8 @@
   <div class="sheet">
     <h2 id="sheet-title">Dossard XX</h2>
     <div id="sheet-elapsed" class="sheet-elapsed"></div>
-    <div class="counter">
-      <span class="label">Pénalité 30s</span>
-      <div class="controls">
-        <button class="dec" data-target="pen30">−</button>
-        <span id="pen30-val" class="val">0</span>
-        <button class="inc" data-target="pen30">+</button>
-      </div>
-    </div>
-    <div id="pen5-row" class="counter" hidden>
-      <span class="label">Pénalité 5min</span>
-      <div class="controls">
-        <button class="dec" data-target="pen5">−</button>
-        <span id="pen5-val" class="val">0</span>
-        <button class="inc" data-target="pen5">+</button>
-      </div>
-    </div>
+    <div id="sheet-penalites"></div>
+    <div id="sheet-total-pen" style="text-align:center;font-size:14px;color:#FFA726;font-weight:800;margin:8px 0;"></div>
     <button id="sheet-save" class="save-btn">ENREGISTRER LA PÉNALITÉ</button>
     <button id="sheet-point" class="point-btn">POINTER MAINTENANT ✅</button>
     <button id="sheet-abandon" style="margin-top:12px;padding:10px;background:transparent;color:#C0392B;border:1px dashed #C0392B;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;width:100%;">🚫 ABANDON — l'équipe s'arrête ici</button>
@@ -496,16 +482,14 @@ function renderDossardGrid() {
   const eliteIds = computeEliteIds(state.inscriptions);
   grid.innerHTML = eligible.map(i => {
     const pending = state.pendingPenalties[i.id];
-    const hasPenalty = pending && (pending.pen30 > 0 || pending.pen5 > 0);
+    const totalPen = pending && pending.secs ? pending.secs.reduce((s, x) => s + x, 0) : 0;
+    const hasPenalty = totalPen > 0;
     const label = labelFor(i);
     const classes = ['dossard-btn'];
     if (hasPenalty) classes.push('has-penalty');
     let badge = '';
     if (hasPenalty) {
-      const parts = [];
-      if (pending.pen30 > 0) parts.push(`+${pending.pen30}×30s`);
-      if (pending.pen5 > 0) parts.push(`+${pending.pen5}×5m`);
-      badge = `<span class="penalty-badge">${parts.join(' ')}</span>`;
+      badge = `<span class="penalty-badge">+${totalPen}s</span>`;
     }
     const elite = eliteIds.has(i.id) ? '<span class="elite" title="Candidat Elite 12 — à juger de près">E</span>' : '';
     return `<button class="${classes.join(' ')}" data-id="${i.id}">
@@ -540,18 +524,28 @@ function tickSheetElapsed() {
   el.textContent = `⏱ Sur la course depuis ${formatHMS(elapsed)}`;
 }
 
+// Boutons de pénalité par station — règlement La Buse HC #3
+// clé = n° station. Chaque entrée : { sec: montant en secondes, label: texte du bouton }
+const STATION_PENALITES = {
+  1: [{ sec: 15, label: '+15 s · pieds au sol' }, { sec: 120, label: '+2 min · lâcher poignées' }],
+  2: [{ sec: 15, label: '+15 s · voie non respectée' }],
+  3: [{ sec: 15, label: '+15 s · voie non respectée' }],
+  4: [{ sec: 15, label: '+15 s · infraction burpee' }],
+  5: [], // Rowing : pas de bouton pénalité
+  6: [{ sec: 30, label: '+30 s · kettlebells mal remis' }],
+  7: [{ sec: 15, label: '+15 s · sac au sol' }],
+  8: [], // Wall Balls : pas de bouton pénalité
+};
+
 function openSheet(inscription_id) {
   const ath = state.inscriptions.find(i => i.id === inscription_id);
   if (!ath) return;
   state.sheet.inscription_id = inscription_id;
-  const pending = state.pendingPenalties[inscription_id] || { pen30: 0, pen5: 0 };
-  state.sheet.pen30 = pending.pen30 || 0;
-  state.sheet.pen5 = pending.pen5 || 0;
+  const pending = state.pendingPenalties[inscription_id] || { secs: [] };
+  state.sheet.secs = (pending.secs || []).slice();
   const label = labelFor(ath);
   $('sheet-title').textContent = `Dossard ${ath.dossard} — ${label}`;
-  updateSheetCounters();
-  const isPen5Allowed = state.role.station === 1 || state.role.station === 2;
-  $('pen5-row').hidden = !isPen5Allowed;
+  renderPenaliteButtons();
   tickSheetElapsed();
   if (state.sheetTimer) clearInterval(state.sheetTimer);
   state.sheetTimer = setInterval(tickSheetElapsed, 1000);
@@ -560,23 +554,45 @@ function openSheet(inscription_id) {
 
 function closeSheet() {
   $('sheet-backdrop').classList.remove('open');
-  state.sheet = { inscription_id: null, pen30: 0, pen5: 0 };
+  state.sheet = { inscription_id: null, secs: [] };
   if (state.sheetTimer) { clearInterval(state.sheetTimer); state.sheetTimer = null; }
 }
 
-function updateSheetCounters() {
-  $('pen30-val').textContent = state.sheet.pen30;
-  $('pen5-val').textContent = state.sheet.pen5;
+function renderPenaliteButtons() {
+  const station = state.role.station;
+  const penalites = STATION_PENALITES[station] || [];
+  const container = $('sheet-penalites');
+  if (penalites.length === 0) {
+    container.innerHTML = '<div style="text-align:center;color:#888;font-size:13px;padding:16px 0;">Pas de pénalité temporelle sur cette station.</div>';
+  } else {
+    container.innerHTML = penalites.map((p, i) => {
+      const count = state.sheet.secs.filter(s => s === p.sec).length;
+      return `<div class="counter">
+        <span class="label">${p.label}</span>
+        <div class="controls">
+          <button class="dec" data-pensec="${p.sec}">−</button>
+          <span class="val">${count}</span>
+          <button class="inc" data-pensec="${p.sec}">+</button>
+        </div>
+      </div>`;
+    }).join('');
+    container.querySelectorAll('button[data-pensec]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sec = parseInt(btn.dataset.pensec, 10);
+        if (btn.classList.contains('inc')) {
+          state.sheet.secs.push(sec);
+        } else {
+          // Retire la 1re occurrence
+          const idx = state.sheet.secs.indexOf(sec);
+          if (idx >= 0) state.sheet.secs.splice(idx, 1);
+        }
+        renderPenaliteButtons();
+      });
+    });
+  }
+  const total = state.sheet.secs.reduce((s, x) => s + x, 0);
+  $('sheet-total-pen').textContent = total > 0 ? `Total pénalités : +${total} s (${formatHMS(total)})` : '';
 }
-
-document.querySelectorAll('.counter .inc, .counter .dec').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const target = btn.dataset.target;
-    const delta = btn.classList.contains('inc') ? 1 : -1;
-    state.sheet[target] = Math.max(0, state.sheet[target] + delta);
-    updateSheetCounters();
-  });
-});
 
 $('sheet-abandon').addEventListener('click', async () => {
   const id = state.sheet.inscription_id;
@@ -613,10 +629,10 @@ $('sheet-backdrop').addEventListener('click', e => {
 $('sheet-save').addEventListener('click', () => {
   const id = state.sheet.inscription_id;
   if (!id) return;
-  if (state.sheet.pen30 === 0 && state.sheet.pen5 === 0) {
+  if (!state.sheet.secs || state.sheet.secs.length === 0) {
     delete state.pendingPenalties[id];
   } else {
-    state.pendingPenalties[id] = { pen30: state.sheet.pen30, pen5: state.sheet.pen5 };
+    state.pendingPenalties[id] = { secs: state.sheet.secs.slice() };
   }
   savePendingPenalties();
   closeSheet();
@@ -626,14 +642,12 @@ $('sheet-save').addEventListener('click', () => {
 $('sheet-point').addEventListener('click', async () => {
   const id = state.sheet.inscription_id;
   if (!id) return;
-  const pen30 = state.sheet.pen30;
-  const pen5 = state.sheet.pen5;
+  const penaliteS = (state.sheet.secs || []).reduce((s, x) => s + x, 0);
   $('sheet-point').disabled = true;
   const { ok, status, data } = await api('/api/juge-pointage', {
     inscription_id: id,
     station: state.role.station,
-    penalite_30s: pen30,
-    penalite_5min: pen5,
+    penalite_s: penaliteS,
   });
   $('sheet-point').disabled = false;
   if (!ok) {

@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     // Fetch all pointages for this inscription
     const { data: pointages, error: pErr } = await supabase
       .from('Pointages')
-      .select('station, timestamp_pointage, penalite_30s, penalite_5min')
+      .select('station, timestamp_pointage, penalite_30s, penalite_5min, penalite_s')
       .eq('inscription_id', inscription_id)
       .order('station', { ascending: true });
     if (pErr) return res.status(500).json({ error: 'Erreur lecture pointages' });
@@ -60,25 +60,28 @@ export default async function handler(req, res) {
     if (!byStation[8]) return res.status(400).json({ error: 'Station 8 pas encore pointée' });
 
     // Calcul temps par segment (course + station)
+    // Pénalité par pointage : nouveau HC #3 utilise penalite_s (total secondes).
+    // Compatibilité HC #2 : fallback sur pen30*30 + pen5*300 si penalite_s absent/0.
+    function penSecOf(p) {
+      if (p && p.penalite_s && p.penalite_s > 0) return p.penalite_s;
+      return (p.penalite_30s || 0) * 30 + (p.penalite_5min || 0) * 300;
+    }
     const startMs = new Date(inscr.heure_debut_reelle).getTime();
     let prevMs = startMs;
     const segments = [];
-    let totalPen30 = 0, totalPen5 = 0;
+    let penTotalS = 0;
     for (let s = 1; s <= 8; s++) {
       const p = byStation[s];
       if (!p) return res.status(400).json({ error: `Station ${s} manquante` });
       const ts = new Date(p.timestamp_pointage).getTime();
       const durS = Math.round((ts - prevMs) / 1000);
-      const pen30 = p.penalite_30s || 0;
-      const pen5 = p.penalite_5min || 0;
-      totalPen30 += pen30;
-      totalPen5 += pen5;
-      segments.push({ station: s, name: STATION_NAMES[s], duree_s: durS, pen30, pen5 });
+      const segPen = penSecOf(p);
+      penTotalS += segPen;
+      segments.push({ station: s, name: STATION_NAMES[s], duree_s: durS, pen_s: segPen });
       prevMs = ts;
     }
 
     const chronoS = Math.round((new Date(byStation[8].timestamp_pointage).getTime() - startMs) / 1000);
-    const penTotalS = totalPen30 * 30 + totalPen5 * 300;
     const tempsFinalS = chronoS + penTotalS;
 
     // Stocke le temps final
@@ -142,8 +145,7 @@ function buildBravoHtml(inscr, segments, chronoS, penTotalS, tempsFinalS) {
 
   const segmentsHtml = segments.map((s) => {
     const parts = [`<span style="color:#1B7B49;font-weight:800;font-family:monospace;font-size:15px;">${fmtTime(s.duree_s)}</span>`];
-    if (s.pen30 > 0) parts.push(`<span style="color:#C0392B;font-size:12px;">+${s.pen30}×30s</span>`);
-    if (s.pen5 > 0) parts.push(`<span style="color:#C0392B;font-size:12px;">+${s.pen5}×5min</span>`);
+    if (s.pen_s && s.pen_s > 0) parts.push(`<span style="color:#C0392B;font-size:12px;">+${fmtTime(s.pen_s)} pén.</span>`);
     return `<tr>
       <td style="padding:8px 10px;border-bottom:1px solid #eee;font-size:13px;">
         <span style="color:#888;">🏃 Course ${s.station} +</span> <strong>${s.name}</strong>
