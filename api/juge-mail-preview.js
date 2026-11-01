@@ -142,12 +142,8 @@ ${penaltiesLine}
 <table style="width:100%;border-collapse:collapse;">${segmentsHtml}</table>
 </div>
 
-<div style="background:#f0f8f3;border:2px solid #1B7B49;border-radius:12px;padding:16px;margin:20px 0;">
-<div style="font-size:13px;color:#1B7B49;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;text-align:center;">📱 À découvrir</div>
-<table cellpadding="0" cellspacing="0" border="0" style="width:100%;">
-<tr><td style="padding:6px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="background:#C0392B;border-radius:8px;"><a href="https://hyrox-challenge-labuse.vercel.app/live.html" style="display:inline-block;padding:12px 20px;color:#fff;text-decoration:none;font-weight:800;font-size:14px;">🏆 Voir le classement live</a></td></tr></table></td></tr>
-<tr><td style="padding:6px 0;"><table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="background:#FFEE00;border-radius:8px;"><a href="https://hyrox-challenge-labuse.vercel.app/resultats.html" style="display:inline-block;padding:12px 20px;color:#0a0a0a;text-decoration:none;font-weight:800;font-size:14px;">📊 Retrouver mes résultats</a></td></tr></table></td></tr>
-</table>
+<div style="text-align:center;margin:22px 0;">
+<table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr><td style="background:#C0392B;border-radius:8px;"><a href="https://hyrox-challenge-labuse.vercel.app/live.html" style="display:inline-block;padding:14px 26px;color:#fff;text-decoration:none;font-weight:800;font-size:15px;">🏆 Voir le classement live</a></td></tr></table>
 </div>
 
 <div style="background:#1a1a1a;color:#fff;border-radius:12px;padding:20px;margin:18px 0;text-align:center;">
