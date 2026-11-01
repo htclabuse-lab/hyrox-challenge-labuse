@@ -466,6 +466,10 @@
         <div class="sub-section" id="vagues-hc3">
           <div class="sub-title">📋 Planning des vagues — provisoire</div>
           <p style="font-size:13px;color:#aaa;margin-bottom:12px;line-height:1.5;">Les vagues sont fixées. Elles peuvent encore être ajustées à la marge si demande justifiée (jusqu'à début novembre). Pas de dossard : tout est informatisé le jour J.</p>
+          <div style="position:relative;margin-bottom:12px;">
+            <input type="text" id="vagues-hc3-search" placeholder="🔍 Rechercher par nom ou équipe…" oninput="filterVaguesHC3()" style="width:100%;padding:10px 36px 10px 14px;background:#0a0a0a;border:2px solid #333;border-radius:8px;color:#fff;font-size:14px;outline:none;" onfocus="this.style.borderColor='#FFEE00'" onblur="this.style.borderColor='#333'">
+            <button type="button" id="vagues-hc3-clear" onclick="document.getElementById('vagues-hc3-search').value='';filterVaguesHC3()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:#333;color:#fff;border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:12px;display:none;">✕</button>
+          </div>
           <div id="vagues-hc3-content" style="color:#888;font-size:13px;">Chargement…</div>
         </div>
       </div>
@@ -750,7 +754,7 @@ async function loadVaguesHC3() {
         prevMainCat = mainCat;
       }
       var catsUniques = Object.keys(counts);
-      html += '<div style="background:#0d1400;border:1px solid #FFEE00;border-radius:8px;padding:10px 12px;margin-bottom:10px;">';
+      html += '<div class="vhc3-vague" style="background:#0d1400;border:1px solid #FFEE00;border-radius:8px;padding:10px 12px;margin-bottom:10px;">';
       html += '<div style="font-weight:800;color:#FFEE00;font-size:14px;margin-bottom:6px;">Vague ' + v + ' · <span style="color:#fff;">' + heure + '</span></div>';
       if (catsUniques.length > 1) {
         html += '<div style="display:inline-block;background:#FFA726;color:#0a0a0a;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:0.3px;margin-bottom:8px;">⚡ Vague mixte · ' + catsUniques.join(' + ') + '</div>';
@@ -764,14 +768,35 @@ async function loadVaguesHC3() {
         } else {
           ligne = (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong> <span style="color:#888;font-size:11px;">— ' + d.categorie + '</span>';
         }
-        html += '<div style="font-size:13px;color:#ddd;padding:3px 0;line-height:1.4;">' + ligne + '</div>';
+        html += '<div class="vhc3-athlete" style="font-size:13px;color:#ddd;padding:3px 0;line-height:1.4;">' + ligne + '</div>';
       });
       html += '</div>';
     });
     target.innerHTML = html;
+    filterVaguesHC3();
   } catch(e) {
     target.innerHTML = 'Erreur de chargement : ' + (e.message||e);
   }
+}
+
+function filterVaguesHC3() {
+  var input = document.getElementById('vagues-hc3-search');
+  if (!input) return;
+  var q = input.value.trim().toLowerCase();
+  var clear = document.getElementById('vagues-hc3-clear');
+  if (clear) clear.style.display = q ? 'block' : 'none';
+  var vagues = document.querySelectorAll('#vagues-hc3-content .vhc3-vague');
+  vagues.forEach(function(vg) {
+    var athletes = vg.querySelectorAll('.vhc3-athlete');
+    var anyMatch = false;
+    athletes.forEach(function(a) {
+      if (!q) { a.style.display = ''; anyMatch = true; return; }
+      var ok = a.textContent.toLowerCase().indexOf(q) !== -1;
+      a.style.display = ok ? '' : 'none';
+      if (ok) anyMatch = true;
+    });
+    vg.style.display = (q && !anyMatch) ? 'none' : '';
+  });
 }
 
 var vaguesLoaded = false;
