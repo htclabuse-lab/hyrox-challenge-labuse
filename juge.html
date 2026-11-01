@@ -270,6 +270,20 @@ function tempsRank(t) {
   return 99;
 }
 
+function labelFor(i) {
+  // Juge HC #3 : nom d'équipe si fourni ; sinon pour un Duo les 2 participants ; sinon prénom.
+  if (!i) return '';
+  if (i.nom_equipe && String(i.nom_equipe).trim()) return String(i.nom_equipe).trim();
+  const isDuo = (i.categorie || '').toLowerCase().startsWith('duo');
+  if (isDuo) {
+    const p1 = ((i.prenom||'') + ' ' + (i.nom||'')).trim();
+    const p2 = ((i.co1_prenom||'') + ' ' + (i.co1_nom||'')).trim();
+    const parts = [p1, p2].filter(Boolean).join(' + ');
+    if (parts) return parts;
+  }
+  return (i.prenom || '').trim();
+}
+
 function computeEliteIds(inscriptions) {
   // Elite 12 : seuils de temps estimé fixés par Stéphanie, par catégorie.
   // Rang : 1=<1h · 2=1h-1h10 · 3=1h10-1h20 · 4=1h20-1h30 · 5=1h30-1h40 · 6=1h40+
@@ -482,7 +496,7 @@ function renderDossardGrid() {
   grid.innerHTML = eligible.map(i => {
     const pending = state.pendingPenalties[i.id];
     const hasPenalty = pending && (pending.pen30 > 0 || pending.pen5 > 0);
-    const label = i.nom_equipe || i.prenom || '';
+    const label = labelFor(i);
     const classes = ['dossard-btn'];
     if (hasPenalty) classes.push('has-penalty');
     let badge = '';
@@ -532,7 +546,7 @@ function openSheet(inscription_id) {
   const pending = state.pendingPenalties[inscription_id] || { pen30: 0, pen5: 0 };
   state.sheet.pen30 = pending.pen30 || 0;
   state.sheet.pen5 = pending.pen5 || 0;
-  const label = ath.nom_equipe || ath.prenom || '';
+  const label = labelFor(ath);
   $('sheet-title').textContent = `Dossard ${ath.dossard} — ${label}`;
   updateSheetCounters();
   const isPen5Allowed = state.role.station === 1 || state.role.station === 2;
@@ -609,7 +623,7 @@ $('sheet-point').addEventListener('click', async () => {
   state.allPointages.push(data.pointage);
   state.lastPointage = { pointage_id: data.pointage.id, inscription_id: id };
   const ath = state.inscriptions.find(i => i.id === id);
-  const label = ath ? (ath.nom_equipe || ath.prenom || '') : '';
+  const label = ath ? labelFor(ath) : '';
 
   if (state.role.station === 8 && ath && ath.heure_debut_reelle) {
     const brutSec = Math.floor((new Date(data.pointage.timestamp_pointage).getTime() - new Date(ath.heure_debut_reelle).getTime()) / 1000);
