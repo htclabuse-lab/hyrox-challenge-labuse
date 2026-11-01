@@ -53,6 +53,8 @@
     .dossard-btn { position: relative; padding: 14px 6px; background: #111; border: 2px solid #222; border-radius: 12px; color: #fff; cursor: pointer; text-align: center; min-height: 84px; display: flex; flex-direction: column; justify-content: center; }
     .dossard-btn .num { font-size: 22px; font-weight: 900; color: #FFEE00; }
     .dossard-btn .name { font-size: 11px; color: #ddd; margin-top: 4px; padding: 0 4px; line-height: 1.2; word-break: break-word; }
+    .dossard-btn .cat { font-size: 9px; color: #FFA726; font-weight: 700; margin-top: 3px; letter-spacing: 0.3px; }
+    .dossard-btn .elite { position: absolute; top: -6px; left: -6px; background: #FFEE00; color: #0a0a0a; font-size: 11px; font-weight: 900; padding: 2px 5px; border-radius: 50%; }
     .dossard-btn.has-penalty { border-color: #ffaa00; }
     .dossard-btn .penalty-badge { position: absolute; top: -6px; right: -6px; background: #ffaa00; color: #0a0a0a; font-size: 10px; font-weight: 900; padding: 3px 7px; border-radius: 10px; white-space: nowrap; }
     .empty-state { padding: 3rem 1rem; text-align: center; color: #666; font-size: 14px; line-height: 1.5; }
@@ -243,6 +245,16 @@ function savePendingPenalties() {
 
 function escapeHtml(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
+}
+
+function shortCat(cat) {
+  // Raccourci lisible pour le bouton dossard : "Solo H RX", "Duo F Sc.", "Duo Mx RX", "Relais"
+  if (!cat) return '';
+  return cat
+    .replace(/\bHomme\b/i, 'H')
+    .replace(/\bFemme\b/i, 'F')
+    .replace(/\bMixte\b/i, 'Mx')
+    .replace(/\bScaled\b/i, 'Sc.');
 }
 
 function formatHMS(totalSec) {
@@ -446,6 +458,7 @@ function renderDossardGrid() {
       ${badge}
       <span class="num">${i.dossard}</span>
       <span class="name">${escapeHtml(label)}</span>
+      <span class="cat">${escapeHtml(shortCat(i.categorie))}</span>
     </button>`;
   }).join('');
   grid.querySelectorAll('.dossard-btn').forEach(btn => {
