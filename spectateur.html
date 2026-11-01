@@ -81,7 +81,8 @@
   .station-athlete { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid #1a1a1a; font-size: 13px; }
   .station-athlete:last-child { border-bottom: none; }
   .station-athlete .doss { background: #FFEE00; color: #0a0a0a; padding: 1px 6px; border-radius: 3px; font-weight: 900; font-family: monospace; font-size: 11px; flex-shrink: 0; }
-  .station-athlete .nom { color: #ddd; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  .station-athlete .nom { color: #ddd; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; }
+  .station-athlete .chrono { color: #4caf50; font-family: monospace; font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; flex-shrink: 0; }
   .station-athlete .cat-short { color: #FFA726; font-size: 10px; font-weight: 700; flex-shrink: 0; }
   .station-empty { color: #555; font-size: 13px; font-style: italic; padding: 20px 0; text-align: center; }
 
@@ -428,6 +429,17 @@ function renderVague() {
   container.innerHTML = html;
 }
 setInterval(() => { if (currentView === 1) renderVague(); }, 1000); // live countdown
+// Tick chronos vue 3 toutes les secondes
+setInterval(() => {
+  if (currentView !== 2) return;
+  const now = Date.now();
+  document.querySelectorAll('.station-athlete .chrono').forEach(el => {
+    const start = parseInt(el.dataset.start, 10);
+    if (!start) return;
+    const sec = Math.max(0, Math.floor((now - start) / 1000));
+    el.textContent = fmtTime(sec);
+  });
+}, 1000);
 
 // ============ VUE C : QUI EST À QUELLE STATION ============
 const STATION_NAMES = {
@@ -474,9 +486,11 @@ function renderFinishers() {
       athletes.sort((a, b) => (a.dossard || 0) - (b.dossard || 0));
       athletes.slice(0, 12).forEach(d => {
         const lbl = labelFor(d);
+        const startMs = d.heure_debut_reelle ? new Date(d.heure_debut_reelle).getTime() : 0;
         html += '<div class="station-athlete">';
         html += '<span class="doss">' + d.dossard + '</span>';
         html += '<span class="nom">' + lbl.nom + '</span>';
+        if (startMs) html += '<span class="chrono" data-start="' + startMs + '">—</span>';
         html += '<span class="cat-short">' + shortCat(d.categorie) + '</span>';
         html += '</div>';
       });
