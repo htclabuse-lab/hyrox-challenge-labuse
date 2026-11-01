@@ -170,11 +170,11 @@ const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// Rotation : 3 vues · classement 95s (laisse le temps au défilement 90s) · vague 15s · stations 15s
+// Rotation : 3 vues · classement 95s · vague 15s · stations 25s
 const ROTATION = [
   { id: 'screen-classement', duree: 95000 },
   { id: 'screen-vague',      duree: 15000 },
-  { id: 'screen-finishers',  duree: 15000 },
+  { id: 'screen-finishers',  duree: 25000 },
 ];
 
 let inscriptions = [];
@@ -312,7 +312,7 @@ const CATS_ORDER = [
   'Duo Homme RX', 'Duo Femme RX', 'Duo Mixte RX',
   'Duo Homme Scaled', 'Duo Femme Scaled', 'Duo Mixte Scaled',
 ];
-const TRANCHES_ORDER = ['16-24', '25-34', '35-44', '45-54', '55+', '?'];
+const TRANCHES_ORDER = ['16-24', '25-34', '35-44', '45-54', '55+']; // tranche '?' omise (dates de naissance incorrectes)
 
 function renderClassement() {
   // Pour chaque catégorie globale : savoir si terminée + horaire podium
