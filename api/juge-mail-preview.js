@@ -67,7 +67,11 @@ export default async function handler(req, res) {
   const tempsFinalS = chronoS + penTotalS;
 
   const html = buildBravoHtml(inscr, segments, chronoS, penTotalS, tempsFinalS);
-  const subject = `[APERÇU] 🎉 BRAVO ${inscr.prenom} ! Ton temps Hyrox : ${fmtTime(tempsFinalS)}`;
+  const prenomSubj = (inscr.prenom || '').trim();
+  const co1Subj = (inscr.co1_prenom || '').trim();
+  const isDuoSubj = (inscr.categorie || '').toLowerCase().startsWith('duo');
+  const titreSubj = (isDuoSubj && co1Subj) ? `${prenomSubj} & ${co1Subj}` : prenomSubj;
+  const subject = `[APERÇU] 🎉 BRAVO ${titreSubj} ! Votre temps Hyrox : ${fmtTime(tempsFinalS)}`;
 
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -97,9 +101,16 @@ function fmtTime(totalSec) {
 
 function buildBravoHtml(inscr, segments, chronoS, penTotalS, tempsFinalS) {
   const prenom = (inscr.prenom || '').trim();
+  const nom = (inscr.nom || '').trim();
+  const co1Prenom = (inscr.co1_prenom || '').trim();
+  const co1Nom = (inscr.co1_nom || '').trim();
   const cat = inscr.categorie || '';
   const dossard = inscr.dossard;
-  const nomEquipe = inscr.nom_equipe;
+  const nomEquipe = (inscr.nom_equipe || '').trim();
+  const isDuo = cat.toLowerCase().startsWith('duo');
+  const titre = (isDuo && co1Prenom) ? `${prenom} &amp; ${co1Prenom}` : prenom;
+  const cardTitre = nomEquipe ? nomEquipe : ((isDuo && co1Prenom) ? `${prenom} &amp; ${co1Prenom}` : `${prenom} ${nom}`);
+  const cardSub = (isDuo && co1Prenom) ? `${prenom} ${nom} &nbsp;+&nbsp; ${co1Prenom} ${co1Nom}` : '';
 
   const segmentsHtml = segments.map((s) => {
     const parts = [`<span style="color:#1B7B49;font-weight:800;font-family:monospace;font-size:15px;">${fmtTime(s.duree_s)}</span>`];
@@ -116,17 +127,32 @@ function buildBravoHtml(inscr, segments, chronoS, penTotalS, tempsFinalS) {
     ? `<div style="font-size:13px;color:#C0392B;margin-top:6px;">dont pénalités : +${fmtTime(penTotalS)}</div>` : '';
   const equipe = nomEquipe ? `<div style="font-size:13px;color:#888;margin-top:6px;">🏷 Équipe : <strong style="color:#1a1a1a;">${nomEquipe}</strong></div>` : '';
 
+  const cardShare = `<div style="max-width:480px;margin:24px auto;background:#0a0a0a;border:4px solid #FFEE00;border-radius:20px;padding:28px 24px;text-align:center;color:#fff;font-family:Arial,sans-serif;">
+<img src="https://hyrox-challenge-labuse.vercel.app/logo.jpg" alt="HTC La Buse" style="width:120px;height:auto;border-radius:12px;margin-bottom:14px;">
+<div style="font-size:14px;font-weight:800;color:#FFEE00;letter-spacing:3px;text-transform:uppercase;margin-bottom:2px;">Hyrox Challenge La Buse</div>
+<div style="font-size:12px;color:#aaa;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;">#3 · 15 novembre 2026</div>
+<div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:4px;">${cardTitre}</div>
+${cardSub ? `<div style="font-size:12px;color:#aaa;margin-bottom:14px;">${cardSub}</div>` : '<div style="height:14px;"></div>'}
+<div style="background:#FFEE00;color:#0a0a0a;display:inline-block;padding:6px 16px;border-radius:6px;font-weight:900;font-size:12px;letter-spacing:1.5px;margin-bottom:18px;">${cat}</div>
+<div style="font-size:12px;color:#aaa;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">⏱ Temps final</div>
+<div style="font-size:64px;font-weight:900;color:#FFEE00;font-family:monospace;line-height:1;">${fmtTime(tempsFinalS)}</div>
+<div style="margin-top:20px;padding-top:16px;border-top:1px dashed #333;font-size:11px;color:#666;letter-spacing:1px;">#HYROX · #LABUSE · #HCLABUSE3</div>
+</div>
+<p style="text-align:center;font-size:12px;color:#888;margin:-10px 0 18px;font-style:italic;">📸 Fais un screenshot pour partager sur Instagram !</p>`;
+
   return `<div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;color:#1a1a1a;line-height:1.6;">
 <div style="background:linear-gradient(135deg,#C0392B,#FFEE00);padding:28px 20px;text-align:center;border-radius:12px 12px 0 0;">
 <div style="font-size:56px;margin-bottom:8px;">🎉🔥🏆</div>
-<h1 style="margin:0;color:#0a0a0a;font-size:28px;letter-spacing:1px;">BRAVO ${prenom} !</h1>
+<h1 style="margin:0;color:#0a0a0a;font-size:28px;letter-spacing:1px;">BRAVO ${titre} !</h1>
 <p style="margin:8px 0 0;color:#0a0a0a;font-size:14px;font-weight:600;">Hyrox Challenge La Buse #3 — 15 novembre 2026</p>
 </div>
 <div style="background:#fff;padding:24px;border:1px solid #ddd;border-top:none;">
-<p style="margin-top:0;font-size:15px;">Tu viens de terminer la course 🙌</p>
+<p style="margin-top:0;font-size:15px;">${isDuo ? 'Vous venez' : 'Tu viens'} de terminer la course 🙌</p>
+
+${cardShare}
 
 <div style="background:#f0f8f3;border:3px solid #1B7B49;border-radius:14px;padding:24px;margin:20px 0;text-align:center;">
-<div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">⏱ Ton temps total</div>
+<div style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">⏱ ${isDuo ? 'Votre' : 'Ton'} temps total</div>
 <div style="font-size:56px;font-weight:900;color:#1B7B49;font-family:monospace;line-height:1;">${fmtTime(tempsFinalS)}</div>
 <div style="margin-top:14px;background:#1B7B49;color:#fff;display:inline-block;padding:6px 14px;border-radius:6px;font-weight:800;font-size:13px;letter-spacing:1px;">Dossard #${dossard} · ${cat}</div>
 ${equipe}
