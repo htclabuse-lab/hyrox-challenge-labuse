@@ -271,19 +271,25 @@ function tempsRank(t) {
 }
 
 function computeEliteIds(inscriptions) {
-  // Elite 12 (candidats potentiels pour la finale) : par catégorie RX, les 12 meilleurs
-  // temps estimés — plus les ex-aequo au même temps que le 12e.
-  // Scaled non concerné pour l'instant.
-  const groups = {};
-  (inscriptions || []).forEach(i => {
-    if (!i.categorie || !/RX/i.test(i.categorie)) return;
-    (groups[i.categorie] ||= []).push(i);
-  });
+  // Elite 12 : seuils de temps estimé fixés par Stéphanie, par catégorie.
+  // Rang : 1=<1h · 2=1h-1h10 · 3=1h10-1h20 · 4=1h20-1h30 · 5=1h30-1h40 · 6=1h40+
+  const SEUILS = {
+    'Solo Homme RX':     2,  // < 1h10
+    'Solo Femme RX':     3,  // < 1h20
+    'Solo Homme Scaled': 2,  // < 1h10
+    'Solo Femme Scaled': 2,  // < 1h10
+    'Duo Homme RX':      2,  // < 1h10
+    'Duo Femme RX':      3,  // < 1h20
+    'Duo Mixte RX':      3,  // < 1h20
+    'Duo Homme Scaled':  1,  // < 1h
+    'Duo Femme Scaled':  1,  // < 1h
+    'Duo Mixte Scaled':  1,  // < 1h
+    // Relais : pas de marquage
+  };
   const eliteIds = new Set();
-  Object.keys(groups).forEach(cat => {
-    const sorted = groups[cat].slice().sort((a, b) => tempsRank(a.temps_estime) - tempsRank(b.temps_estime));
-    const seuil = sorted.length <= 12 ? 99 : tempsRank(sorted[11].temps_estime);
-    sorted.forEach(x => { if (tempsRank(x.temps_estime) <= seuil) eliteIds.add(x.id); });
+  (inscriptions || []).forEach(i => {
+    const seuil = SEUILS[i.categorie];
+    if (seuil !== undefined && tempsRank(i.temps_estime) <= seuil) eliteIds.add(i.id);
   });
   return eliteIds;
 }
