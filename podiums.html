@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Horaires podiums — Hyrox Challenge La Buse</title>
+  <title>Horaires podiums — Hyrox Challenge La Buse #3</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #fff; color: #1a1a1a; font-family: sans-serif; padding: 1rem; }
-    .wrap { max-width: 800px; margin: 0 auto; }
+    .wrap { max-width: 900px; margin: 0 auto; }
     .header { background: linear-gradient(135deg, #C0392B, #FFEE00); padding: 24px 16px; border-radius: 14px; text-align: center; margin-bottom: 1rem; color: #0a0a0a; }
     .header h1 { font-size: 26px; letter-spacing: 1px; }
     .header p { font-size: 14px; font-weight: 700; margin-top: 6px; }
-    .header .note { font-size: 12px; margin-top: 10px; font-weight: 500; opacity: 0.9; }
+    .warn { background: #FFEE00; color: #0a0a0a; border: 2px solid #C0392B; padding: 14px 18px; border-radius: 12px; margin-bottom: 1rem; font-weight: 700; text-align: center; }
+    .warn b { color: #C0392B; display: block; font-size: 15px; margin-bottom: 4px; }
     .toolbar { display: flex; gap: 10px; justify-content: center; margin-bottom: 1rem; }
     .btn-print { padding: 10px 22px; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; background: #1B7B49; color: #fff; }
     .podium-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -20,7 +21,8 @@
     .podium-card { background: #fffef0; border: 3px solid #FFA726; border-radius: 12px; padding: 16px; text-align: center; page-break-inside: avoid; }
     .podium-card .cat { font-size: 14px; font-weight: 800; color: #C0392B; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
     .podium-card .time { font-size: 42px; font-weight: 900; color: #FFA726; font-family: monospace; line-height: 1; }
-    .podium-card .last { font-size: 11px; color: #888; margin-top: 8px; }
+    .podium-card .detail { font-size: 11px; color: #888; margin-top: 10px; line-height: 1.5; }
+    .podium-card .detail b { color: #333; }
     #loading { text-align: center; padding: 2rem; color: #888; }
     .footer { text-align: center; color: #999; font-size: 12px; margin-top: 1.5rem; line-height: 1.6; }
     .footer strong { color: #C0392B; }
@@ -28,6 +30,7 @@
       body { padding: 0.5cm; }
       .toolbar { display: none; }
       .header { background: #FFEE00; }
+      .warn { background: #fff; border-width: 3px; }
       .podium-card { border-width: 2px; background: #fff; }
     }
   </style>
@@ -37,74 +40,101 @@
   <div class="header">
     <h1>🏆 HORAIRES DES PODIUMS</h1>
     <p>Hyrox Challenge La Buse #3 — Dimanche 15 novembre 2026</p>
-    <div class="note">Chaque podium a lieu ~2h après le départ de la dernière vague de sa catégorie</div>
   </div>
+
+  <div class="warn">
+    <b>⚠️ PODIUMS PAR CATÉGORIE D'ÂGE</b>
+    Reste à proximité du podium si ton horaire approche. On annonce les 3 premiers par tranche d'âge (16-24 · 25-34 · 35-44 · 45-54 · 55+) de chaque catégorie.
+  </div>
+
   <div class="toolbar">
     <button class="btn-print" onclick="window.print()">🖨️ Imprimer</button>
   </div>
   <div id="loading">Chargement des podiums…</div>
   <div id="content" class="podium-list"></div>
   <div class="footer">
-    <strong>Crossfit La Buse — Saint-Paul, La Réunion</strong><br>
-    Horaires indicatifs — susceptibles d'évoluer selon le déroulé de la course
+    <strong>Crossfit La Buse — La Réunion</strong><br>
+    Horaires = dernier départ de la catégorie + temps estimé le plus long du groupe + 5 min de marge.<br>
+    Indicatifs, susceptibles d'évoluer selon le déroulé de la course.
   </div>
 </div>
 
 <script>
 (async function() {
-  var target = document.getElementById('content');
-  var loading = document.getElementById('loading');
+  const target = document.getElementById('content');
+  const loading = document.getElementById('loading');
 
-  var CAT_ORDER = [
-    'Solo Homme Scaled','Solo Femme Scaled','Solo Homme RX','Solo Femme RX',
-    'Duo Homme Scaled','Duo Femme Scaled','Duo Mixte Scaled',
-    'Duo Homme RX','Duo Femme RX','Duo Mixte RX','Relais'
-  ];
+  // Rang du temps estimé en minutes (temps max du créneau)
+  function tempsMinMax(t) {
+    if (!t) return 100; // fallback 1h40 si pas rempli
+    const s = String(t).toLowerCase();
+    if (s.indexOf('moins') !== -1) return 60;
+    if (s.indexOf('1h et 1h10') !== -1 || s.indexOf('1h-1h10') !== -1) return 70;
+    if (s.indexOf('1h10') !== -1) return 80;
+    if (s.indexOf('1h20') !== -1) return 90;
+    if (s.indexOf('1h30') !== -1) return 100;
+    if (s.indexOf('1h40') !== -1) return 105; // 1h45
+    return 100;
+  }
+
+  function fmtHeure(iso) {
+    return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion' }).replace(':', 'h');
+  }
+  function fmtDuree(min) {
+    const h = Math.floor(min / 60), m = min % 60;
+    return (h ? h + 'h' : '') + (m ? String(m).padStart(h?2:1,'0') : (h?'':'0')) + (m ? '' : (h ? '' : 'min'));
+  }
 
   try {
-    var db = supabase.createClient('https://mzyfnmjzlosranptwucr.supabase.co', 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC');
-    var { data, error } = await db.from('Inscriptions')
-      .select('categorie,heure_depart,vague')
+    const db = supabase.createClient('https://mzyfnmjzlosranptwucr.supabase.co', 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC');
+    const { data, error } = await db.from('Inscriptions')
+      .select('categorie,heure_depart,vague,temps_estime,absent,abandon')
       .neq('categorie', 'Parent-Enfant')
       .neq('categorie', 'Hyrox Kids Pré-inscription')
       .neq('categorie', 'Bénévole')
       .eq('statut_paiement', 'paye')
       .gte('heure_depart', '2026-11-15')
-      .lt('heure_depart', '2026-11-16')
-      .lte('vague', 41);
+      .lt('heure_depart', '2026-11-16');
     if (error) throw error;
 
-    var map = {};
-    (data || []).forEach(function(d) {
-      if (!d.heure_depart) return;
-      if (d.vague && d.vague > 41) return;
-      var cur = map[d.categorie];
-      if (!cur || d.heure_depart > cur) map[d.categorie] = d.heure_depart;
+    // Grouper par catégorie, calculer dernier_depart + temps_max
+    const map = {};
+    (data || []).forEach(d => {
+      if (!d.heure_depart || d.absent || d.abandon) return;
+      const g = map[d.categorie] || (map[d.categorie] = { last: null, maxMin: 0, nb: 0 });
+      g.nb++;
+      if (!g.last || d.heure_depart > g.last) g.last = d.heure_depart;
+      const m = tempsMinMax(d.temps_estime);
+      if (m > g.maxMin) g.maxMin = m;
     });
 
-    function fmtH(iso, addH) {
-      var t = new Date(iso).getTime() + (addH || 0) * 3600 * 1000;
-      return new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion' }).replace(':', 'h');
-    }
-
-    var cats = Object.keys(map).sort(function(a,b) {
-      return new Date(map[a]).getTime() - new Date(map[b]).getTime();
+    const cats = Object.keys(map).sort((a, b) => {
+      const pa = new Date(map[a].last).getTime() + (map[a].maxMin + 5) * 60000;
+      const pb = new Date(map[b].last).getTime() + (map[b].maxMin + 5) * 60000;
+      return pa - pb;
     });
 
     if (cats.length === 0) { loading.textContent = 'Aucune catégorie trouvée'; return; }
-    var html = '';
-    cats.forEach(function(cat) {
-      var lastDep = fmtH(map[cat], 0);
-      var podium = fmtH(map[cat], 2);
+
+    let html = '';
+    cats.forEach(cat => {
+      const g = map[cat];
+      const lastDepTs = new Date(g.last).getTime();
+      const podiumTs = lastDepTs + (g.maxMin + 5) * 60000;
+      const lastDep = fmtHeure(g.last);
+      const podium = fmtHeure(new Date(podiumTs).toISOString());
       html += '<div class="podium-card">';
       html += '<div class="cat">' + cat + '</div>';
       html += '<div class="time">' + podium + '</div>';
-      html += '<div class="last">Dernière vague : ' + lastDep + '</div>';
+      html += '<div class="detail">'
+           + g.nb + ' athlète(s) — dernier départ <b>' + lastDep + '</b><br>'
+           + 'temps max du groupe : <b>' + fmtDuree(g.maxMin) + '</b> + 5 min marge'
+           + '</div>';
       html += '</div>';
     });
     loading.style.display = 'none';
     target.innerHTML = html;
-  } catch(e) {
+  } catch (e) {
     loading.textContent = 'Erreur : ' + (e.message || e);
   }
 })();
