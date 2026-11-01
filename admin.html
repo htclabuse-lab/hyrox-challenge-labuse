@@ -936,19 +936,25 @@
     document.getElementById('pack-photo-content').innerHTML = html;
   }
 
-  // Helper : contenu de la cellule « Équipe ». Pour les Duos avec nom d'équipe, affiche
-  // nom équipe en jaune + les participants en dessous (uniforme avec live / vagues publiques).
+  // Helper : contenu de la cellule « Équipe ».
+  // Duo + nom d'équipe → nom équipe en jaune + participants en dessous.
+  // Duo sans nom d'équipe → juste les 2 participants (évite les cellules « — » pour les Duos).
+  // Solo + nom d'équipe → nom équipe en jaune. Solo sans → « — ».
   function cellEquipe(d) {
-    if (!d || !d.nom_equipe) return '—';
+    if (!d) return '—';
     var isDuo = (d.categorie||'').toLowerCase().startsWith('duo');
-    var equipe = '<strong style="color:#FFEE00;">' + d.nom_equipe + '</strong>';
+    var equipe = (d.nom_equipe||'').trim();
     if (isDuo) {
       var p1 = ((d.prenom||'') + ' ' + (d.nom||'')).trim();
       var p2 = ((d.co1_prenom||'') + ' ' + (d.co1_nom||'')).trim();
       var parts = [p1, p2].filter(Boolean).join(' + ');
-      if (parts) equipe += '<div style="font-size:10px;color:#888;margin-top:2px;">👥 ' + parts + '</div>';
+      if (equipe) {
+        return '<strong style="color:#FFEE00;">' + equipe + '</strong>'
+             + (parts ? '<div style="font-size:10px;color:#888;margin-top:2px;">👥 ' + parts + '</div>' : '');
+      }
+      return parts ? '<span style="font-size:12px;color:#ddd;">👥 ' + parts + '</span>' : '—';
     }
-    return equipe;
+    return equipe ? '<strong style="color:#FFEE00;">' + equipe + '</strong>' : '—';
   }
 
   function showMainTab(tab, btn) {
@@ -1141,13 +1147,16 @@ function shortTemps(t) {
         var p1 = ((d.prenom||'') + ' ' + (d.nom||'')).trim();
         var p2 = ((d.co1_prenom||'') + ' ' + (d.co1_nom||'')).trim();
         var participants = [p1, p2].filter(Boolean).join(' + ');
+        var equipe = (d.nom_equipe||'').trim();
         var titreLigne;
-        if (isDuo && d.nom_equipe) {
-          titreLigne = '<strong style="color:#FFEE00;">' + d.nom_equipe + '</strong>'
+        if (isDuo && equipe) {
+          titreLigne = '<strong style="color:#FFEE00;">' + equipe + '</strong>'
                      + '<div style="font-size:11px;color:#aaa;font-weight:400;margin-top:2px;">👥 ' + participants + '</div>';
+        } else if (isDuo) {
+          titreLigne = '<strong style="color:#fff;">👥 ' + participants + '</strong>';
         } else {
           titreLigne = (d.nom||'—') + ' ' + (d.prenom||'');
-          if (d.nom_equipe) titreLigne += ' <span style="color:#888;font-weight:400;">— ' + d.nom_equipe + '</span>';
+          if (equipe) titreLigne += ' <span style="color:#888;font-weight:400;">— ' + equipe + '</span>';
         }
         html += '<div style="padding:10px 12px;border-bottom:1px solid #1a1a1a;">';
         html += '<div style="display:flex;gap:10px;align-items:center;">';

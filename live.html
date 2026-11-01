@@ -199,15 +199,19 @@
   load();
 
   function formatInfo(d) {
-    // Duos (et équipes avec nom d'équipe) : nom d'équipe en gros + participants en petit en dessous.
+    // Duos : si nom d'équipe → équipe en gros + participants dessous.
+    //        sinon → les 2 participants en gros (pas de ligne vide).
     // Solo : prénom + nom en gros.
     const isDuo = (d.categorie || '').toLowerCase().startsWith('duo');
-    if (isDuo && d.nom_equipe) {
-      const equipe = d.nom_equipe.trim();
+    if (isDuo) {
       const p1 = ((d.prenom||'') + ' ' + (d.nom||'')).trim();
       const p2 = ((d.co1_prenom||'') + ' ' + (d.co1_nom||'')).trim();
       const participants = [p1, p2].filter(Boolean).join(' + ');
-      return `<div class="name"><span class="dossard">${d.dossard}</span>${equipe}</div><div class="team">👥 ${participants}</div>`;
+      const equipe = (d.nom_equipe || '').trim();
+      if (equipe) {
+        return `<div class="name"><span class="dossard">${d.dossard}</span>${equipe}</div><div class="team">👥 ${participants}</div>`;
+      }
+      return `<div class="name"><span class="dossard">${d.dossard}</span>${participants}</div>`;
     }
     const nom = ((d.prenom||'').trim() + ' ' + (d.nom||'').trim()).trim();
     return `<div class="name"><span class="dossard">${d.dossard}</span>${nom}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}`;

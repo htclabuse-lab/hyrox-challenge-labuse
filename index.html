@@ -763,12 +763,16 @@ async function loadVaguesHC3() {
         var isDuo = (d.categorie||'').toLowerCase().indexOf('duo') !== -1;
         var ligne;
         if (isDuo) {
-          var equipe = (d.nom_equipe||'').trim() || '(sans nom d\'équipe)';
+          var equipe = (d.nom_equipe||'').trim();
           var p1 = ((d.prenom||'').trim() + ' ' + (d.nom||'').trim()).trim();
           var p2 = ((d.co1_prenom||'').trim() + ' ' + (d.co1_nom||'').trim()).trim();
           var participants = [p1, p2].filter(Boolean).join(' + ');
-          ligne = '<strong style="color:#FFEE00;">' + equipe + '</strong> <span style="color:#888;font-size:11px;">— ' + d.categorie + '</span>'
-                + '<div style="font-size:11px;color:#aaa;margin-left:0;padding-top:2px;">👥 ' + participants + '</div>';
+          if (equipe) {
+            ligne = '<strong style="color:#FFEE00;">' + equipe + '</strong> <span style="color:#888;font-size:11px;">— ' + d.categorie + '</span>'
+                  + '<div style="font-size:11px;color:#aaa;margin-left:0;padding-top:2px;">👥 ' + participants + '</div>';
+          } else {
+            ligne = '<strong style="color:#fff;">' + participants + '</strong> <span style="color:#888;font-size:11px;">— ' + d.categorie + '</span>';
+          }
         } else {
           ligne = (d.prenom||'').trim() + ' <strong style="color:#fff;">' + (d.nom||'').trim() + '</strong> <span style="color:#888;font-size:11px;">— ' + d.categorie + '</span>';
         }

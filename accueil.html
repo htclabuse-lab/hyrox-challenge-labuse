@@ -197,14 +197,19 @@
       html += `<div class="athlete ${cls}">`;
       html += `<div class="a-head">`;
       html += `<div class="dossard">#${d.dossard}</div>`;
-      // Pour les Duos : nom d'équipe en gros + participants ; sinon : prénom nom
+      // Pour les Duos : nom d'équipe (si fourni) + participants ; Duo sans équipe : 2 participants ; Solo : prénom nom
       const isDuo = (d.categorie || '').toLowerCase().startsWith('duo');
+      const equipe = (d.nom_equipe || '').trim();
       let titre;
-      if (isDuo && d.nom_equipe) {
+      if (isDuo) {
         const p1 = `${(d.prenom || '').trim()} ${(d.nom || '').trim()}`.trim();
         const p2 = `${(d.co1_prenom || '').trim()} ${(d.co1_nom || '').trim()}`.trim();
         const parts = [p1, p2].filter(Boolean).join(' + ');
-        titre = `<b style="color:#FFEE00;">${d.nom_equipe}</b><div style="font-size:11px;color:#888;margin-top:2px;">👥 ${parts}</div>`;
+        if (equipe) {
+          titre = `<b style="color:#FFEE00;">${equipe}</b><div style="font-size:11px;color:#888;margin-top:2px;">👥 ${parts}</div>`;
+        } else {
+          titre = `<b>👥 ${parts}</b>`;
+        }
       } else {
         titre = `<b>${(d.prenom || '').trim()} ${(d.nom || '').trim()}</b>`;
       }
