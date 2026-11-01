@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     while (true) {
       const { data, error } = await supabase
         .from('Pointages')
-        .select('id, inscription_id, station, timestamp_pointage, penalite_30s, penalite_5min')
+        .select('id, inscription_id, station, timestamp_pointage, penalite_30s, penalite_5min, penalite_s')
         .order('timestamp_pointage', { ascending: true })
         .range(from, from + pageSize - 1);
       if (error) {
