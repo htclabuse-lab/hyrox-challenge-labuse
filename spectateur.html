@@ -255,7 +255,7 @@ async function loadData() {
   pointages = pts || [];
   renderAll();
 }
-setInterval(loadData, 20000); // refresh toutes les 20s
+setInterval(loadData, 10000); // refresh toutes les 10s
 loadData();
 
 function renderAll() {
@@ -510,6 +510,8 @@ function showView(idx) {
     document.getElementById(v.id).classList.toggle('active', i === idx);
     document.getElementById('dot-' + i).classList.toggle('active', i === idx);
   });
+  // Rafraîchit les données dès qu'on bascule sur une vue (pour avoir du quasi temps réel)
+  loadData();
 }
 
 function startRotation() {
