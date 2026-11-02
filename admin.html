@@ -172,6 +172,7 @@
     <!-- ONGLET TSHIRTS -->
     <div class="tab-content" id="tab-tshirts">
       <div class="tshirt-grid" id="tshirt-grid"></div>
+      <div id="pe2-tshirts-tab"></div>
     </div>
 
     <!-- ONGLET TROPHÉES & PATCHS -->
@@ -270,7 +271,7 @@
     'hc2': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
     'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
     'pe':  ['parent-enfant'],
-    'pe2': ['parent-enfant','pack-photo'],
+    'pe2': ['parent-enfant','tshirts','pack-photo'],
     'kids': ['kids-appel','kids-inscrits','kids']
   };
 
@@ -1178,6 +1179,8 @@ function isParentEnfant(d) {
   }
 
   function renderTshirts() {
+    if (currentEvent === 'pe2') { document.getElementById('tshirt-grid').innerHTML = ''; return; } // PE #2 : rempli par renderParentEnfant (#pe2-tshirts-tab)
+    document.getElementById('pe2-tshirts-tab').innerHTML = '';
     var counts = {};
     eventData().forEach(function(d) {
       if (isParentEnfant(d) && currentEvent !== 'pe') return; // Parent-Enfant compté à part sauf dans son onglet
@@ -1373,6 +1376,35 @@ function isParentEnfant(d) {
     tHtml += '<div style="font-weight:800;color:#FFEE00;margin:1.5rem 0 0.5rem;">👕 T-shirts enfants</div>';
     tHtml += gridHtml(enfantCounts, function(a, b){ return parseInt(a) - parseInt(b); });
     document.getElementById('pe-tshirts').innerHTML = tHtml;
+
+    // Onglet 👕 T-shirts de la 2e édition : récap pour la commande (binômes payés uniquement)
+    if (currentEvent === 'pe2') {
+      var ORDRE = ['XS','S','M','L','XL','XXL','3XL'];
+      var tri = function(a, b){ return ORDRE.indexOf(a.split(' ')[0]) - ORDRE.indexOf(b.split(' ')[0]) || a.localeCompare(b); };
+      var somme = function(c){ return Object.keys(c).reduce(function(t, k){ return t + c[k]; }, 0); };
+      var nbP = somme(parentCounts), nbE = somme(enfantCounts);
+      var r = '<div style="font-size:13px;color:#888;margin-bottom:1rem;">Hyrox Parents / Enfants #2 · calculé sur les <strong style="color:#FFEE00;">' + list.length + ' binômes payés</strong> (inscriptions offertes comprises). Les parents qui ont déjà un t-shirt ne sont pas comptés.</div>';
+      r += '<div class="tshirt-grid" style="margin-bottom:0.5rem;">'
+        + '<div class="tshirt-card"><div class="tshirt-val">' + (nbP + nbE) + '</div><div class="tshirt-label">T-shirts au total</div></div>'
+        + '<div class="tshirt-card"><div class="tshirt-val">' + nbP + '</div><div class="tshirt-label">Adultes</div></div>'
+        + '<div class="tshirt-card"><div class="tshirt-val">' + nbE + '</div><div class="tshirt-label">Enfants</div></div></div>';
+      ['Femme', 'Homme'].forEach(function(coupe){
+        var c = {};
+        Object.keys(parentCounts).forEach(function(k){ if (k.indexOf(coupe) !== -1) c[k] = parentCounts[k]; });
+        r += '<div style="font-weight:800;color:#FFEE00;margin:1.5rem 0 0.5rem;">👕 Adultes — coupe ' + coupe + ' (' + somme(c) + ')</div>' + gridHtml(c, tri);
+      });
+      var autres = {};
+      Object.keys(parentCounts).forEach(function(k){ if (k.indexOf('Femme') === -1 && k.indexOf('Homme') === -1) autres[k] = parentCounts[k]; });
+      if (Object.keys(autres).length) r += '<div style="font-weight:800;color:#FFEE00;margin:1.5rem 0 0.5rem;">👕 Adultes — autre (' + somme(autres) + ')</div>' + gridHtml(autres, tri);
+      r += '<div style="font-weight:800;color:#FFEE00;margin:1.5rem 0 0.5rem;">👕 Enfants (' + nbE + ')</div>' + gridHtml(enfantCounts, function(a, b){
+        var na = parseInt(a), nb = parseInt(b); // tailles « ans » d'abord, puis tailles adulte prises par les grands
+        if (isNaN(na) || isNaN(nb)) return isNaN(na) - isNaN(nb) || tri(a, b);
+        return na - nb;
+      });
+      var sansEnfant = list.filter(function(d){ return !d.co1_tshirt; });
+      if (sansEnfant.length) r += '<div style="color:#FFA726;font-size:13px;margin-top:1rem;">⚠️ Taille enfant manquante : ' + sansEnfant.map(function(d){ return (d.prenom||'') + ' ' + (d.nom||'') + (d.co1_prenom ? ' + ' + d.co1_prenom : ''); }).join(', ') + '</div>';
+      document.getElementById('pe2-tshirts-tab').innerHTML = r;
+    }
   }
 
   async function verrouillerStandardDefaut() {
