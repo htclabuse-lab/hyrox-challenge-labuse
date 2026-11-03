@@ -460,13 +460,13 @@
           <button type="button" class="action-btn" disabled style="opacity:.4;cursor:not-allowed;">🏆 Leaderboard</button>
           <button type="button" class="action-btn" disabled style="opacity:.4;cursor:not-allowed;">🔍 Chercher mon résultat</button>
           <button type="button" class="action-btn" disabled style="opacity:.4;cursor:not-allowed;">📸 Photos</button>
-          <button type="button" class="action-btn" onclick="toggleSection('vagues-hc3',this); loadVaguesHC3();">📋 Vagues (provisoire)</button>
+          <button type="button" class="action-btn" onclick="toggleSection('vagues-hc3',this); loadVaguesHC3();">📋 Vagues (définitives)</button>
           <button type="button" class="action-btn" onclick="window.open('rulebook.html','_blank')">📘 Règlement</button>
         </div>
-        <p style="font-size:12px;color:#666;margin-top:12px;text-align:center;font-style:italic;">Le planning est provisoire · dossards attribués automatiquement le jour J.</p>
+        <p style="font-size:12px;color:#666;margin-top:12px;text-align:center;font-style:italic;">Le planning est définitif · dossards attribués automatiquement le jour J.</p>
         <div class="sub-section" id="vagues-hc3">
-          <div class="sub-title">📋 Planning des vagues — provisoire</div>
-          <p style="font-size:13px;color:#aaa;margin-bottom:12px;line-height:1.5;">Les vagues sont fixées. Elles peuvent encore être ajustées à la marge si demande justifiée (jusqu'à début novembre). Pas de dossard : tout est informatisé le jour J.</p>
+          <div class="sub-title">📋 Planning des vagues — définitif</div>
+          <p style="font-size:13px;color:#aaa;margin-bottom:12px;line-height:1.5;">Les vagues sont <strong style="color:#fff;">définitives</strong> — plus aucun changement d'horaire d'ici dimanche. Pas de dossard : tout est informatisé le jour J.</p>
           <div style="position:relative;margin-bottom:12px;">
             <input type="text" id="vagues-hc3-search" placeholder="🔍 Rechercher par nom ou équipe…" oninput="filterVaguesHC3()" style="width:100%;padding:10px 36px 10px 14px;background:#0a0a0a;border:2px solid #333;border-radius:8px;color:#fff;font-size:14px;outline:none;" onfocus="this.style.borderColor='#FFEE00'" onblur="this.style.borderColor='#333'">
             <button type="button" id="vagues-hc3-clear" onclick="document.getElementById('vagues-hc3-search').value='';filterVaguesHC3()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:#333;color:#fff;border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:12px;display:none;">✕</button>
