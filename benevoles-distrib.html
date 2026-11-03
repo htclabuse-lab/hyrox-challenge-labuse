@@ -78,6 +78,7 @@
 
   let data = [];
   let filterMode = 'pending';
+  let benevolesAthletesMap = {}; // email -> [{categorie, vague, heure_depart}]
 
   function login() {
     const p = document.getElementById('pwd').value.trim();
@@ -107,6 +108,19 @@
       const n = (a.nom || '').localeCompare((b.nom || ''), 'fr', { sensitivity: 'base' });
       if (n !== 0) return n;
       return (a.prenom || '').localeCompare((b.prenom || ''), 'fr', { sensitivity: 'base' });
+    });
+    // Croise avec les inscriptions payées du 15/11 (hors PE) pour afficher qui court aussi
+    const { data: inscrits } = await db.from('Inscriptions')
+      .select('email,categorie,vague,heure_depart')
+      .gte('heure_depart', '2026-11-15').lt('heure_depart', '2026-11-16')
+      .neq('categorie', 'Parent-Enfant')
+      .eq('statut_paiement', 'paye');
+    benevolesAthletesMap = {};
+    (inscrits || []).forEach(ins => {
+      const e = String(ins.email || '').trim().toLowerCase();
+      if (!e) return;
+      if (!benevolesAthletesMap[e]) benevolesAthletesMap[e] = [];
+      benevolesAthletesMap[e].push(ins);
     });
     render();
   }
@@ -195,6 +209,12 @@
       html += `<b>${(b.prenom || '').trim()} ${(b.nom || '').trim()}</b>`;
       if (b.telephone) html += `<div class="sub">📞 ${b.telephone}</div>`;
       html += `<div class="dispo">${dispoLabel}</div>`;
+      // 🏃 Court aussi ? (match par email avec Inscriptions payées du 15/11)
+      const athletes = benevolesAthletesMap[String(b.email || '').trim().toLowerCase()] || [];
+      athletes.forEach(a => {
+        const h = a.heure_depart ? new Date(a.heure_depart).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion' }) : '—';
+        html += `<div style="background:#2a0d0d;color:#FF6B6B;border-left:3px solid #C0392B;padding:3px 8px;margin-top:4px;font-size:11px;border-radius:3px;font-weight:700;">🏃 Court aussi — V${a.vague || '?'} ${h} <span style="color:#aaa;font-weight:400;">(${a.categorie || ''})</span></div>`;
+      });
       if (repasLabel && hasJournee(b)) html += `<div class="b-repas-choice">Choix : ${repasLabel}</div>`;
       html += `</div>`;
       html += `<div class="b-tshirt">🎽 ${tshirt}</div>`;
