@@ -176,7 +176,7 @@ export default async function handler(req, res) {
       // Mail générique à TOUS les inscrits HC #3 payés (15/11, hors PE).
       // Flatten capitaine + co1/2/3 → dédoublonne par email.
       const { data, error } = await db.from('Inscriptions')
-        .select('id,prenom,nom,email,co1_prenom,co1_nom,co1_email,co2_prenom,co2_nom,co2_email,co3_prenom,co3_nom,co3_email,categorie,heure_depart,statut_paiement')
+        .select('id,prenom,nom,email,co1_prenom,co1_nom,co1_email,co2_prenom,co2_nom,co3_prenom,co3_nom,categorie,heure_depart,statut_paiement')
         .gte('heure_depart', '2026-11-15').lt('heure_depart', '2026-11-16')
         .neq('categorie', 'Parent-Enfant')
         .eq('statut_paiement', 'paye');
@@ -191,8 +191,7 @@ export default async function handler(req, res) {
         };
         push(ins.prenom, ins.email);
         push(ins.co1_prenom, ins.co1_email);
-        push(ins.co2_prenom, ins.co2_email);
-        push(ins.co3_prenom, ins.co3_email);
+        // Pas de co2_email / co3_email en DB : les coéquipiers 2 et 3 ne reçoivent pas directement.
       });
       const emails = Object.keys(parEmail).sort();
       const prenomDe = e => {
