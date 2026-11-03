@@ -13,6 +13,10 @@ import { SUPABASE_URL } from '../lib/kids.js';
 // 2) CATEGORIE_CHANGE : confirme un changement de catégorie (vague inchangée).
 //    POST { password, mode: 'categorie_change', id: 680, ancienne_categorie: 'Solo Femme Scaled', test_to | envoyer }
 //    Un seul destinataire.
+//
+// 3) VAGUES_CLOSED : mail générique à TOUS les inscrits HC #3 payés (hors PE).
+//    « Vagues clôturées + rulebook à lire ». Dédoublonne par email (capitaine + co1/2/3).
+//    POST { password, mode: 'vagues_closed', dry_run: true | test_to: 'x@y.fr' | envoyer: true }
 // ============================================================================
 
 const FROM = 'Hyrox Challenge La Buse <noreply@htclabuse.fr>';
@@ -68,6 +72,23 @@ function mailCategorieChange(fiche, ancienne) {
       + '</div>'
       + '<p>À très vite pour l\'événement ! 💛🖤</p>'
       + '<p><strong>Stéphanie &amp; l\'équipe La Buse</strong></p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
+function mailVaguesClosed(prenom) {
+  const salut = prenom ? `Salut <strong>${prenom}</strong>,` : 'Salut à toi,';
+  return {
+    subject: '🏁 Hyrox Challenge La Buse #3 — vagues clôturées + rulebook (impératif)',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>${salut}</p>`
+      + '<p>Plus que quelques jours avant le <strong>Hyrox Challenge La Buse #3</strong> (dimanche 15 novembre 2026) !</p>'
+      + '<p><strong>⚠️ Les vagues sont désormais clôturées et finalisées.</strong> Plus aucun changement d\'horaire ne sera possible d\'ici dimanche. Vérifie une dernière fois ta <strong>vague et ton heure de départ</strong> (onglet « À venir » → section Vagues, recherche par nom ou équipe) :<br>👉 <a href="https://hyrox-challenge-labuse.vercel.app/#vagues">https://hyrox-challenge-labuse.vercel.app/#vagues</a></p>'
+      + '<p><strong>📘 LIRE LE RULEBOOK EST IMPÉRATIF.</strong> Règles du format, standards de mouvement, logistique, zones, horaires — tout y est. Prends 10 minutes, c\'est le meilleur investissement avant la course :<br>👉 <a href="https://hyrox-challenge-labuse.vercel.app/rulebook.html">https://hyrox-challenge-labuse.vercel.app/rulebook.html</a></p>'
+      + '<p>On a hâte de te voir dimanche. En attendant : repos, hydratation, et pas de PR la veille 😉</p>'
+      + '<p><strong>Stéphanie &amp; l\'équipe La Buse</strong> 💛🖤</p>'
       + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
       + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
       + '</div>'
@@ -151,7 +172,57 @@ export default async function handler(req, res) {
       return res.status(200).json({ envoye: true, envoyes: n, to: data.email });
     }
 
-    return res.status(400).json({ error: 'mode manquant : vague_change ou categorie_change' });
+    if (b.mode === 'vagues_closed') {
+      // Mail générique à TOUS les inscrits HC #3 payés (15/11, hors PE).
+      // Flatten capitaine + co1/2/3 → dédoublonne par email.
+      const { data, error } = await db.from('Inscriptions')
+        .select('id,prenom,nom,email,co1_prenom,co1_nom,co1_email,co2_prenom,co2_nom,co2_email,co3_prenom,co3_nom,co3_email,categorie,heure_depart,statut_paiement')
+        .gte('heure_depart', '2026-11-15').lt('heure_depart', '2026-11-16')
+        .neq('categorie', 'Parent-Enfant')
+        .eq('statut_paiement', 'paye');
+      if (error) return res.status(500).json({ error: error.message });
+      const EXCLUS = ['stephanie.caro31@gmail.com'];
+      const parEmail = {};
+      (data || []).forEach(ins => {
+        const push = (prenom, email) => {
+          const e = String(email || '').trim().toLowerCase();
+          if (!e || EXCLUS.includes(e)) return;
+          (parEmail[e] = parEmail[e] || []).push((prenom || '').trim());
+        };
+        push(ins.prenom, ins.email);
+        push(ins.co1_prenom, ins.co1_email);
+        push(ins.co2_prenom, ins.co2_email);
+        push(ins.co3_prenom, ins.co3_email);
+      });
+      const emails = Object.keys(parEmail).sort();
+      const prenomDe = e => {
+        const prenoms = [...new Set(parEmail[e].filter(Boolean))];
+        return prenoms.length === 1 ? prenoms[0] : null;
+      };
+
+      if (b.test_to) {
+        const n = await resendBatch(resendKey,
+          [{ from: FROM, to: String(b.test_to).trim(), reply_to: REPLY_TO, ...mailVaguesClosed('Stéphanie (APERÇU)') }],
+          `hc3-vagues-closed-test-${Date.now()}`);
+        return res.status(200).json({ test: true, envoyes: n, nb_destinataires_reels: emails.length });
+      }
+      if (b.envoyer !== true) {
+        return res.status(200).json({
+          dry_run: true,
+          nombre: emails.length,
+          apercu_10_premiers: emails.slice(0, 10).map(e => ({ email: e, salut_avec: prenomDe(e) || '«Salut à toi»' })),
+        });
+      }
+      let envoyes = 0;
+      for (let i = 0; i < emails.length; i += 100) {
+        envoyes += await resendBatch(resendKey,
+          emails.slice(i, i + 100).map(to => ({ from: FROM, to, reply_to: REPLY_TO, ...mailVaguesClosed(prenomDe(to)) })),
+          `hc3-vagues-closed-lot${i / 100}-v1`);
+      }
+      return res.status(200).json({ envoye: true, nombre: emails.length, envoyes });
+    }
+
+    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change ou vagues_closed' });
   } catch (e) {
     console.error('hc3-notif', e);
     return res.status(500).json({ error: e.message });
