@@ -103,6 +103,28 @@
   let data = [];
   let filterMode = 'pending';
 
+  // ⚠️ Date de naissance manquante ou invalide (année >= 2026 ou < 1920)
+  function dobInvalide(iso) {
+    if (!iso) return true;
+    const y = parseInt(String(iso).substr(0, 4), 10);
+    if (!y || isNaN(y)) return true;
+    if (y >= 2026 || y < 1920) return true;
+    return false;
+  }
+  function dobMissingNoms(d) {
+    const r = [];
+    if (dobInvalide(d.date_naissance)) r.push((d.prenom||'').trim());
+    if (d.co1_prenom && dobInvalide(d.co1_date_naissance)) r.push((d.co1_prenom||'').trim());
+    if (d.co2_prenom && dobInvalide(d.co2_date_naissance)) r.push((d.co2_prenom||'').trim());
+    if (d.co3_prenom && dobInvalide(d.co3_date_naissance)) r.push((d.co3_prenom||'').trim());
+    return r.filter(Boolean);
+  }
+  function dobAlertIcon(d) {
+    const noms = dobMissingNoms(d);
+    if (!noms.length) return '';
+    return `<span title="Date de naissance manquante : ${noms.join(', ')}" style="margin-left:6px;font-size:16px;cursor:help;">⚠️</span>`;
+  }
+
   function login() {
     const p = document.getElementById('pwd').value.trim();
     if (p !== PWD) { document.getElementById('login-error').textContent = '❌ Mot de passe incorrect'; return; }
@@ -125,7 +147,7 @@
 
   async function load() {
     const { data: rows } = await db.from('Inscriptions')
-      .select('id,prenom,nom,email,telephone,categorie,nom_equipe,tshirt_coupe,tshirt_taille,co1_prenom,co1_nom,co1_tshirt,co2_prenom,co2_nom,co2_tshirt,co3_prenom,co3_nom,co3_tshirt,dossard,vague,heure_depart,pack_remis_at,absent,abandon,statut_paiement')
+      .select('id,prenom,nom,email,telephone,categorie,nom_equipe,tshirt_coupe,tshirt_taille,co1_prenom,co1_nom,co1_tshirt,co2_prenom,co2_nom,co2_tshirt,co3_prenom,co3_nom,co3_tshirt,dossard,vague,heure_depart,pack_remis_at,absent,abandon,statut_paiement,date_naissance,co1_date_naissance,co2_date_naissance,co3_date_naissance')
       .neq('categorie', 'Parent-Enfant')
       .neq('categorie', 'Hyrox Kids Pré-inscription')
       .neq('categorie', 'Bénévole')
@@ -195,7 +217,7 @@
 
       html += `<div class="athlete ${cls}">`;
       html += `<div class="a-head">`;
-      html += `<div class="dossard">#${d.dossard}</div>`;
+      html += `<div class="dossard">#${d.dossard}${dobAlertIcon(d)}</div>`;
       // Pour les Duos : nom d'équipe (si fourni) + participants ; Duo sans équipe : 2 participants ; Solo : prénom nom
       const isDuo = (d.categorie || '').toLowerCase().startsWith('duo');
       const equipe = (d.nom_equipe || '').trim();
