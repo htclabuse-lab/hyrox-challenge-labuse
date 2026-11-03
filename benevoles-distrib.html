@@ -100,7 +100,9 @@
   }
 
   async function load() {
-    const { data: rows } = await db.from('Benevoles').select('*');
+    // HC #3 uniquement : même pivot que l'onglet "Bénévoles" d'admin.html (created_at >= 2026-09-01).
+    // Les bénévoles de HC #2 (juin-juillet 2026) restent en DB mais ne s'affichent plus ici.
+    const { data: rows } = await db.from('Benevoles').select('*').gte('created_at', '2026-09-01');
     data = (rows || []).sort((a, b) => {
       const n = (a.nom || '').localeCompare((b.nom || ''), 'fr', { sensitivity: 'base' });
       if (n !== 0) return n;
