@@ -78,6 +78,24 @@ function mailCategorieChange(fiche, ancienne) {
   };
 }
 
+function mailBenevolesRulebook(prenom) {
+  const salut = prenom ? `Salut <strong>${prenom}</strong>,` : 'Salut à toi,';
+  return {
+    subject: '🙌 HC #3 — merci d\'être bénévole ! Lis le rulebook pour tout comprendre',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>${salut}</p>`
+      + '<p>Merci encore d\'avoir répondu présent·e pour nous aider sur le <strong>Hyrox Challenge La Buse #3</strong> ce dimanche 15 novembre 2026 ! 💛🖤</p>'
+      + '<p>Pour que tu sois à l\'aise sur ton poste, il est <strong>important que tu lises le rulebook de la course</strong> : tu y trouveras les règles de chaque station, les pénalités, les standards de mouvement et le fonctionnement général de l\'événement. Ça te permettra de bien comprendre ce que font les athlètes et de répondre à leurs questions.</p>'
+      + '<p>👉 <a href="https://hyrox-challenge-labuse.vercel.app/rulebook.html">https://hyrox-challenge-labuse.vercel.app/rulebook.html</a></p>'
+      + '<p>On t\'enverra bientôt les derniers détails logistiques (lieu de rendez-vous, horaires exacts selon ta dispo).</p>'
+      + '<p>À très vite ! 🫶</p>'
+      + '<p><strong>Stéphanie &amp; l\'équipe La Buse</strong></p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 function mailVaguesClosed(prenom) {
   const salut = prenom ? `Salut <strong>${prenom}</strong>,` : 'Salut à toi,';
   return {
@@ -221,7 +239,48 @@ export default async function handler(req, res) {
       return res.status(200).json({ envoye: true, nombre: emails.length, envoyes });
     }
 
-    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change ou vagues_closed' });
+    if (b.mode === 'benevoles_rulebook') {
+      // Mail aux bénévoles HC #3 (created_at >= 2026-09-01, même pivot que l'admin).
+      const { data, error } = await db.from('Benevoles')
+        .select('id,prenom,email,created_at')
+        .gte('created_at', '2026-09-01');
+      if (error) return res.status(500).json({ error: error.message });
+      const EXCLUS = ['stephanie.caro31@gmail.com'];
+      const parEmail = {};
+      (data || []).forEach(r => {
+        const e = String(r.email || '').trim().toLowerCase();
+        if (!e || EXCLUS.includes(e)) return;
+        (parEmail[e] = parEmail[e] || []).push((r.prenom || '').trim());
+      });
+      const emails = Object.keys(parEmail).sort();
+      const prenomDe = e => {
+        const prenoms = [...new Set(parEmail[e].filter(Boolean))];
+        return prenoms.length === 1 ? prenoms[0] : null;
+      };
+
+      if (b.test_to) {
+        const n = await resendBatch(resendKey,
+          [{ from: FROM, to: String(b.test_to).trim(), reply_to: REPLY_TO, ...mailBenevolesRulebook('Stéphanie (APERÇU)') }],
+          `hc3-benev-rb-test-${Date.now()}`);
+        return res.status(200).json({ test: true, envoyes: n, nb_destinataires_reels: emails.length });
+      }
+      if (b.envoyer !== true) {
+        return res.status(200).json({
+          dry_run: true,
+          nombre: emails.length,
+          apercu_10_premiers: emails.slice(0, 10).map(e => ({ email: e, salut_avec: prenomDe(e) || '«Salut à toi»' })),
+        });
+      }
+      let envoyes = 0;
+      for (let i = 0; i < emails.length; i += 100) {
+        envoyes += await resendBatch(resendKey,
+          emails.slice(i, i + 100).map(to => ({ from: FROM, to, reply_to: REPLY_TO, ...mailBenevolesRulebook(prenomDe(to)) })),
+          `hc3-benev-rb-lot${i / 100}-v1`);
+      }
+      return res.status(200).json({ envoye: true, nombre: emails.length, envoyes });
+    }
+
+    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change, vagues_closed ou benevoles_rulebook' });
   } catch (e) {
     console.error('hc3-notif', e);
     return res.status(500).json({ error: e.message });
