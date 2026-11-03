@@ -241,13 +241,15 @@ export default async function handler(req, res) {
 
     if (b.mode === 'benevoles_rulebook') {
       // Mail aux bénévoles HC #3 (created_at >= 2026-09-01, même pivot que l'admin).
+      // Exclut ceux qui sont uniquement sur la veille (= Parent-Enfant samedi, pas HC #3 dimanche).
       const { data, error } = await db.from('Benevoles')
-        .select('id,prenom,email,created_at')
+        .select('id,prenom,email,disponibilites,created_at')
         .gte('created_at', '2026-09-01');
       if (error) return res.status(500).json({ error: error.message });
       const EXCLUS = ['stephanie.caro31@gmail.com'];
       const parEmail = {};
       (data || []).forEach(r => {
+        if ((r.disponibilites || '').trim() === 'veille') return; // uniquement samedi PE : ignorer
         const e = String(r.email || '').trim().toLowerCase();
         if (!e || EXCLUS.includes(e)) return;
         (parEmail[e] = parEmail[e] || []).push((r.prenom || '').trim());
