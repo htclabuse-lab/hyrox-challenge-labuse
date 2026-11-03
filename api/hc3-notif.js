@@ -211,11 +211,18 @@ export default async function handler(req, res) {
         push(ins.co1_prenom, ins.co1_email);
         // Pas de co2_email / co3_email en DB : les coéquipiers 2 et 3 ne reçoivent pas directement.
       });
-      const emails = Object.keys(parEmail).sort();
+      let emails = Object.keys(parEmail).sort();
       const prenomDe = e => {
         const prenoms = [...new Set(parEmail[e].filter(Boolean))];
         return prenoms.length === 1 ? prenoms[0] : null;
       };
+
+      // Cas « rattrapage » : cible un seul email (nouveau·elle inscrit·e tardif·ve).
+      if (b.only_email) {
+        const cible = String(b.only_email).trim().toLowerCase();
+        if (!parEmail[cible]) return res.status(404).json({ error: 'only_email absent de la liste HC #3' });
+        emails = [cible];
+      }
 
       if (b.test_to) {
         const n = await resendBatch(resendKey,
@@ -234,7 +241,7 @@ export default async function handler(req, res) {
       for (let i = 0; i < emails.length; i += 100) {
         envoyes += await resendBatch(resendKey,
           emails.slice(i, i + 100).map(to => ({ from: FROM, to, reply_to: REPLY_TO, ...mailVaguesClosed(prenomDe(to)) })),
-          `hc3-vagues-closed-lot${i / 100}-v1`);
+          b.only_email ? `hc3-vagues-closed-only-${b.only_email}-v1` : `hc3-vagues-closed-lot${i / 100}-v1`);
       }
       return res.status(200).json({ envoye: true, nombre: emails.length, envoyes });
     }
