@@ -119,10 +119,10 @@
     if (d.co3_prenom && dobInvalide(d.co3_date_naissance)) r.push((d.co3_prenom||'').trim());
     return r.filter(Boolean);
   }
-  function dobAlertIcon(d) {
+  function dobAlertText(d) {
     const noms = dobMissingNoms(d);
     if (!noms.length) return '';
-    return `<span title="Date de naissance manquante : ${noms.join(', ')}" style="margin-left:6px;font-size:16px;cursor:help;">⚠️</span>`;
+    return ` <span style="color:#FF6B6B;font-size:12px;font-weight:700;">(Manque date naissance)</span>`;
   }
 
   function login() {
@@ -217,7 +217,7 @@
 
       html += `<div class="athlete ${cls}">`;
       html += `<div class="a-head">`;
-      html += `<div class="dossard">#${d.dossard}${dobAlertIcon(d)}</div>`;
+      html += `<div class="dossard">#${d.dossard}</div>`;
       // Pour les Duos : nom d'équipe (si fourni) + participants ; Duo sans équipe : 2 participants ; Solo : prénom nom
       const isDuo = (d.categorie || '').toLowerCase().startsWith('duo');
       const equipe = (d.nom_equipe || '').trim();
@@ -227,12 +227,12 @@
         const p2 = `${(d.co1_prenom || '').trim()} ${(d.co1_nom || '').trim()}`.trim();
         const parts = [p1, p2].filter(Boolean).join(' + ');
         if (equipe) {
-          titre = `<b style="color:#FFEE00;">${equipe}</b><div style="font-size:11px;color:#888;margin-top:2px;">👥 ${parts}</div>`;
+          titre = `<b style="color:#FFEE00;">${equipe}</b>${dobAlertText(d)}<div style="font-size:11px;color:#888;margin-top:2px;">👥 ${parts}</div>`;
         } else {
-          titre = `<b>👥 ${parts}</b>`;
+          titre = `<b>👥 ${parts}</b>${dobAlertText(d)}`;
         }
       } else {
-        titre = `<b>${(d.prenom || '').trim()} ${(d.nom || '').trim()}</b>`;
+        titre = `<b>${(d.prenom || '').trim()} ${(d.nom || '').trim()}</b>${dobAlertText(d)}`;
       }
       html += `<div class="a-info">${titre}<div class="sub">${d.email || ''} · ${d.telephone || ''}</div><div class="cat">${d.categorie}</div></div>`;
       html += `<div class="a-meta">V${d.vague}<br><strong>${fmtHeure(d.heure_depart)}</strong></div>`;

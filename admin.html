@@ -907,11 +907,11 @@
     if (d.co3_prenom && dobInvalide(d.co3_date_naissance)) r.push((d.co3_prenom||'').trim());
     return r.filter(Boolean);
   }
-  // Icône d'alerte DOB à insérer dans un tableau (vide si pas d'alerte)
-  function dobAlertIcon(d) {
+  // Texte d'alerte DOB à insérer à côté du nom d'équipe (vide si pas d'alerte)
+  function dobAlertText(d) {
     var noms = dobMissingNoms(d);
     if (!noms.length) return '';
-    return ' <span title="Date de naissance manquante : ' + noms.join(', ') + '" style="cursor:help;font-size:14px;">⚠️</span>';
+    return ' <span style="color:#FF6B6B;font-size:11px;font-weight:700;">(Manque date naissance)</span>';
   }
 
   function renderPackPhoto() {
@@ -969,17 +969,18 @@
     if (!d) return '—';
     var isDuo = (d.categorie||'').toLowerCase().startsWith('duo');
     var equipe = (d.nom_equipe||'').trim();
+    var alerte = dobAlertText(d);
     if (isDuo) {
       var p1 = ((d.prenom||'') + ' ' + (d.nom||'')).trim();
       var p2 = ((d.co1_prenom||'') + ' ' + (d.co1_nom||'')).trim();
       var parts = [p1, p2].filter(Boolean).join(' + ');
       if (equipe) {
-        return '<strong style="color:#FFEE00;">' + equipe + '</strong>'
+        return '<strong style="color:#FFEE00;">' + equipe + '</strong>' + alerte
              + (parts ? '<div style="font-size:10px;color:#888;margin-top:2px;">👥 ' + parts + '</div>' : '');
       }
-      return parts ? '<span style="font-size:12px;color:#ddd;">👥 ' + parts + '</span>' : '—';
+      return (parts ? '<span style="font-size:12px;color:#ddd;">👥 ' + parts + '</span>' : '—') + alerte;
     }
-    return equipe ? '<strong style="color:#FFEE00;">' + equipe + '</strong>' : '—';
+    return (equipe ? '<strong style="color:#FFEE00;">' + equipe + '</strong>' : '—') + alerte;
   }
 
   function showMainTab(tab, btn) {
@@ -1019,7 +1020,7 @@
       var date = d.created_at ? new Date(d.created_at).toLocaleDateString('fr-FR') : '—';
       html += '<tr>';
       html += '<td style="color:#666;">' + (i+1) + '</td>';
-      html += '<td><strong style="color:#fff;">' + (d.nom||'—') + '</strong>' + dobAlertIcon(d) + '</td>';
+      html += '<td><strong style="color:#fff;">' + (d.nom||'—') + '</strong></td>';
       html += '<td>' + (d.prenom||'—') + '</td>';
       html += '<td style="font-size:12px;">' + (d.email||'—') + '</td>';
       html += '<td>' + (d.categorie||'—') + '</td>';
@@ -1097,7 +1098,7 @@ html += '<td style="font-size:12px;color:#FFEE00;">' + ageCell + '</td>';
       groups[key].forEach(function(d, i) {
         html += '<tr>';
         html += '<td style="color:#FFEE00;font-weight:700;">' + (i+1) + '</td>';
-        html += '<td><strong style="color:#fff;">' + (d.nom||'—') + '</strong>' + dobAlertIcon(d) + '</td>';
+        html += '<td><strong style="color:#fff;">' + (d.nom||'—') + '</strong></td>';
         html += '<td>' + (d.prenom||'—') + '</td>';
         html += '<td>' + cellEquipe(d) + '</td>';
         html += '<td>' + (d.temps_estime||'—') + '</td>';
@@ -1186,7 +1187,7 @@ function shortTemps(t) {
         html += '<div style="padding:10px 12px;border-bottom:1px solid #1a1a1a;">';
         html += '<div style="display:flex;gap:10px;align-items:center;">';
         html += '<div style="width:26px;height:26px;border-radius:50%;background:#FFEE00;color:#0a0a0a;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;flex-shrink:0;">' + athleteNum + '</div>';
-        html += '<div style="flex:1;min-width:0;color:#fff;font-weight:600;font-size:13px;line-height:1.3;">' + titreLigne + dobAlertIcon(d) + '</div>';
+        html += '<div style="flex:1;min-width:0;color:#fff;font-weight:600;font-size:13px;line-height:1.3;">' + titreLigne + dobAlertText(d) + '</div>';
         html += '<div style="color:#FFEE00;font-size:13px;font-weight:800;padding:4px 9px;border-radius:6px;background:#1a1a00;border:1px solid #3a3a00;flex-shrink:0;white-space:nowrap;font-variant-numeric:tabular-nums;">' + shortTemps(d.temps_estime) + '</div>';
         html += '</div>';
         html += '<div style="font-size:11px;color:#888;margin-top:4px;padding-left:36px;">' + getCatLabel(key) + '</div>';
