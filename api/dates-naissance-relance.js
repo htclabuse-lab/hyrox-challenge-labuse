@@ -6,13 +6,11 @@
 const FROM = 'Hyrox Challenge La Buse <noreply@htclabuse.fr>';
 const REPLY_TO = 'htclabuse@gmail.com';
 
-// Les 4 cas : si "capitaine", c'est la date du capitaine qui est fausse.
-// Si "coeq", c'est la date du coéquipier/coéquipière qui est fausse.
+// RELANCE v2 — il reste 2 dates de naissance manquantes/incorrectes au 2026-11-03.
+// Marine (#451) et Fabienne (#551) ont déjà répondu au 1er tour.
 const CAS = [
-  { id: 451, nom_prenom: 'Marine GEDOR',       email: 'marine.gmart@gmail.com',       equipe: 'Casbah, Camargue et Courbatures', champ: 'capitaine', personne_concernee: 'ta' },
-  { id: 479, nom_prenom: 'Clément Pitou',      email: 'clement.pitou97@gmail.com',    equipe: 'Call 911',                        champ: 'coeq', personne_concernee: 'Leo Garaios' },
-  { id: 551, nom_prenom: 'Fabienne Fontaine',  email: 'fabiennefontaine177@gmail.com', equipe: 'Les foldingues',                 champ: 'coeq', personne_concernee: 'Morgane Fontaine' },
-  { id: 612, nom_prenom: 'Jill Edmar',         email: 'jilledmar@orange.fr',          equipe: 'Big BaleZ',                       champ: 'coeq', personne_concernee: 'Sophie Balusson' },
+  { id: 479, nom_prenom: 'Clément Pitou', email: 'clement.pitou97@gmail.com', equipe: 'Call 911',  champ: 'coeq', personne_concernee: 'Leo Garaios' },
+  { id: 612, nom_prenom: 'Jill Edmar',    email: 'jilledmar@orange.fr',       equipe: 'Big BaleZ', champ: 'coeq', personne_concernee: 'Sophie Balusson' },
 ];
 
 function buildMail(c) {
@@ -20,9 +18,9 @@ function buildMail(c) {
   const equipeLigne = c.equipe ? `<p>Ton équipe : <strong>${c.equipe}</strong>.</p>` : '';
   let intro;
   if (c.champ === 'capitaine') {
-    intro = `Nous avons remarqué que <strong>ta date de naissance</strong> dans l'inscription semble incorrecte (une saisie bizarre). Peux-tu nous confirmer ta <strong>vraie date de naissance</strong> (format JJ/MM/AAAA) par retour de mail ?`;
+    intro = `Petit rappel : nous t'avions écrit il y a quelques jours car <strong>ta date de naissance</strong> dans l'inscription semble incorrecte. L'événement approche (dimanche 15 novembre) — peux-tu nous confirmer ta <strong>vraie date de naissance</strong> (format JJ/MM/AAAA) par retour de mail ?`;
   } else {
-    intro = `Nous avons remarqué que la date de naissance de <strong>${c.personne_concernee}</strong> (ton/ta coéquipier·e) semble incorrecte (une date de 2026 a été saisie). Peux-tu nous transmettre sa <strong>vraie date de naissance</strong> (format JJ/MM/AAAA) par retour de mail ?`;
+    intro = `Petit rappel : nous t'avions écrit il y a quelques jours car la date de naissance de <strong>${c.personne_concernee}</strong> (ton/ta coéquipier·e) semble incorrecte. L'événement approche (dimanche 15 novembre) — peux-tu nous transmettre sa <strong>vraie date de naissance</strong> (format JJ/MM/AAAA) par retour de mail ?`;
   }
   return {
     subject: '🏃 Hyrox Challenge La Buse #3 — correction date de naissance',
@@ -72,7 +70,7 @@ export default async function handler(req, res) {
     try {
       const r = await fetch('https://api.resend.com/emails', {
         method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json', 'Idempotency-Key': `dn-relance-${c.id}-v1` },
+        headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json', 'Idempotency-Key': `dn-relance-${c.id}-v2` },
         body: JSON.stringify({ from: FROM, to: c.email, reply_to: REPLY_TO, subject: mail.subject, html: mail.html })
       });
       const data = await r.json().catch(() => ({}));
