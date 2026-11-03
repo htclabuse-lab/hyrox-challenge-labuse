@@ -184,7 +184,6 @@
         prevCat = d.categorie;
       }
       const packed = isPacked(d);
-      const isDuo = /duo/i.test(d.categorie);
       const isRelais = /relais/i.test(d.categorie);
       const captT = (d.tshirt_taille && d.tshirt_coupe) ? `${d.tshirt_taille}` : '—';
       const captCoupe = d.tshirt_coupe || '';

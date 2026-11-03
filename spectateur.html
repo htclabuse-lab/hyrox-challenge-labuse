@@ -283,15 +283,13 @@ function trancheOfAge(age) {
   if (age < 55) return '45-54';
   return '55+';
 }
-// Pour les Duos : tranche d'âge = âge du plus jeune des 2 (règle Hyrox officielle)
+// Pour les équipes (Duo/Relais) : tranche d'âge = moyenne des âges des équipiers
 function trancheOf(d) {
-  const isDuo = (d.categorie || '').toLowerCase().startsWith('duo');
-  const a1 = getAge(d.date_naissance);
-  if (!isDuo) return trancheOfAge(a1);
-  const a2 = getAge(d.co1_date_naissance);
-  const ages = [a1, a2].filter(x => x != null);
+  const dobs = [d.date_naissance, d.co1_date_naissance, d.co2_date_naissance, d.co3_date_naissance].filter(Boolean);
+  const ages = dobs.map(getAge).filter(x => x != null);
   if (ages.length === 0) return '?';
-  return trancheOfAge(Math.min(...ages));
+  const moy = Math.round(ages.reduce((a,b) => a+b, 0) / ages.length);
+  return trancheOfAge(moy);
 }
 
 // Minutes max du temps estimé (pour calcul horaire podium)

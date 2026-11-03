@@ -98,6 +98,9 @@
       <div class="stat" id="stat-kids" style="display:none;"><div class="stat-val" id="total-kids">—</div><div class="stat-label">🧒 Kids inscrits (abonnement)</div></div>
     </div>
 
+    <!-- ⚠️ Alerte dates de naissance manquantes/invalides (à demander au pointage) -->
+    <div id="alert-dob-missing" style="margin:0 0 1rem;"></div>
+
     <div class="main-tabs">
       <button type="button" class="main-tab active" data-tab="inscription" onclick="showMainTab('inscription', this)">🕐 Ordre d'inscription</button>
       <button type="button" class="main-tab" data-tab="categories" onclick="showMainTab('categories', this)">📊 Par catégorie</button>
@@ -888,6 +891,51 @@
     document.getElementById('stat-kids').style.display = isKids ? '' : 'none';
     document.getElementById('label-inscrits').textContent = isPE ? 'Binômes inscrits' : 'Inscriptions';
     document.getElementById('total-kids').textContent = allKidsInsc.filter(function(d){ return d.statut_paiement === 'payé' || d.statut_paiement === 'impaye'; }).length;
+    renderAlertDOB();
+  }
+
+  // ⚠️ Détecte les fiches avec dates de naissance manquantes ou invalides (année >= 2026
+  // ou < 1920). Pour pouvoir les repérer et leur demander au moment du pointage.
+  function dobInvalide(iso) {
+    if (!iso) return true;
+    var y = parseInt(String(iso).substr(0, 4), 10);
+    if (!y || isNaN(y)) return true;
+    if (y >= 2026 || y < 1920) return true;
+    return false;
+  }
+  function renderAlertDOB() {
+    var el = document.getElementById('alert-dob-missing');
+    if (!el) return;
+    // Parent-Enfant : géré ailleurs — on skip pour ne pas doubler
+    if (currentEvent === 'pe' || currentEvent === 'pe2' || currentEvent === 'kids') { el.innerHTML = ''; return; }
+    var manquants = [];
+    eventData().filter(function(r){ return r.statut_paiement === 'paye'; }).forEach(function(d){
+      var personnes = [];
+      if (dobInvalide(d.date_naissance)) personnes.push((d.prenom||'') + ' ' + (d.nom||''));
+      if (d.co1_prenom && dobInvalide(d.co1_date_naissance)) personnes.push((d.co1_prenom||'') + ' ' + (d.co1_nom||''));
+      if (d.co2_prenom && dobInvalide(d.co2_date_naissance)) personnes.push((d.co2_prenom||'') + ' ' + (d.co2_nom||''));
+      if (d.co3_prenom && dobInvalide(d.co3_date_naissance)) personnes.push((d.co3_prenom||'') + ' ' + (d.co3_nom||''));
+      if (personnes.length) {
+        manquants.push({
+          dossard: d.dossard,
+          vague: d.vague,
+          equipe: (d.nom_equipe || '').trim() || ((d.prenom||'') + ' ' + (d.nom||'')).trim(),
+          personnes: personnes
+        });
+      }
+    });
+    if (!manquants.length) { el.innerHTML = ''; return; }
+    manquants.sort(function(a,b){ return (a.dossard||9999) - (b.dossard||9999); });
+    var html = '<div style="background:#2a1a00;border:2px solid #FFA726;border-radius:10px;padding:14px 18px;">'
+      + '<div style="font-size:14px;font-weight:800;color:#FFA726;margin-bottom:8px;">⚠️ Dates de naissance à récupérer au pointage (' + manquants.length + ')</div>'
+      + '<div style="font-size:12px;color:#ccc;margin-bottom:10px;">Repérer ces personnes à l\'arrivée pour corriger leur date de naissance.</div>'
+      + '<ul style="margin:0;padding-left:18px;color:#fff;font-size:13px;line-height:1.7;">';
+    manquants.forEach(function(m){
+      html += '<li><strong>Dossard ' + (m.dossard || '—') + '</strong> · V' + (m.vague || '—') + ' · ' + m.equipe
+        + ' <span style="color:#FFA726;">→ ' + m.personnes.join(', ') + '</span></li>';
+    });
+    html += '</ul></div>';
+    el.innerHTML = html;
   }
 
   function renderPackPhoto() {
