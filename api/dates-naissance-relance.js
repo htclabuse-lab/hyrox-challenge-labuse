@@ -9,7 +9,6 @@ const REPLY_TO = 'htclabuse@gmail.com';
 // RELANCE v2 — il reste 2 dates de naissance manquantes/incorrectes au 2026-11-03.
 // Marine (#451) et Fabienne (#551) ont déjà répondu au 1er tour.
 const CAS = [
-  { id: 479, nom_prenom: 'Clément Pitou', email: 'clement.pitou97@gmail.com', equipe: 'Call 911',  champ: 'coeq', personne_concernee: 'Leo Garaios' },
   { id: 612, nom_prenom: 'Jill Edmar',    email: 'jilledmar@orange.fr',       equipe: 'Big BaleZ', champ: 'coeq', personne_concernee: 'Sophie Balusson' },
 ];
 
@@ -70,7 +69,7 @@ export default async function handler(req, res) {
     try {
       const r = await fetch('https://api.resend.com/emails', {
         method: 'POST',
-        headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json', 'Idempotency-Key': `dn-relance-${c.id}-v2` },
+        headers: { 'Authorization': 'Bearer ' + resendKey, 'Content-Type': 'application/json', 'Idempotency-Key': `dn-relance-${c.id}-v3` },
         body: JSON.stringify({ from: FROM, to: c.email, reply_to: REPLY_TO, subject: mail.subject, html: mail.html })
       });
       const data = await r.json().catch(() => ({}));
