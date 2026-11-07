@@ -190,6 +190,7 @@
 
   function rendre() {
     var h = '';
+    var D = document.getElementById('date').value;
     ['petits','grands'].forEach(function(gk) {
       var g = GROUPES[gk];
       var l = LISTE.filter(function(x){ return x.groupe === gk; });
@@ -198,12 +199,17 @@
       if (!l.length) { h += '<div style="color:#666;padding:1rem;background:#1a1a1a;border-radius:10px;font-size:14px;">Personne ce samedi</div>'; return; }
       l.forEach(function(x) {
         var n = x.niveau || '';
+        // Mot laissé par l'orga pour ce samedi seulement, format « note:2026-11-07:en retard ».
+        var note = '';
+        var im = n.indexOf('note:' + D + ':');
+        if (im !== -1) note = n.slice(im + 6 + D.length).split('|')[0].trim();
         var tag = x.carnet ? '<span class="tag" style="background:#1a1a0a;border:1px solid #FFEE00;color:#FFEE00;">🎟️ carnet · ' + x.seances_restantes + '</span>'
           : (n.indexOf('seance_essai') !== -1 ? '<span class="tag" style="background:#001018;border:1px solid #00d8ff;color:#00d8ff;">🧪 essai</span>' : '');
         var cls = x.present === true ? ' ok' : (x.present === false ? ' no' : '');
         h += '<div class="appel-row' + cls + '">';
         h += '<div class="who"><div class="nom">' + esc(x.enfant) + ' ' + tag + '</div>';
-        h += '<div class="meta">' + esc(x.parent) + (x.telephone ? ' · <a href="tel:' + esc(x.telephone) + '" style="color:#FFEE00;">' + esc(x.telephone) + '</a>' : '') + '</div></div>';
+        h += '<div class="meta">' + esc(x.parent) + (x.telephone ? ' · <a href="tel:' + esc(x.telephone) + '" style="color:#FFEE00;">' + esc(x.telephone) + '</a>' : '') + '</div>'
+          + (note ? '<div class="meta" style="color:#FFEE00;font-weight:800;">⏰ ' + esc(note) + '</div>' : '') + '</div>';
         h += '<button class="btn-p oui' + (x.present===true?' on':'') + '" onclick="pointer(' + x.id + ',true)">✓</button>';
         h += '<button class="btn-p non' + (x.present===false?' on':'') + '" onclick="pointer(' + x.id + ',false)">✗</button>';
         h += '</div>';
