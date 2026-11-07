@@ -45,6 +45,9 @@
     .btn-fini { background: #4caf50; color: #fff; border: none; padding: 12px 14px; border-radius: 8px; font-weight: 800; font-size: 14px; cursor: pointer; min-width: 100px; }
     .btn-undo { background: transparent; color: #888; border: 1px solid #444; padding: 8px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
     .temps-fini { background: #0a3a0a; color: #4caf50; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-weight: 800; font-size: 16px; min-width: 100px; text-align: center; }
+    .binome-ligne { display: flex; align-items: center; gap: 6px; padding: 5px 0; }
+    .binome-noms { flex: 1; min-width: 0; }
+    .binome-ligne .badge-format { flex-shrink: 0; margin: 0; }
     .dossard-pill { background: #FFEE00; color: #0a0a0a; padding: 3px 9px; border-radius: 5px; font-weight: 800; font-size: 14px; font-family: monospace; margin-right: 6px; }
   </style>
 </head>
@@ -120,7 +123,8 @@
       .eq('categorie', 'Parent-Enfant')
       .gte('created_at', '2026-09-01')
       .eq('statut_paiement', 'paye')
-      .order('vague');
+      .order('vague')
+      .order('dossard');
     data = rows || [];
     render();
   }
@@ -131,6 +135,7 @@
   function isStarted(d) { return d.heure_debut_reelle; }
   function isFini(d) { return d.temps_final_s !== null && d.temps_final_s !== undefined; }
   function isAbsent(d) { return d.niveau && d.niveau.indexOf('ABSENT') !== -1; }
+  function badgeFormat(d) { return (d.niveau && d.niveau.indexOf('XL') !== -1) ? '<span class="badge-format badge-xl">400 m</span>' : '<span class="badge-format badge-std">200 m</span>'; }
 
   function render() {
     const byVague = {};
@@ -156,7 +161,7 @@
       if (started && !showStarted) return;
       shown++;
       const heurePrevue = fmtHeure(rows[0].heure_depart);
-      const binNames = rows.map(r => `<span class="dossard-pill">N°${r.dossard || '?'}</span>${(r.prenom||'').trim()} + ${(r.co1_prenom||'').trim()}`).join(' · ');
+      const binNames = rows.map(r => `<div class="binome-ligne"><span class="dossard-pill">N°${r.dossard || '?'}</span><span class="binome-noms">${(r.prenom||'').trim()} + ${(r.co1_prenom||'').trim()}</span>${badgeFormat(r)}</div>`).join('');
       html += `<div class="vague ${started ? 'started' : ''}">`;
       html += `<div class="vague-head"><div class="vague-name">Vague ${v}</div><div class="vague-heure">${heurePrevue} <span style="font-size:11px;color:#666;">prévu</span></div></div>`;
       html += `<div class="vague-binomes">${binNames}</div>`;
@@ -203,9 +208,9 @@
         const abs = isAbsent(d);
         const fini = isFini(d);
         if (filterMode === 'active' && (fini || abs)) return;
-        const fmtBadge = (d.niveau && d.niveau.indexOf('XL') !== -1) ? '<span class="badge-format badge-xl">XL</span>' : '<span class="badge-format badge-std">STD</span>';
+        const fmtBadge = badgeFormat(d);
         html += `<div class="binome${abs ? ' row-abs' : ''}">`;
-        html += `<div class="binome-info"><span class="dossard-pill">N°${d.dossard || '?'}</span>${fmtBadge}<b>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</b><div class="sub">+ ${(d.co1_prenom||'').trim()} ${(d.co1_nom||'').trim()}</div></div>`;
+        html += `<div class="binome-info"><span class="dossard-pill">N°${d.dossard || '?'}</span>${fmtBadge}<b style="display:block;margin-top:6px;">${(d.prenom||'').trim()} ${(d.nom||'').trim()}</b><div class="sub">+ ${(d.co1_prenom||'').trim()} ${(d.co1_nom||'').trim()}</div></div>`;
         if (abs) html += `<div style="font-size:11px;color:#666;">—</div>`;
         else if (fini) {
           html += `<div class="temps-fini">${fmtChrono(d.temps_final_s*1000)}</div>`;
