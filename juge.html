@@ -817,7 +817,8 @@ async function refreshStarterData() {
           label = ((r.prenom || '') + ' ' + (r.nom || '')).trim();
         }
       }
-      return '<div class="vague-athlete"><span class="doss">#' + r.dossard + '</span>' + escapeHtml(label) + '</div>';
+      const packAbsent = !r.pack_remis_at ? ' <span style="background:#C0392B;color:#fff;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:800;letter-spacing:0.5px;margin-left:4px;">⚠ ABSENT</span>' : '';
+      return '<div class="vague-athlete"><span class="doss">#' + r.dossard + '</span>' + escapeHtml(label) + packAbsent + '</div>';
     }).join('') + '</div>';
   }
 

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-in Accueil PE — Hyrox Challenge La Buse</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    .header { background: #FFEE00; color: #0a0a0a; padding: 16px; border-radius: 12px; margin-bottom: 1rem; text-align: center; }
+    .header h1 { font-size: 20px; }
+    .header p { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+    .login { background: #1a1a1a; border-radius: 12px; padding: 1.5rem; text-align: center; }
+    .login input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 16px; margin: 10px 0; }
+    .login button { width: 100%; padding: 12px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; }
+    .toolbar { background: #1a1a1a; padding: 12px; border-radius: 12px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+    .search-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 16px; }
+    .filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-row button { flex: 1; min-width: 90px; background: #0a0a0a; color: #888; border: 1px solid #333; padding: 8px 10px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+    .filter-row button.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; font-weight: 800; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px; }
+    .stat { background: #1a1a1a; border-radius: 10px; padding: 10px; text-align: center; }
+    .stat-n { font-size: 22px; font-weight: 800; }
+    .stat-n.done { color: #4caf50; }
+    .stat-n.pending { color: #FFA726; }
+    .stat-n.absent { color: #888; }
+    .stat-n.abandon { color: #C0392B; }
+    .stat-l { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .athlete { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+    .athlete.done { border-color: #4caf50; background: #0a1a0a; opacity: 0.85; }
+    .athlete.absent { border-color: #666; background: #151515; opacity: 0.7; }
+    .athlete.abandon { border-color: #C0392B; background: #1a0a0a; }
+    .status-badges { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+    .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
+    .badge-absent { background: #444; color: #fff; }
+    .badge-abandon { background: #C0392B; color: #fff; }
+    .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .btn-absent { padding: 10px; background: transparent; color: #888; border: 1px solid #444; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .btn-absent.active { background: #444; color: #fff; border-color: #666; }
+    .btn-abandon { padding: 10px; background: transparent; color: #C0392B; border: 1px solid #4a1a1a; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+    .btn-abandon.active { background: #C0392B; color: #fff; border-color: #C0392B; }
+    .a-head { display: flex; gap: 12px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+    .dossard { background: #FFEE00; color: #0a0a0a; padding: 8px 16px; border-radius: 8px; font-weight: 900; font-size: 26px; font-family: monospace; min-width: 70px; text-align: center; flex-shrink: 0; }
+    .a-info { flex: 1; min-width: 200px; }
+    .a-info b { color: #fff; }
+    .a-info .sub { font-size: 12px; color: #888; margin-top: 2px; }
+    .a-info .cat { display: inline-block; background: #333; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-top: 4px; }
+    .a-meta { font-size: 12px; color: #888; text-align: right; }
+    .a-meta strong { color: #FFEE00; }
+    .team { background: #FFEE00; color: #0a0a0a; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin: 8px 0; }
+    .tshirts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+    .tshirt-card { background: #0a0a0a; border: 1px solid #1B7B49; border-radius: 8px; padding: 8px; text-align: center; }
+    .tshirt-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .tshirt-size { font-size: 18px; font-weight: 800; color: #fff; font-family: monospace; }
+    .tshirt-coupe { font-size: 11px; color: #aaa; margin-top: 2px; }
+    .btn-pack { width: 100%; padding: 14px; background: #4caf50; color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: 800; cursor: pointer; letter-spacing: 1px; }
+    .btn-pack:hover { background: #2e7d32; }
+    .pack-done { background: #0a3a0a; color: #4caf50; padding: 10px; border-radius: 8px; text-align: center; font-weight: 700; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .btn-undo { background: transparent; color: #888; border: 1px solid #444; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+    .empty { text-align: center; color: #666; padding: 2rem; font-size: 14px; }
+    .cat-banner { background: linear-gradient(90deg, #C0392B, #FFEE00); color: #0a0a0a; padding: 10px 14px; border-radius: 10px; margin: 18px 0 10px; font-weight: 900; font-size: 14px; letter-spacing: 1px; text-align: center; text-transform: uppercase; }
+    .cat-banner:first-child { margin-top: 0; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <h1>👨‍👧 Check-in Accueil Parent-Enfant</h1>
+    <p>Hyrox Parents / Enfants #2 — Samedi 14 novembre 2026</p>
+  </div>
+
+  <div id="login" class="login">
+    <div style="font-size:14px;color:#888;margin-bottom:10px;">Mot de passe</div>
+    <input type="password" id="pwd" placeholder="••••••••">
+    <button onclick="login()">Connexion</button>
+    <div id="login-error" style="color:#C0392B;font-size:13px;margin-top:8px;"></div>
+  </div>
+
+  <div id="app" style="display:none;">
+    <div class="toolbar">
+      <input type="text" id="search" class="search-input" placeholder="🔍 Chercher par nom, prénom, équipe ou dossard…" oninput="render()">
+      <div class="filter-row">
+        <button class="active" data-filter="pending" onclick="setFilter('pending')">⏳ À remettre</button>
+        <button data-filter="done" onclick="setFilter('done')">✅ Pack remis</button>
+        <button data-filter="absent" onclick="setFilter('absent')">⚫ Absents</button>
+        <button data-filter="abandon" onclick="setFilter('abandon')">🚫 Abandons</button>
+        <button data-filter="all" onclick="setFilter('all')">Tout</button>
+      </div>
+    </div>
+    <div id="stats" class="stats"></div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const PWD = 'labuse';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  let data = [];
+  let filterMode = 'pending';
+
+  function login() {
+    const p = document.getElementById('pwd').value.trim();
+    if (p !== PWD) { document.getElementById('login-error').textContent = '❌ Mot de passe incorrect'; return; }
+    sessionStorage.setItem('pe_auth', '1');
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    load();
+  }
+  if (sessionStorage.getItem('pe_auth') === '1') {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    setTimeout(load, 0);
+  }
+
+  function setFilter(m) {
+    filterMode = m;
+    document.querySelectorAll('.filter-row button').forEach(b => b.classList.toggle('active', b.dataset.filter === m));
+    render();
+  }
+
+  async function load() {
+    const { data: rows } = await db.from('Inscriptions')
+      .select('id,prenom,nom,email,telephone,categorie,nom_equipe,tshirt_coupe,tshirt_taille,co1_prenom,co1_nom,co1_tshirt,dossard,vague,heure_depart,pack_remis_at,absent,abandon,statut_paiement')
+      .eq('categorie', 'Parent-Enfant')
+      .eq('statut_paiement', 'paye')
+      .gte('heure_depart', '2026-11-14')
+      .lt('heure_depart', '2026-11-15')
+      .order('dossard');
+    data = rows || [];
+    render();
+  }
+  setInterval(load, 30000);
+
+  function fmtHeure(iso) {
+    if (!iso) return '?';
+    return new Date(iso).toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion'});
+  }
+  function norm(s) { return (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+  function isPacked(d) { return !!d.pack_remis_at; }
+
+  function render() {
+    const q = norm(document.getElementById('search').value.trim());
+    const all = data.filter(d => {
+      if (q) {
+        const hay = norm(`${d.prenom} ${d.nom} ${d.nom_equipe} ${d.dossard} ${d.co1_prenom} ${d.co1_nom}`);
+        if (!hay.includes(q)) return false;
+      }
+      const packed = isPacked(d);
+      if (filterMode === 'pending' && (packed || d.absent)) return false;
+      if (filterMode === 'done' && !packed) return false;
+      if (filterMode === 'absent' && !d.absent) return false;
+      if (filterMode === 'abandon' && !d.abandon) return false;
+      return true;
+    });
+
+    const nbDone = data.filter(isPacked).length;
+    const nbAbsent = data.filter(d => d.absent).length;
+    const nbAbandon = data.filter(d => d.abandon).length;
+    const nbPending = data.filter(d => !isPacked(d) && !d.absent).length;
+    document.getElementById('stats').innerHTML = `
+      <div class="stat"><div class="stat-n pending">${nbPending}</div><div class="stat-l">⏳ À remettre</div></div>
+      <div class="stat"><div class="stat-n done">${nbDone}</div><div class="stat-l">✅ Pack remis</div></div>
+      <div class="stat"><div class="stat-n absent">${nbAbsent}</div><div class="stat-l">⚫ Absents</div></div>
+      <div class="stat"><div class="stat-n abandon">${nbAbandon}</div><div class="stat-l">🚫 Abandons</div></div>
+    `;
+
+    if (all.length === 0) {
+      document.getElementById('content').innerHTML = `<div class="empty">${q ? 'Aucun résultat.' : 'Personne dans ce filtre.'}</div>`;
+      return;
+    }
+
+    let html = '';
+    let prevVague = null;
+    all.forEach(d => {
+      if (d.vague !== prevVague) {
+        html += `<div class="cat-banner">🏁 Vague ${d.vague} — ${fmtHeure(d.heure_depart)}</div>`;
+        prevVague = d.vague;
+      }
+      const packed = isPacked(d);
+      const captT = d.tshirt_taille || '—';
+      const captCoupe = d.tshirt_coupe || '';
+
+      let cls = '';
+      if (d.abandon) cls = 'abandon';
+      else if (d.absent) cls = 'absent';
+      else if (packed) cls = 'done';
+
+      html += `<div class="athlete ${cls}">`;
+      html += `<div class="a-head">`;
+      html += `<div class="dossard">#${d.dossard}</div>`;
+      const parent = `${(d.prenom || '').trim()} ${(d.nom || '').trim()}`.trim();
+      const enfant = `${(d.co1_prenom || '').trim()} ${(d.co1_nom || '').trim()}`.trim();
+      const equipe = (d.nom_equipe || '').trim();
+      let titre;
+      if (equipe) {
+        titre = `<b style="color:#FFEE00;">${equipe}</b><div style="font-size:11px;color:#888;margin-top:2px;">👨‍👧 ${parent} + ${enfant}</div>`;
+      } else {
+        titre = `<b>👨‍👧 ${parent} + ${enfant}</b>`;
+      }
+      html += `<div class="a-info">${titre}<div class="sub">${d.email || ''} · ${d.telephone || ''}</div><div class="cat">Parent-Enfant</div></div>`;
+      html += `<div class="a-meta">V${d.vague}<br><strong>${fmtHeure(d.heure_depart)}</strong></div>`;
+      html += `</div>`;
+
+      if (d.absent || d.abandon) {
+        html += `<div class="status-badges">`;
+        if (d.absent) html += `<span class="status-badge badge-absent">⚫ ABSENT</span>`;
+        if (d.abandon) html += `<span class="status-badge badge-abandon">🚫 ABANDON</span>`;
+        html += `</div>`;
+      }
+
+      html += `<div class="tshirts">`;
+      html += `<div class="tshirt-card"><div class="tshirt-label">👤 ${(d.prenom || '').trim()}</div><div class="tshirt-size">${captT}</div><div class="tshirt-coupe">${captCoupe}</div></div>`;
+      if (d.co1_prenom && d.co1_prenom.trim()) {
+        html += `<div class="tshirt-card"><div class="tshirt-label">👤 ${d.co1_prenom.trim()}</div><div class="tshirt-size">${d.co1_tshirt || '—'}</div><div class="tshirt-coupe">&nbsp;</div></div>`;
+      }
+      html += `</div>`;
+
+      if (packed) {
+        html += `<div class="pack-done"><span>✅ Pack remis à ${fmtHeure(d.pack_remis_at)}</span><button class="btn-undo" onclick="undoPack(${d.id})">↺ Annuler</button></div>`;
+      } else {
+        html += `<button class="btn-pack" onclick="givePack(${d.id})">✅ PACK REMIS</button>`;
+      }
+
+      html += `<div class="action-row">`;
+      html += `<button class="btn-absent ${d.absent ? 'active' : ''}" onclick="toggleAbsent(${d.id}, ${!d.absent})">${d.absent ? '↺ Annuler absent' : '⚫ Marquer absent'}</button>`;
+      html += `<button class="btn-abandon ${d.abandon ? 'active' : ''}" onclick="toggleAbandon(${d.id}, ${!d.abandon})">${d.abandon ? '↺ Annuler abandon' : '🚫 Marquer abandon'}</button>`;
+      html += `</div>`;
+      html += `</div>`;
+    });
+    document.getElementById('content').innerHTML = html;
+  }
+
+  async function givePack(id) {
+    const now = new Date().toISOString();
+    await db.from('Inscriptions').update({ pack_remis_at: now }).eq('id', id);
+    await load();
+  }
+  async function undoPack(id) {
+    if (!confirm('Annuler la remise du pack ?')) return;
+    await db.from('Inscriptions').update({ pack_remis_at: null }).eq('id', id);
+    await load();
+  }
+  async function toggleAbsent(id, next) {
+    if (next && !confirm('Marquer cette personne comme absente ?')) return;
+    await db.from('Inscriptions').update({ absent: next }).eq('id', id);
+    await load();
+  }
+  async function toggleAbandon(id, next) {
+    if (next && !confirm('Marquer cette personne comme abandon ?')) return;
+    await db.from('Inscriptions').update({ abandon: next }).eq('id', id);
+    await load();
+  }
+</script>
+</body>
+</html>

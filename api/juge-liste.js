@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
     const { data, error } = await supabase
       .from('Inscriptions')
-      .select('id, dossard, nom, prenom, categorie, nom_equipe, co1_prenom, co1_nom, vague, heure_depart, heure_debut_reelle, statut_paiement, temps_estime, absent, abandon')
+      .select('id, dossard, nom, prenom, categorie, nom_equipe, co1_prenom, co1_nom, vague, heure_depart, heure_debut_reelle, statut_paiement, temps_estime, absent, abandon, pack_remis_at')
       .not('dossard', 'is', null)
       .neq('categorie', 'Parent-Enfant')
       .neq('categorie', 'Hyrox Kids Pré-inscription')

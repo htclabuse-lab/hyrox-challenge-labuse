@@ -105,6 +105,8 @@
       <button type="button" class="main-tab" data-tab="tshirts" onclick="showMainTab('tshirts', this)">👕 T-shirts</button>
       <button type="button" class="main-tab" data-tab="inventaire" onclick="showMainTab('inventaire', this)">🏆 Trophées & Patchs</button>
       <button type="button" class="main-tab" data-tab="pack-photo" onclick="showMainTab('pack-photo', this)">📸 Pack photo</button>
+      <button type="button" class="main-tab" data-tab="pack-hc3" onclick="showMainTab('pack-hc3', this)">📦 Pack HC #3</button>
+      <button type="button" class="main-tab" data-tab="pack-pe2" onclick="showMainTab('pack-pe2', this)">📦 Pack PE #2</button>
       <button type="button" class="main-tab" data-tab="parent-enfant" onclick="showMainTab('parent-enfant', this)">👨‍👧 Parent-Enfant</button>
       <button type="button" class="main-tab" data-tab="benevoles" onclick="showMainTab('benevoles', this)">🙌 Bénévoles</button>
       <button type="button" class="main-tab" data-tab="kids-appel" onclick="showMainTab('kids-appel', this)">📋 Feuille d'appel Kids</button>
@@ -184,6 +186,18 @@
     <!-- ONGLET PACK PHOTO -->
     <div class="tab-content" id="tab-pack-photo">
       <div id="pack-photo-content"></div>
+    </div>
+
+    <!-- ONGLET PACK HC #3 (check-in accueil, iframe vers accueil.html) -->
+    <div class="tab-content" id="tab-pack-hc3">
+      <div style="font-size:13px;color:#888;margin-bottom:10px;">Check-in accueil HC #3 — remise des packs, absents, abandons. Fonctionne aussi en direct depuis <a href="accueil.html" target="_blank" style="color:#FFEE00;">accueil.html</a>.</div>
+      <iframe src="accueil.html" style="width:100%;height:calc(100vh - 220px);min-height:600px;border:1px solid #333;border-radius:10px;background:#0a0a0a;" title="Check-in Accueil HC #3"></iframe>
+    </div>
+
+    <!-- ONGLET PACK PE #2 (check-in accueil PE, iframe vers pe-accueil.html) -->
+    <div class="tab-content" id="tab-pack-pe2">
+      <div style="font-size:13px;color:#888;margin-bottom:10px;">Check-in accueil Parent-Enfant #2 (samedi 14 nov.) — remise des packs, absents, abandons. Fonctionne aussi en direct depuis <a href="pe-accueil.html" target="_blank" style="color:#FFEE00;">pe-accueil.html</a>.</div>
+      <iframe src="pe-accueil.html" style="width:100%;height:calc(100vh - 220px);min-height:600px;border:1px solid #333;border-radius:10px;background:#0a0a0a;" title="Check-in Accueil PE #2"></iframe>
     </div>
 
     <!-- ONGLET PARENT-ENFANT -->
