@@ -119,7 +119,7 @@
 
   async function load() {
     const { data: rows } = await db.from('Inscriptions')
-      .select('id,prenom,nom,co1_prenom,co1_nom,vague,heure_depart,niveau,heure_debut_reelle,temps_final_s,dossard,statut_paiement')
+      .select('id,prenom,nom,co1_prenom,co1_nom,vague,heure_depart,niveau,heure_debut_reelle,temps_final_s,dossard,statut_paiement,pack_remis_at')
       .eq('categorie', 'Parent-Enfant')
       .gte('created_at', '2026-09-01')
       .eq('statut_paiement', 'paye')
@@ -161,7 +161,10 @@
       if (started && !showStarted) return;
       shown++;
       const heurePrevue = fmtHeure(rows[0].heure_depart);
-      const binNames = rows.map(r => `<div class="binome-ligne"><span class="dossard-pill">N°${r.dossard || '?'}</span><span class="binome-noms">${(r.prenom||'').trim()} + ${(r.co1_prenom||'').trim()}</span>${badgeFormat(r)}</div>`).join('');
+      const binNames = rows.map(r => {
+        const packAbsent = !r.pack_remis_at ? ' <span style="background:#C0392B;color:#fff;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:800;letter-spacing:0.5px;margin-left:4px;">⚠ ABSENT</span>' : '';
+        return `<div class="binome-ligne"><span class="dossard-pill">N°${r.dossard || '?'}</span><span class="binome-noms">${(r.prenom||'').trim()} + ${(r.co1_prenom||'').trim()}${packAbsent}</span>${badgeFormat(r)}</div>`;
+      }).join('');
       html += `<div class="vague ${started ? 'started' : ''}">`;
       html += `<div class="vague-head"><div class="vague-name">Vague ${v}</div><div class="vague-heure">${heurePrevue} <span style="font-size:11px;color:#666;">prévu</span></div></div>`;
       html += `<div class="vague-binomes">${binNames}</div>`;
