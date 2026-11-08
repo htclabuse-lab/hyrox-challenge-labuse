@@ -171,10 +171,13 @@
       ? `<span class="done">✓ ${nb}/${st.besoin}</span>`
       : `<span class="missing">⚠ ${nb}/${st.besoin}</span>`;
 
+    // On affiche au moins `besoin` lignes + 1 case vide supplémentaire tant qu'il reste du monde à mettre
+    const nbSlots = Math.max(st.besoin, affectes.length) + 1;
     let slots = '';
-    for (let i = 0; i < st.besoin; i++) {
+    for (let i = 0; i < nbSlots; i++) {
       const b = affectes[i];
-      slots += slotRow(st.nom, shift, b);
+      const enPlus = i >= st.besoin;
+      slots += slotRow(st.nom, shift, b, enPlus);
     }
     return `<div class="shift-cell">
       <div class="label"><span>${shift === 'matin' ? '🌅 Matin' : '🌇 Aprem'}</span>${statusLabel}</div>
@@ -182,14 +185,15 @@
     </div>`;
   }
 
-  function slotRow(station, shift, b) {
-    // Bénévoles dispo pour ce shift ET pas déjà affectés ailleurs sur ce shift
-    const dejaAilleurs = new Set(benevoles.filter(x => x[`station_${shift}`] && x[`station_${shift}`] !== station).map(x => x.id));
+  function slotRow(station, shift, b, enPlus) {
+    // Bénévoles dispo pour ce shift ET pas déjà placés (sauf celui de ce slot précis)
+    const currentId = b ? b.id : null;
+    const dejaPlaces = new Set(benevoles.filter(x => x[`station_${shift}`] && x.id !== currentId).map(x => x.id));
     const opts = benevoles
       .filter(x => dispoPour(x, shift))
-      .filter(x => !dejaAilleurs.has(x.id))
+      .filter(x => !dejaPlaces.has(x.id))
       .map(x => {
-        const sel = b && b.id === x.id ? 'selected' : '';
+        const sel = currentId === x.id ? 'selected' : '';
         const marker = estJournee(x) ? ' ☀️' : '';
         return `<option value="${x.id}" ${sel}>${(x.prenom||'').trim()} ${(x.nom||'').trim().toUpperCase()}${marker}</option>`;
       }).join('');
@@ -202,9 +206,10 @@
          </select>`
       : '';
 
+    const placeholder = enPlus ? '— Ajouter un bénévole en plus —' : '— Choisir un bénévole —';
     return `<div class="slot">
-      <select data-type="slot" data-station="${station}" data-shift="${shift}" class="${current ? 'filled' : ''}">
-        <option value="">— Choisir un bénévole —</option>
+      <select data-type="slot" data-station="${station}" data-shift="${shift}" data-prev-id="${current}" class="${current ? 'filled' : ''}">
+        <option value="">${placeholder}</option>
         ${opts}
       </select>
       ${pauseHtml}
@@ -215,15 +220,15 @@
     const sel = e.target;
     const station = sel.dataset.station;
     const shift = sel.dataset.shift;
-    const newId = sel.value ? parseInt(sel.value, 10) : null;
     const col = `station_${shift}`;
+    const newId = sel.value ? parseInt(sel.value, 10) : null;
+    const prevId = sel.dataset.prevId ? parseInt(sel.dataset.prevId, 10) : null;
 
-    // 1) Libérer celui qui était là
-    const prev = benevoles.find(b => b[col] === station);
-    const prevId = prev && prev.id;
+    // 1) Libérer le bénévole qui était précisément dans CE slot
     if (prevId && prevId !== newId) {
       await db.from('Benevoles').update({ [col]: null }).eq('id', prevId);
-      prev[col] = null;
+      const prev = benevoles.find(b => b.id === prevId);
+      if (prev) prev[col] = null;
     }
     // 2) Affecter le nouveau (en s'assurant de libérer son ancienne station de ce shift)
     if (newId) {
