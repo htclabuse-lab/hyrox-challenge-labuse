@@ -171,8 +171,11 @@
       ? `<span class="done">✓ ${nb}/${st.besoin}</span>`
       : `<span class="missing">⚠ ${nb}/${st.besoin}</span>`;
 
-    // On affiche au moins `besoin` lignes + 1 case vide supplémentaire tant qu'il reste du monde à mettre
-    const nbSlots = Math.max(st.besoin, affectes.length) + 1;
+    // On affiche au moins `besoin` lignes + 1 case vide supplémentaire tant qu'il reste des bénévoles disponibles pour ce shift
+    const totalDispoCeShift = benevoles.filter(x => dispoPour(x, shift)).length;
+    const nbPlacesCeShift = benevoles.filter(x => x[`station_${shift}`]).length;
+    const resteDispo = totalDispoCeShift - nbPlacesCeShift;
+    const nbSlots = Math.max(st.besoin, affectes.length) + (resteDispo > 0 ? 1 : 0);
     let slots = '';
     for (let i = 0; i < nbSlots; i++) {
       const b = affectes[i];
