@@ -40,6 +40,14 @@
     .pause-line .pause-abs { text-align: right; font-size: 10px; color: #888; }
     .pause-line.bad .pause-abs { color: #ff6666; }
     .pause-warn { color: #ffaa00; margin-top: 4px; font-weight: 700; font-size: 11px; }
+    .rempl-block { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #444; }
+    .rempl-title { color: #FFA726; font-weight: 800; margin-bottom: 6px; font-size: 11px; letter-spacing: 0.5px; }
+    .rempl-title.ok { color: #4caf50; }
+    .rempl-creneau { margin-bottom: 8px; }
+    .rempl-ligne { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
+    .rempl-need { color: #ff6666; font-weight: 700; }
+    .rempl-sel { background: #0a0a0a; border: 1px solid #333; border-radius: 6px; color: #fff; font-size: 11px; padding: 4px 6px; width: 100%; margin-bottom: 3px; }
+    .rempl-sel.filled { background: #0a2a0a; border-color: #4caf50; }
     .login { background: #1a1a1a; border-radius: 12px; padding: 1.5rem; text-align: center; max-width: 400px; margin: 3rem auto; }
     .login input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 16px; margin: 10px 0; }
     .login button { width: 100%; padding: 12px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; }
@@ -100,6 +108,7 @@
 
   // Stations HC #3 : zone, nom, besoin par shift
   const STATIONS = [
+    { zone: 'Entrée',         nom: 'Accueil',       besoin: 2 },
     { zone: 'Dehors',         nom: 'SkiErg',        besoin: 1 },
     { zone: 'Salle Hyrox',    nom: 'Sled Push',     besoin: 3 },
     { zone: 'Salle Hyrox',    nom: 'Rameur',        besoin: 2 },
@@ -130,7 +139,7 @@
 
   async function load() {
     const { data, error } = await db.from('Benevoles')
-      .select('id,prenom,nom,disponibilites,station_matin,station_aprem,pause_creneau')
+      .select('id,prenom,nom,disponibilites,station_matin,station_aprem,pause_creneau,remplace_11h30,remplace_12h30')
       .gte('created_at', '2026-09-01')
       .order('prenom');
     if (error) { alert('Erreur chargement : ' + error.message); return; }
@@ -169,6 +178,7 @@
     // Bind handlers
     document.querySelectorAll('select[data-type="slot"]').forEach(sel => sel.addEventListener('change', onSlotChange));
     document.querySelectorAll('select[data-type="pause"]').forEach(sel => sel.addEventListener('change', onPauseChange));
+    document.querySelectorAll('select[data-type="rempl"]').forEach(sel => sel.addEventListener('change', onRemplChange));
     renderTally();
   }
 
@@ -192,25 +202,53 @@
       slots += slotRow(st.nom, shift, b, enPlus);
     }
 
-    // Récap pauses déjeuner — uniquement sur le shift matin, uniquement pour les "journée"
-    // Pour chaque créneau pause, combien restent présents sur ce poste ?
+    // Récap pauses déjeuner + remplacements — uniquement sur le shift matin
     let pauseRecap = '';
     if (shift === 'matin' && affectes.length > 0) {
       const lignes = PAUSE_OPTIONS.map(p => {
         const enPause = affectes.filter(b => b.pause_creneau === p).length;
-        const presents = affectes.length - enPause;
-        const trouble = presents < st.besoin;
-        return `<div class="pause-line${trouble ? ' bad' : ''}">
-          <span class="pause-h">${p}</span>
-          <span class="pause-pres">${presents}/${st.besoin} présent${presents>1?'s':''}</span>
-          <span class="pause-abs">${enPause > 0 ? enPause + ' en pause' : ''}</span>
-        </div>`;
-      }).join('');
+        const colonneRempl = `remplace_${p.split('-')[0].replace('h', 'h')}`; // ex: 'remplace_11h30'
+        const remplaçantsIci = benevoles.filter(b => b[colonneRempl] === st.nom).length;
+        const presents = affectes.length - enPause + remplaçantsIci;
+        const manque = Math.max(0, st.besoin - presents);
+        const ok = manque === 0;
+        return { p, enPause, presents, manque, ok, colonneRempl, remplaçantsIci };
+      });
+
+      const lignesHtml = lignes.map(l => `<div class="pause-line${!l.ok ? ' bad' : ''}">
+        <span class="pause-h">${l.p}</span>
+        <span class="pause-pres">${l.presents}/${st.besoin} présent${l.presents>1?'s':''}</span>
+        <span class="pause-abs">${l.enPause > 0 ? l.enPause + ' en pause' : ''}${l.remplaçantsIci > 0 ? ' +' + l.remplaçantsIci + ' rempl.' : ''}</span>
+      </div>`).join('');
+
       const sansPause = affectes.filter(b => estJournee(b) && !b.pause_creneau).length;
+
+      // Section remplaçants : une sous-case par créneau qui a du manque
+      const needRempl = lignes.filter(l => l.manque > 0);
+      let remplHtml = '';
+      if (needRempl.length > 0) {
+        remplHtml = `<div class="rempl-block"><div class="rempl-title">🔁 Remplacements à prévoir</div>` +
+          needRempl.map(l => {
+            const slotsRempl = [];
+            // N slots pour désigner des remplaçants
+            for (let i = 0; i < l.manque + 1; i++) {
+              slotsRempl.push(remplSlotHtml(st.nom, l.p, l.colonneRempl, i));
+            }
+            return `<div class="rempl-creneau">
+              <div class="rempl-ligne"><span class="pause-h">${l.p}</span><span class="rempl-need">${l.manque} à remplacer</span></div>
+              ${slotsRempl.join('')}
+            </div>`;
+          }).join('') +
+          `</div>`;
+      } else if (affectes.some(estJournee)) {
+        remplHtml = `<div class="rempl-block"><div class="rempl-title ok">✓ Pauses couvertes</div></div>`;
+      }
+
       pauseRecap = `<div class="pause-recap">
         <div class="pause-recap-title">🍽 Pause déjeuner</div>
-        ${lignes}
+        ${lignesHtml}
         ${sansPause > 0 ? `<div class="pause-warn">⚠ ${sansPause} journée${sansPause>1?'s':''} sans pause choisie</div>` : ''}
+        ${remplHtml}
       </div>`;
     }
 
@@ -219,6 +257,37 @@
       ${slots}
       ${pauseRecap}
     </div>`;
+  }
+
+  function remplSlotHtml(station, creneau, colonne, index) {
+    // Bénévoles actuellement désignés remplaçants sur CETTE station à ce créneau
+    const assignes = benevoles.filter(b => b[colonne] === station);
+    const current = assignes[index];
+    const currentId = current ? current.id : null;
+
+    const opts = benevoles
+      .filter(b => dispoPour(b, 'matin'))
+      .map(b => {
+        const nomPrenom = `${(b.prenom||'').trim()} ${(b.nom||'').trim().toUpperCase()}`;
+        let label, disabled = false, sel = currentId === b.id ? 'selected' : '';
+        if (b.pause_creneau === creneau) {
+          label = `🚫 ${nomPrenom} (en pause)`;
+          disabled = true;
+        } else if (b[colonne] && b[colonne] !== station) {
+          label = `🚫 ${nomPrenom} (remplace ${b[colonne]})`;
+          disabled = true;
+        } else if (!b.station_matin) {
+          label = `🟢 ${nomPrenom} (libre matin)`;
+        } else {
+          label = `🔴 ${nomPrenom} (à son poste ${b.station_matin})`;
+        }
+        return `<option value="${b.id}" ${sel} ${disabled && currentId !== b.id ? 'disabled' : ''}>${label}</option>`;
+      }).join('');
+
+    return `<select data-type="rempl" data-station="${station}" data-colonne="${colonne}" data-prev-id="${currentId || ''}" class="rempl-sel ${currentId ? 'filled' : ''}">
+      <option value="">— Désigner un remplaçant —</option>
+      ${opts}
+    </select>`;
   }
 
   function slotRow(station, shift, b, enPlus) {
@@ -275,6 +344,27 @@
       const { error } = await db.from('Benevoles').update({ [col]: station }).eq('id', newId);
       if (error) { showSave(false, error.message); return; }
       if (nouveau) nouveau[col] = station;
+    }
+    showSave(true);
+    render();
+  }
+
+  async function onRemplChange(e) {
+    const sel = e.target;
+    const station = sel.dataset.station;
+    const colonne = sel.dataset.colonne;
+    const newId = sel.value ? parseInt(sel.value, 10) : null;
+    const prevId = sel.dataset.prevId ? parseInt(sel.dataset.prevId, 10) : null;
+    if (prevId && prevId !== newId) {
+      await db.from('Benevoles').update({ [colonne]: null }).eq('id', prevId);
+      const prev = benevoles.find(b => b.id === prevId);
+      if (prev) prev[colonne] = null;
+    }
+    if (newId) {
+      const { error } = await db.from('Benevoles').update({ [colonne]: station }).eq('id', newId);
+      if (error) { showSave(false, error.message); return; }
+      const nouveau = benevoles.find(b => b.id === newId);
+      if (nouveau) nouveau[colonne] = station;
     }
     showSave(true);
     render();
