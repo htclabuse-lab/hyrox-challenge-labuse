@@ -31,6 +31,15 @@
     .slot select.filled { background: #0a2a0a; border-color: #4caf50; }
     .slot .pause-sel { max-width: 110px; font-size: 11px; }
     .slot .pause-sel.hidden { display: none; }
+    .pause-recap { margin-top: 10px; padding-top: 8px; border-top: 1px dashed #333; font-size: 11px; }
+    .pause-recap-title { color: #FFA726; font-weight: 800; margin-bottom: 4px; letter-spacing: 0.5px; }
+    .pause-line { display: grid; grid-template-columns: 90px 1fr 80px; gap: 6px; padding: 2px 0; color: #aaa; }
+    .pause-line.bad { color: #ff6666; font-weight: 700; }
+    .pause-line .pause-h { font-family: monospace; }
+    .pause-line .pause-pres { text-align: center; }
+    .pause-line .pause-abs { text-align: right; font-size: 10px; color: #888; }
+    .pause-line.bad .pause-abs { color: #ff6666; }
+    .pause-warn { color: #ffaa00; margin-top: 4px; font-weight: 700; font-size: 11px; }
     .login { background: #1a1a1a; border-radius: 12px; padding: 1.5rem; text-align: center; max-width: 400px; margin: 3rem auto; }
     .login input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 16px; margin: 10px 0; }
     .login button { width: 100%; padding: 12px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; }
@@ -62,7 +71,7 @@
 <body>
 <div class="wrap">
   <h1>📋 Planning Bénévoles — HC #3</h1>
-  <div class="sub">Dimanche 15 novembre 2026 · Matin 7h30-13h · Aprem 13h-18h · Pause échelonnée 11h-13h pour les "journée"</div>
+  <div class="sub">Dimanche 15 novembre 2026 · Matin 7h30-13h · Aprem 13h-18h · Pause échelonnée 11h30-13h30 pour les "journée"</div>
 
   <div id="login" class="login">
     <div style="font-size:14px;color:#888;margin-bottom:10px;">Mot de passe admin</div>
@@ -91,7 +100,7 @@
 
   // Stations HC #3 : zone, nom, besoin par shift
   const STATIONS = [
-    { zone: 'Entrée',         nom: 'SkiErg',        besoin: 1 },
+    { zone: 'Dehors',         nom: 'SkiErg',        besoin: 1 },
     { zone: 'Salle Hyrox',    nom: 'Sled Push',     besoin: 3 },
     { zone: 'Salle Hyrox',    nom: 'Rameur',        besoin: 2 },
     { zone: 'Salle CrossFit', nom: 'Sled Pull',     besoin: 5 },
@@ -101,7 +110,7 @@
     { zone: 'Dehors',         nom: 'Lunges',        besoin: 3 },
   ];
 
-  const PAUSE_OPTIONS = ['11h-12h', '11h30-12h30', '12h-13h'];
+  const PAUSE_OPTIONS = ['11h30-12h30', '12h30-13h30'];
 
   let benevoles = [];
 
@@ -182,9 +191,33 @@
       const enPlus = i >= st.besoin;
       slots += slotRow(st.nom, shift, b, enPlus);
     }
+
+    // Récap pauses déjeuner — uniquement sur le shift matin, uniquement pour les "journée"
+    // Pour chaque créneau pause, combien restent présents sur ce poste ?
+    let pauseRecap = '';
+    if (shift === 'matin' && affectes.length > 0) {
+      const lignes = PAUSE_OPTIONS.map(p => {
+        const enPause = affectes.filter(b => b.pause_creneau === p).length;
+        const presents = affectes.length - enPause;
+        const trouble = presents < st.besoin;
+        return `<div class="pause-line${trouble ? ' bad' : ''}">
+          <span class="pause-h">${p}</span>
+          <span class="pause-pres">${presents}/${st.besoin} présent${presents>1?'s':''}</span>
+          <span class="pause-abs">${enPause > 0 ? enPause + ' en pause' : ''}</span>
+        </div>`;
+      }).join('');
+      const sansPause = affectes.filter(b => estJournee(b) && !b.pause_creneau).length;
+      pauseRecap = `<div class="pause-recap">
+        <div class="pause-recap-title">🍽 Pause déjeuner</div>
+        ${lignes}
+        ${sansPause > 0 ? `<div class="pause-warn">⚠ ${sansPause} journée${sansPause>1?'s':''} sans pause choisie</div>` : ''}
+      </div>`;
+    }
+
     return `<div class="shift-cell">
       <div class="label"><span>${shift === 'matin' ? '🌅 Matin' : '🌇 Aprem'}</span>${statusLabel}</div>
       ${slots}
+      ${pauseRecap}
     </div>`;
   }
 
