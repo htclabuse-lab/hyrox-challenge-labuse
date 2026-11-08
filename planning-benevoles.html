@@ -124,6 +124,7 @@
   const PAUSE_COL = { '11h-12h': 'remplace_11h30', '12h-13h': 'remplace_12h30' };
 
   let benevoles = [];
+  let coureursByEmail = {}; // email -> heure_depart ISO (inscriptions HC #3)
 
   function login() {
     const p = document.getElementById('pwd').value.trim();
@@ -141,12 +142,33 @@
 
   async function load() {
     const { data, error } = await db.from('Benevoles')
-      .select('id,prenom,nom,disponibilites,station_matin,station_aprem,pause_creneau,remplace_11h30,remplace_12h30')
+      .select('id,prenom,nom,email,disponibilites,station_matin,station_aprem,pause_creneau,remplace_11h30,remplace_12h30')
       .gte('created_at', '2026-09-01')
       .order('prenom');
     if (error) { alert('Erreur chargement : ' + error.message); return; }
     benevoles = data || [];
+
+    // Charge aussi les inscrits HC #3 pour marquer ceux qui courent (match par email)
+    const { data: inscrits } = await db.from('Inscriptions')
+      .select('email,heure_depart,co1_prenom,co1_nom')
+      .neq('categorie', 'Parent-Enfant')
+      .neq('categorie', 'Hyrox Kids Pré-inscription')
+      .neq('categorie', 'Bénévole')
+      .eq('statut_paiement', 'paye')
+      .gte('heure_depart', '2026-11-15')
+      .lt('heure_depart', '2026-11-16');
+    coureursByEmail = {};
+    (inscrits || []).forEach(i => {
+      if (i.email) coureursByEmail[i.email.trim().toLowerCase()] = i.heure_depart;
+    });
     render();
+  }
+
+  function horaireCourse(b) {
+    const h = coureursByEmail[(b.email || '').trim().toLowerCase()];
+    if (!h) return '';
+    const hhmm = new Date(h).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Indian/Reunion' });
+    return ` 🏃 ${hhmm}`;
   }
 
   function dispoPour(b, shift) {
@@ -270,7 +292,7 @@
     const opts = benevoles
       .filter(b => dispoPour(b, 'matin'))
       .map(b => {
-        const nomPrenom = `${(b.prenom||'').trim()} ${(b.nom||'').trim().toUpperCase()}`;
+        const nomPrenom = `${(b.prenom||'').trim()} ${(b.nom||'').trim().toUpperCase()}${horaireCourse(b)}`;
         let label, disabled = false, sel = currentId === b.id ? 'selected' : '';
         if (b.pause_creneau === creneau) {
           label = `🚫 ${nomPrenom} (en pause)`;
@@ -302,7 +324,7 @@
       .map(x => {
         const sel = currentId === x.id ? 'selected' : '';
         const marker = estJournee(x) ? ' ☀️' : '';
-        return `<option value="${x.id}" ${sel}>${(x.prenom||'').trim()} ${(x.nom||'').trim().toUpperCase()}${marker}</option>`;
+        return `<option value="${x.id}" ${sel}>${(x.prenom||'').trim()} ${(x.nom||'').trim().toUpperCase()}${marker}${horaireCourse(x)}</option>`;
       }).join('');
 
     const current = b ? b.id : '';
