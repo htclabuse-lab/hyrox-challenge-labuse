@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planning Bénévoles — HC #3</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; }
+    .wrap { max-width: 1400px; margin: 0 auto; }
+    h1 { font-size: 22px; color: #FFEE00; margin-bottom: 4px; }
+    .sub { color: #888; font-size: 13px; margin-bottom: 1rem; }
+    .toolbar { background: #1a1a1a; padding: 12px; border-radius: 12px; margin-bottom: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .toolbar button { padding: 10px 14px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 13px; }
+    .toolbar button.secondary { background: #1a1a1a; color: #fff; border: 1px solid #333; }
+    .tally { background: #111; border: 1px solid #333; border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+    .tally b { color: #FFEE00; }
+    .zone-title { background: linear-gradient(90deg, #C0392B, #FFEE00); color: #0a0a0a; padding: 8px 14px; border-radius: 8px; margin: 20px 0 10px; font-weight: 900; font-size: 14px; letter-spacing: 1px; text-transform: uppercase; }
+    .station-grid { display: grid; grid-template-columns: 220px 1fr 1fr; gap: 10px; align-items: stretch; margin-bottom: 10px; }
+    .station-head { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; justify-content: center; }
+    .station-head h3 { font-size: 15px; margin-bottom: 4px; color: #fff; }
+    .station-head .need { font-size: 12px; color: #FFA726; }
+    .shift-cell { background: #111; border: 1px solid #222; border-radius: 10px; padding: 10px; }
+    .shift-cell .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .shift-cell .label .done { color: #4caf50; font-weight: 800; }
+    .shift-cell .label .missing { color: #C0392B; font-weight: 800; }
+    .slot { display: flex; gap: 6px; margin-bottom: 4px; align-items: center; }
+    .slot select { flex: 1; padding: 6px 8px; background: #0a0a0a; color: #fff; border: 1px solid #333; border-radius: 6px; font-size: 12px; }
+    .slot select:focus { border-color: #FFEE00; outline: none; }
+    .slot select.filled { background: #0a2a0a; border-color: #4caf50; }
+    .slot .pause-sel { max-width: 110px; font-size: 11px; }
+    .slot .pause-sel.hidden { display: none; }
+    .login { background: #1a1a1a; border-radius: 12px; padding: 1.5rem; text-align: center; max-width: 400px; margin: 3rem auto; }
+    .login input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #0a0a0a; color: #fff; font-size: 16px; margin: 10px 0; }
+    .login button { width: 100%; padding: 12px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; }
+    .save-indicator { position: fixed; bottom: 14px; right: 14px; background: #4caf50; color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 700; opacity: 0; transition: opacity 0.3s; z-index: 100; }
+    .save-indicator.show { opacity: 1; }
+    .save-indicator.err { background: #C0392B; }
+
+    /* PRINT A4 — 1 page par station */
+    @media print {
+      body { background: #fff; color: #000; padding: 0; }
+      .toolbar, .login, .save-indicator { display: none !important; }
+      .wrap { max-width: none; }
+      h1, .sub { display: none; }
+      .station-grid { page-break-after: always; display: block; border: 2px solid #000; padding: 20px; margin: 0; }
+      .station-head { background: none; border: none; padding: 0; margin-bottom: 20px; }
+      .station-head h3 { font-size: 32px; color: #000; text-align: center; }
+      .station-head .need { font-size: 18px; color: #333; text-align: center; margin-top: 10px; }
+      .shift-cell { background: none; border: 2px solid #000; margin: 10px 0; padding: 14px; }
+      .shift-cell .label { font-size: 16px; color: #000; border-bottom: 1px solid #000; padding-bottom: 6px; margin-bottom: 10px; }
+      .slot { font-size: 14px; color: #000; padding: 4px 0; border-bottom: 1px dashed #999; }
+      .slot select { border: none; background: none; color: #000; font-size: 14px; font-weight: 700; appearance: none; padding: 0; }
+      .slot .pause-sel.hidden { display: none !important; }
+      .zone-title { display: none; }
+    }
+    .print-only { display: none; }
+    @media print { .print-only { display: block; font-size: 14px; color: #666; margin-top: 20px; text-align: center; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📋 Planning Bénévoles — HC #3</h1>
+  <div class="sub">Dimanche 15 novembre 2026 · Matin 7h30-13h · Aprem 13h-18h · Pause échelonnée 11h-13h pour les "journée"</div>
+
+  <div id="login" class="login">
+    <div style="font-size:14px;color:#888;margin-bottom:10px;">Mot de passe admin</div>
+    <input type="password" id="pwd" placeholder="••••••••" onkeypress="if(event.key==='Enter')login()">
+    <button onclick="login()">Connexion</button>
+    <div id="login-error" style="color:#C0392B;font-size:13px;margin-top:8px;"></div>
+  </div>
+
+  <div id="app" style="display:none;">
+    <div class="toolbar">
+      <button onclick="window.print()">🖨 Imprimer A4 (1 page / station)</button>
+      <button class="secondary" onclick="load()">↻ Actualiser</button>
+      <div class="tally" id="tally"></div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<div id="save-ind" class="save-indicator">✅ Enregistré</div>
+
+<script>
+  const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+  const PWD = 'Romu';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Stations HC #3 : zone, nom, besoin par shift
+  const STATIONS = [
+    { zone: 'Entrée',    nom: 'SkiErg',        besoin: 1 },
+    { zone: 'Salle HTC', nom: 'Sled Push',     besoin: 3 },
+    { zone: 'Salle HTC', nom: 'Rameur',        besoin: 2 },
+    { zone: 'Salle HTC', nom: 'Sled Pull',     besoin: 5 },
+    { zone: 'Dehors',    nom: 'Burpees',       besoin: 4 },
+    { zone: 'Dehors',    nom: 'Wall Ball',     besoin: 6 },
+    { zone: 'Autre',     nom: 'Farmer Carry',  besoin: 1 },
+    { zone: 'Autre',     nom: 'Lunges',        besoin: 3 },
+  ];
+
+  const PAUSE_OPTIONS = ['11h-12h', '11h30-12h30', '12h-13h'];
+
+  let benevoles = [];
+
+  function login() {
+    const p = document.getElementById('pwd').value.trim();
+    if (p !== PWD) { document.getElementById('login-error').textContent = '❌ Mot de passe incorrect'; return; }
+    sessionStorage.setItem('planning_auth', '1');
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    load();
+  }
+  if (sessionStorage.getItem('planning_auth') === '1') {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    setTimeout(load, 0);
+  }
+
+  async function load() {
+    const { data, error } = await db.from('Benevoles')
+      .select('id,prenom,nom,disponibilites,station_matin,station_aprem,pause_creneau')
+      .gte('created_at', '2026-09-01')
+      .order('prenom');
+    if (error) { alert('Erreur chargement : ' + error.message); return; }
+    benevoles = data || [];
+    render();
+  }
+
+  function dispoPour(b, shift) {
+    const d = (b.disponibilites || '').split(',').map(x => x.trim());
+    if (d.includes('journee')) return true;
+    if (shift === 'matin' && d.includes('matin')) return true;
+    if (shift === 'aprem' && d.includes('aprem')) return true;
+    return false;
+  }
+  function estJournee(b) {
+    const d = (b.disponibilites || '').split(',').map(x => x.trim());
+    return d.includes('journee');
+  }
+
+  function render() {
+    const zones = [...new Set(STATIONS.map(s => s.zone))];
+    let html = '';
+
+    zones.forEach(zone => {
+      html += `<div class="zone-title">📍 ${zone}</div>`;
+      STATIONS.filter(s => s.zone === zone).forEach(st => {
+        html += `<div class="station-grid">`;
+        html += `<div class="station-head"><h3>${st.nom}</h3><div class="need">Besoin : ${st.besoin} bénévole${st.besoin>1?'s':''} / shift</div></div>`;
+        html += shiftCell(st, 'matin');
+        html += shiftCell(st, 'aprem');
+        html += `</div>`;
+      });
+    });
+
+    document.getElementById('content').innerHTML = html;
+    // Bind handlers
+    document.querySelectorAll('select[data-type="slot"]').forEach(sel => sel.addEventListener('change', onSlotChange));
+    document.querySelectorAll('select[data-type="pause"]').forEach(sel => sel.addEventListener('change', onPauseChange));
+    renderTally();
+  }
+
+  function shiftCell(st, shift) {
+    const affectes = benevoles.filter(b => b[`station_${shift}`] === st.nom);
+    const nb = affectes.length;
+    const manque = st.besoin - nb;
+    const statusLabel = manque <= 0
+      ? `<span class="done">✓ ${nb}/${st.besoin}</span>`
+      : `<span class="missing">⚠ ${nb}/${st.besoin}</span>`;
+
+    let slots = '';
+    for (let i = 0; i < st.besoin; i++) {
+      const b = affectes[i];
+      slots += slotRow(st.nom, shift, b);
+    }
+    return `<div class="shift-cell">
+      <div class="label"><span>${shift === 'matin' ? '🌅 Matin' : '🌇 Aprem'}</span>${statusLabel}</div>
+      ${slots}
+    </div>`;
+  }
+
+  function slotRow(station, shift, b) {
+    // Bénévoles dispo pour ce shift ET pas déjà affectés ailleurs sur ce shift
+    const dejaAilleurs = new Set(benevoles.filter(x => x[`station_${shift}`] && x[`station_${shift}`] !== station).map(x => x.id));
+    const opts = benevoles
+      .filter(x => dispoPour(x, shift))
+      .filter(x => !dejaAilleurs.has(x.id))
+      .map(x => {
+        const sel = b && b.id === x.id ? 'selected' : '';
+        const marker = estJournee(x) ? ' ☀️' : '';
+        return `<option value="${x.id}" ${sel}>${(x.prenom||'').trim()} ${(x.nom||'').trim().toUpperCase()}${marker}</option>`;
+      }).join('');
+
+    const current = b ? b.id : '';
+    const pauseHtml = (b && estJournee(b) && shift === 'matin')
+      ? `<select class="pause-sel" data-type="pause" data-id="${b.id}">
+          <option value="">— Pause ? —</option>
+          ${PAUSE_OPTIONS.map(p => `<option value="${p}" ${b.pause_creneau === p ? 'selected' : ''}>${p}</option>`).join('')}
+         </select>`
+      : '';
+
+    return `<div class="slot">
+      <select data-type="slot" data-station="${station}" data-shift="${shift}" class="${current ? 'filled' : ''}">
+        <option value="">— Choisir un bénévole —</option>
+        ${opts}
+      </select>
+      ${pauseHtml}
+    </div>`;
+  }
+
+  async function onSlotChange(e) {
+    const sel = e.target;
+    const station = sel.dataset.station;
+    const shift = sel.dataset.shift;
+    const newId = sel.value ? parseInt(sel.value, 10) : null;
+    const col = `station_${shift}`;
+
+    // 1) Libérer celui qui était là
+    const prev = benevoles.find(b => b[col] === station);
+    const prevId = prev && prev.id;
+    if (prevId && prevId !== newId) {
+      await db.from('Benevoles').update({ [col]: null }).eq('id', prevId);
+      prev[col] = null;
+    }
+    // 2) Affecter le nouveau (en s'assurant de libérer son ancienne station de ce shift)
+    if (newId) {
+      const nouveau = benevoles.find(b => b.id === newId);
+      if (nouveau && nouveau[col] && nouveau[col] !== station) {
+        await db.from('Benevoles').update({ [col]: null }).eq('id', newId);
+      }
+      const { error } = await db.from('Benevoles').update({ [col]: station }).eq('id', newId);
+      if (error) { showSave(false, error.message); return; }
+      if (nouveau) nouveau[col] = station;
+    }
+    showSave(true);
+    render();
+  }
+
+  async function onPauseChange(e) {
+    const id = parseInt(e.target.dataset.id, 10);
+    const val = e.target.value || null;
+    const { error } = await db.from('Benevoles').update({ pause_creneau: val }).eq('id', id);
+    if (error) { showSave(false, error.message); return; }
+    const b = benevoles.find(x => x.id === id);
+    if (b) b.pause_creneau = val;
+    showSave(true);
+    renderTally();
+  }
+
+  function showSave(ok, msg) {
+    const el = document.getElementById('save-ind');
+    el.textContent = ok ? '✅ Enregistré' : '❌ ' + (msg || 'Erreur');
+    el.classList.toggle('err', !ok);
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 1500);
+  }
+
+  function renderTally() {
+    const totalMatin = benevoles.filter(b => b.station_matin).length;
+    const totalAprem = benevoles.filter(b => b.station_aprem).length;
+    const besoinTotal = STATIONS.reduce((s, st) => s + st.besoin, 0);
+    const pauseRep = PAUSE_OPTIONS.map(p => `${p} : ${benevoles.filter(b => b.pause_creneau === p).length}`).join(' · ');
+    document.getElementById('tally').innerHTML = `
+      Matin <b>${totalMatin}/${besoinTotal}</b> ·
+      Aprem <b>${totalAprem}/${besoinTotal}</b> ·
+      Pauses : ${pauseRep}
+    `;
+  }
+</script>
+
+<div class="print-only">Planning généré le <script>document.write(new Date().toLocaleDateString('fr-FR'))</script> — Hyrox Challenge La Buse #3</div>
+</body>
+</html>

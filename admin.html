@@ -109,6 +109,7 @@
       <button type="button" class="main-tab" data-tab="pack-pe2" onclick="showMainTab('pack-pe2', this)">📦 Pack PE #2</button>
       <button type="button" class="main-tab" data-tab="parent-enfant" onclick="showMainTab('parent-enfant', this)">👨‍👧 Parent-Enfant</button>
       <button type="button" class="main-tab" data-tab="benevoles" onclick="showMainTab('benevoles', this)">🙌 Bénévoles</button>
+      <button type="button" class="main-tab" data-tab="planning-benevoles" onclick="showMainTab('planning-benevoles', this)">📋 Planning bénévoles</button>
       <button type="button" class="main-tab" data-tab="kids-appel" onclick="showMainTab('kids-appel', this)">📋 Feuille d'appel Kids</button>
       <button type="button" class="main-tab" data-tab="kids-inscrits" onclick="showMainTab('kids-inscrits', this)">✅ Inscriptions cours Kids</button>
       <button type="button" class="main-tab" data-tab="kids" onclick="showMainTab('kids', this)">🧒 Pré-inscriptions Kids</button>
@@ -211,6 +212,12 @@
       <div id="benevoles-content"></div>
     </div>
 
+    <!-- ONGLET PLANNING BÉNÉVOLES (iframe vers planning-benevoles.html) -->
+    <div class="tab-content" id="tab-planning-benevoles">
+      <div style="font-size:13px;color:#888;margin-bottom:10px;">Affectation bénévoles par station et par shift (matin / aprem) + pauses déjeuner. Fonctionne aussi en direct depuis <a href="planning-benevoles.html" target="_blank" style="color:#FFEE00;">planning-benevoles.html</a>.</div>
+      <iframe src="planning-benevoles.html" style="width:100%;height:calc(100vh - 220px);min-height:600px;border:1px solid #333;border-radius:10px;background:#0a0a0a;" title="Planning bénévoles"></iframe>
+    </div>
+
     <!-- ONGLET FEUILLE D'APPEL KIDS -->
     <div class="tab-content" id="tab-kids-appel">
       <div id="kids-appel-content"></div>
@@ -283,7 +290,7 @@
   // Onglets visibles selon l'événement sélectionné
   var EVENT_TABS = {
     'hc2': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
-    'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','pack-hc3','benevoles'],
+    'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','pack-hc3','benevoles','planning-benevoles'],
     'pe':  ['parent-enfant'],
     'pe2': ['parent-enfant','tshirts','pack-photo','pack-pe2'],
     'kids': ['kids-appel','kids-inscrits','kids']
