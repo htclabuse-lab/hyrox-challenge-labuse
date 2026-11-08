@@ -79,7 +79,7 @@
 <body>
 <div class="wrap">
   <h1>📋 Planning Bénévoles — HC #3</h1>
-  <div class="sub">Dimanche 15 novembre 2026 · Matin 7h30-13h · Aprem 13h-18h · Pause échelonnée 11h30-13h30 pour les "journée"</div>
+  <div class="sub">Dimanche 15 novembre 2026 · Matin 7h30-13h · Aprem 13h-18h · Pause échelonnée 11h-13h pour les "journée"</div>
 
   <div id="login" class="login">
     <div style="font-size:14px;color:#888;margin-bottom:10px;">Mot de passe admin</div>
@@ -119,7 +119,9 @@
     { zone: 'Dehors',         nom: 'Lunges',        besoin: 3 },
   ];
 
-  const PAUSE_OPTIONS = ['11h30-12h30', '12h30-13h30'];
+  const PAUSE_OPTIONS = ['11h-12h', '12h-13h'];
+  // Correspondance créneau → colonne DB (conservée après changement de libellé des créneaux)
+  const PAUSE_COL = { '11h-12h': 'remplace_11h30', '12h-13h': 'remplace_12h30' };
 
   let benevoles = [];
 
@@ -207,7 +209,7 @@
     if (shift === 'matin' && affectes.length > 0) {
       const lignes = PAUSE_OPTIONS.map(p => {
         const enPause = affectes.filter(b => b.pause_creneau === p).length;
-        const colonneRempl = `remplace_${p.split('-')[0].replace('h', 'h')}`; // ex: 'remplace_11h30'
+        const colonneRempl = PAUSE_COL[p];
         const remplaçantsIci = benevoles.filter(b => b[colonneRempl] === st.nom).length;
         const presents = affectes.length - enPause + remplaçantsIci;
         const manque = Math.max(0, st.besoin - presents);
