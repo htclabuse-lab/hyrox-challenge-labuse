@@ -242,7 +242,7 @@
             </div>`;
           }).join('') +
           `</div>`;
-      } else if (affectes.some(estJournee)) {
+      } else if (affectes.some(estJournee) && sansPause === 0) {
         remplHtml = `<div class="rempl-block"><div class="rempl-title ok">✓ Pauses couvertes</div></div>`;
       }
 
