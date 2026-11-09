@@ -121,14 +121,6 @@
       <div style="font-size:12px;color:#888;margin-bottom:10px;">Coche toutes les plages où tu peux nous aider :</div>
       <div class="checkboxes">
         <label>
-          <input type="checkbox" value="veille" onchange="updateMeal()">👨‍👧 <strong>Samedi 14 novembre</strong> — Hyrox Parents-Enfants
-          <span class="hint">12h – 16h <em>(horaires à redéfinir)</em></span>
-        </label>
-        <label>
-          <input type="checkbox" value="matin" onchange="updateMeal()">🌅 <strong>Matin</strong> du dimanche 15
-          <span class="hint">7h30 – 13h <em>(horaires à redéfinir)</em></span>
-        </label>
-        <label>
           <input type="checkbox" value="aprem" onchange="updateMeal()">🌇 <strong>Après-midi</strong> du dimanche 15
           <span class="hint">13h – 18h <em>(horaires à redéfinir)</em></span>
         </label>
@@ -184,8 +176,8 @@
 
   function updateMeal() {
     const dispos = getDispos();
-    // Repas offert si "journée" OU si à la fois matin + après-midi
-    const eligible = dispos.includes('journee') || (dispos.includes('matin') && dispos.includes('aprem'));
+    // Repas offert si "journée"
+    const eligible = dispos.includes('journee');
     document.getElementById('meal-section').classList.toggle('visible', eligible);
     if (!eligible) {
       state.meal = '';
@@ -215,7 +207,7 @@
     if (!email.includes('@')) return err('Email invalide.');
     if (!state.coupe || !state.taille) return err('Choisis la coupe et la taille du t-shirt.');
     if (dispos.length === 0) return err('Coche au moins une disponibilité.');
-    const eligible = dispos.includes('journee') || (dispos.includes('matin') && dispos.includes('aprem'));
+    const eligible = dispos.includes('journee');
     if (eligible && !state.meal) return err('Choisis ton repas (poisson, poulet ou végé).');
 
     document.getElementById('btn').disabled = true;
