@@ -31,6 +31,10 @@ import { createClient } from '@supabase/supabase-js';
 //  4. mode 'travaux' (mot de passe JUGES_PASSWORD requis) — même mécanique :
 //     salle en travaux, pas de cours d'ici fin septembre, reprise le samedi
 //     3 octobre, et rien n'est prélevé pour septembre.
+//
+//  6. mode 'pascours' (mot de passe JUGES_PASSWORD requis) — aux familles
+//     INSCRITES : pas de cours le samedi 14 novembre, l'équipe est sur
+//     l'organisation du Hyrox Parents / Enfants, reprise le 21 novembre.
 // ============================================================================
 
 const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
@@ -295,6 +299,23 @@ ${lignes}</p>
   return { subject: `🧪 Séance d'essai de ${listeNoms} — samedi à ${enfants[0].heure}`, html: enveloppe("Séance d'essai — à samedi !", corps) };
 }
 
+// Mail aux familles inscrites : pas de cours un samedi donné (événement Hyrox).
+function mailPasCours(rows) {
+  const r0 = rows[0];
+  const parent = esc((r0.prenom || '').trim()) || 'à vous';
+  const enfants = rows.map(r => esc((r.co1_prenom || '').trim()) || 'votre enfant');
+  const listeNoms = enfants.join(' et ');
+  const corps = `
+<p>Salut ${parent},</p>
+<p>Une info importante pour ${listeNoms} : <strong>il n'y aura exceptionnellement pas de cours ce samedi 14 novembre.</strong></p>
+<p>Toute l'équipe sera mobilisée sur l'organisation du <strong>Hyrox Parents / Enfants</strong>, qui a lieu ce jour-là à Crossfit La Buse 💪</p>
+<p>📅 <strong>Reprise normale le samedi 21 novembre</strong>, aux horaires habituels :<br>
+&nbsp;&nbsp;• Groupe 1 : <strong>8h45 à 9h30</strong><br>
+&nbsp;&nbsp;• Groupe 2 : <strong>9h30 à 10h30</strong></p>
+<p>Merci de votre compréhension, et à très vite 😊</p>`;
+  return { subject: 'Training Kids — pas de cours ce samedi 14 novembre', html: enveloppe('Pas de cours samedi 14 novembre', corps) };
+}
+
 async function envoyer(resendKey, to, { subject, html }) {
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -315,7 +336,7 @@ export default async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   const body = req.body || {};
-  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : body.mode === 'travaux' ? 'travaux' : body.mode === 'rappel' ? 'rappel' : body.mode === 'carnet' ? 'carnet' : body.mode === 'essai' ? 'essai' : 'auto';
+  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : body.mode === 'travaux' ? 'travaux' : body.mode === 'rappel' ? 'rappel' : body.mode === 'carnet' ? 'carnet' : body.mode === 'essai' ? 'essai' : body.mode === 'pascours' ? 'pascours' : 'auto';
 
   try {
     // ------------------------------------------------------------ mode auto
@@ -344,12 +365,12 @@ export default async function handler(req, res) {
     if (ids.length === 0) return res.status(400).json({ error: 'ids requis (liste explicite, non vide)' });
     const dryRun = body.dry_run === true || body.dry_run === 1 || body.dry_run === '1';
 
-    const categorieAttendue = (mode === 'carnet' || mode === 'essai') ? CATEGORIE_KIDS_INSCRIPTION : CATEGORIE_KIDS;
+    const categorieAttendue = (mode === 'carnet' || mode === 'essai' || mode === 'pascours') ? CATEGORIE_KIDS_INSCRIPTION : CATEGORIE_KIDS;
     const { data: rows, error } = await db.from('Inscriptions').select('*').in('id', ids).eq('categorie', categorieAttendue);
     if (error) return res.status(500).json({ error: error.message });
 
     const resultats = [];
-    if (mode === 'ouverture' || mode === 'travaux' || mode === 'rappel' || mode === 'carnet' || mode === 'essai') {
+    if (mode === 'ouverture' || mode === 'travaux' || mode === 'rappel' || mode === 'carnet' || mode === 'essai' || mode === 'pascours') {
       // Un mail par parent : regroupe les fiches par email (fratrie)
       const parEmail = new Map();
       for (const r of rows) {
@@ -363,7 +384,8 @@ export default async function handler(req, res) {
         if (!dryRun && !premier) await new Promise(r => setTimeout(r, 150));
         premier = false;
         const m = mode === 'travaux' ? mailTravaux(grp) : mode === 'rappel' ? mailRappel(grp)
-          : mode === 'carnet' ? mailCarnet(grp) : mode === 'essai' ? mailEssai(grp) : mailOuverture(grp);
+          : mode === 'carnet' ? mailCarnet(grp) : mode === 'essai' ? mailEssai(grp)
+          : mode === 'pascours' ? mailPasCours(grp) : mailOuverture(grp);
         const ids = grp.map(r => r.id), enfants = grp.map(r => r.co1_prenom);
         if (!emailValide(to)) { resultats.push({ ids, skipped: 'email invalide' }); continue; }
         if (dryRun) { resultats.push({ ids, to, enfants, subject: m.subject, dry_run: true }); continue; }
