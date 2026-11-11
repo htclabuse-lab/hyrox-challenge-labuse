@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bénévoles HC #3 — Choisis ton poste</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 680px; margin: 0 auto; }
+    .hero { text-align: center; padding: 20px 10px; }
+    .hero h1 { font-size: 24px; color: #FFEE00; margin-bottom: 8px; line-height: 1.2; }
+    .hero .sub { color: #aaa; font-size: 14px; line-height: 1.5; }
+    .card { background: #151515; border: 1px solid #2a2a2a; border-radius: 14px; padding: 18px; margin: 14px 0; }
+    .card h2 { font-size: 16px; color: #FFEE00; margin-bottom: 12px; letter-spacing: 0.5px; }
+    label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; font-weight: 600; }
+    select, input { width: 100%; padding: 14px; background: #0a0a0a; color: #fff; border: 1px solid #333; border-radius: 10px; font-size: 16px; font-family: inherit; }
+    select:focus, input:focus { border-color: #FFEE00; outline: none; }
+    select:disabled { opacity: 0.4; }
+    .dispo-badge { display: inline-block; background: #FFA726; color: #0a0a0a; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 800; letter-spacing: 0.5px; margin-top: 4px; }
+    .shift-card { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; padding: 14px; margin-top: 12px; }
+    .shift-card.aprem { border-color: #FF7043; }
+    .shift-card.matin { border-color: #FFA726; }
+    .shift-title { font-size: 14px; font-weight: 800; margin-bottom: 4px; }
+    .shift-title.aprem { color: #FF7043; }
+    .shift-title.matin { color: #FFA726; }
+    .shift-horaire { font-size: 12px; color: #888; margin-bottom: 10px; }
+    .submit-btn { width: 100%; padding: 16px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; margin-top: 10px; }
+    .submit-btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+    .success { background: #1b3a1b; border: 1px solid #4caf50; color: #a5d6a7; padding: 14px; border-radius: 10px; margin-top: 10px; font-size: 14px; }
+    .error { background: #3a1b1b; border: 1px solid #C0392B; color: #ff9999; padding: 14px; border-radius: 10px; margin-top: 10px; font-size: 14px; }
+    .existing-choice { background: #0a2a0a; border: 1px solid #4caf50; color: #a5d6a7; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-size: 13px; }
+    .hint { color: #888; font-size: 12px; margin-top: 6px; font-style: italic; }
+    .change-link { color: #FFEE00; text-decoration: underline; cursor: pointer; background: none; border: none; padding: 0; font-size: 13px; font-family: inherit; margin-top: 8px; }
+    footer { text-align: center; color: #666; font-size: 12px; padding: 20px; margin-top: 20px; }
+    footer a { color: #FFEE00; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>🙌 Bénévoles HC #3<br>Choisis ton poste</h1>
+    <div class="sub">Dimanche 15 novembre 2026 · CrossFit La Buse<br>Matin 7h30-13h · Après-midi 13h-18h</div>
+  </div>
+
+  <!-- Étape 1 : qui es-tu ? -->
+  <div class="card">
+    <h2>👋 Qui es-tu ?</h2>
+    <label for="benevole-select">Choisis ton nom dans la liste</label>
+    <select id="benevole-select">
+      <option value="">— Choisis ton nom —</option>
+    </select>
+    <div class="hint">Si ton nom n'est pas dans la liste, préviens-nous sur le groupe WhatsApp.</div>
+  </div>
+
+  <!-- Étape 2 : affectation (apparait après sélection) -->
+  <div id="affectation-card" class="card" style="display:none;">
+    <h2>📍 Ton poste pour la journée</h2>
+    <div id="dispo-info"></div>
+    <div id="existing-choice-box"></div>
+    <div id="shifts-container"></div>
+    <button id="submit-btn" class="submit-btn" disabled>Valider mon choix</button>
+    <div id="result-box"></div>
+  </div>
+</div>
+
+<footer>
+  Un souci ? Contacte-nous directement via WhatsApp 🫶<br>
+  <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">hyrox-challenge-labuse.vercel.app</a>
+</footer>
+
+<script>
+const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Doit matcher STATIONS de planning-benevoles.html
+const STATIONS = [
+  { zone: 'Entrée',         nom: 'Accueil',       besoin: 1 },
+  { zone: 'Dehors',         nom: 'SkiErg',        besoin: 2 },
+  { zone: 'Salle Hyrox',    nom: 'Sled Push',     besoin: 5 },
+  { zone: 'Salle Hyrox',    nom: 'Rameur',        besoin: 2 },
+  { zone: 'Salle CrossFit', nom: 'Sled Pull',     besoin: 5 },
+  { zone: 'Dehors',         nom: 'Burpees',       besoin: 3 },
+  { zone: 'Dehors',         nom: 'Wall Ball',     besoin: 6 },
+  { zone: 'Dehors',         nom: 'Farmer Carry',  besoin: 1 },
+  { zone: 'Dehors',         nom: 'Lunges',        besoin: 3 },
+];
+const AUTRE = 'Autre (mettez-moi où vous voulez)';
+
+let benevoles = [];
+let moi = null;
+
+async function init() {
+  const { data, error } = await db.from('Benevoles')
+    .select('id,prenom,nom,disponibilites,station_matin,station_aprem')
+    .gte('created_at', '2026-09-01')
+    .order('prenom');
+  if (error) { alert('Erreur chargement : ' + error.message); return; }
+  benevoles = data || [];
+
+  const sel = document.getElementById('benevole-select');
+  benevoles.forEach(b => {
+    const opt = document.createElement('option');
+    opt.value = b.id;
+    opt.textContent = (b.prenom || '').trim() + ' ' + (b.nom || '').trim();
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', onBenevoleChange);
+}
+
+function dispoPour(b, shift) {
+  const d = (b.disponibilites || '').split(',').map(x => x.trim());
+  if (d.includes('journee')) return true;
+  if (shift === 'matin' && d.includes('matin')) return true;
+  if (shift === 'aprem' && d.includes('aprem')) return true;
+  return false;
+}
+
+function estJournee(b) {
+  const d = (b.disponibilites || '').split(',').map(x => x.trim());
+  return d.includes('journee');
+}
+
+function countPlaces(shift) {
+  // Combien de bénévoles sont déjà affectés à chaque station sur ce shift
+  const counts = {};
+  benevoles.forEach(b => {
+    const s = b[`station_${shift}`];
+    if (s) counts[s] = (counts[s] || 0) + 1;
+  });
+  return counts;
+}
+
+function onBenevoleChange(e) {
+  const id = parseInt(e.target.value, 10);
+  const card = document.getElementById('affectation-card');
+  const resultBox = document.getElementById('result-box');
+  resultBox.innerHTML = '';
+  if (!id) {
+    card.style.display = 'none';
+    moi = null;
+    return;
+  }
+  moi = benevoles.find(b => b.id === id);
+  if (!moi) return;
+
+  renderAffectation();
+  card.style.display = 'block';
+}
+
+function renderAffectation() {
+  const dispoLabel = {
+    'matin': 'Matin uniquement (7h30 - 13h)',
+    'aprem': 'Après-midi uniquement (13h - 18h)',
+    'journee': 'Journée entière (7h30 - 18h)',
+  };
+  const d = (moi.disponibilites || '').split(',').map(x => x.trim()).filter(Boolean);
+  // Priorité d'affichage : journée > matin+aprem
+  let dispoTxt = '';
+  if (d.includes('journee')) dispoTxt = dispoLabel['journee'];
+  else {
+    const parts = [];
+    if (d.includes('matin')) parts.push(dispoLabel['matin']);
+    if (d.includes('aprem')) parts.push(dispoLabel['aprem']);
+    dispoTxt = parts.join(' + ');
+  }
+  document.getElementById('dispo-info').innerHTML =
+    `<div style="margin-bottom:14px;">
+      <div style="font-size:13px;color:#aaa;">Tu es inscrit·e pour :</div>
+      <div class="dispo-badge">${dispoTxt || '—'}</div>
+    </div>`;
+
+  // Choix existant ?
+  const existingBox = document.getElementById('existing-choice-box');
+  if (moi.station_matin || moi.station_aprem) {
+    const parts = [];
+    if (moi.station_matin) parts.push(`<strong>Matin :</strong> ${moi.station_matin}`);
+    if (moi.station_aprem) parts.push(`<strong>Aprem :</strong> ${moi.station_aprem}`);
+    existingBox.innerHTML = `<div class="existing-choice">✅ Ton choix actuel : ${parts.join(' · ')}<br><small>Tu peux le modifier ci-dessous si tu veux.</small></div>`;
+  } else {
+    existingBox.innerHTML = '';
+  }
+
+  const container = document.getElementById('shifts-container');
+  container.innerHTML = '';
+  if (dispoPour(moi, 'matin')) {
+    container.innerHTML += buildShiftCard('matin', '🌅 Matin', '7h30 - 13h');
+  }
+  if (dispoPour(moi, 'aprem')) {
+    container.innerHTML += buildShiftCard('aprem', '🌇 Après-midi', '13h - 18h');
+  }
+  // Attache les listeners
+  document.querySelectorAll('select[data-shift]').forEach(sel => {
+    sel.addEventListener('change', updateSubmitState);
+  });
+  updateSubmitState();
+}
+
+function buildShiftCard(shift, titre, horaire) {
+  const counts = countPlaces(shift);
+  const current = moi[`station_${shift}`];
+
+  const options = STATIONS.map(st => {
+    const taken = counts[st.nom] || 0;
+    const places = st.besoin - taken;
+    const isMine = current === st.nom;
+    // Si c'est MA station actuelle, on compte comme si je n'y étais pas pour le calcul de dispo
+    const placesReelles = isMine ? places + 1 : places;
+    const complet = placesReelles <= 0;
+    const label = `${st.nom} (${complet ? 'complet' : (placesReelles + ' place' + (placesReelles > 1 ? 's' : ''))})`;
+    const disabled = complet && !isMine ? 'disabled' : '';
+    const selected = isMine ? 'selected' : '';
+    return `<option value="${st.nom}" ${disabled} ${selected}>${label}</option>`;
+  }).join('');
+
+  const autreSelected = current === AUTRE ? 'selected' : '';
+
+  return `
+    <div class="shift-card ${shift}">
+      <div class="shift-title ${shift}">${titre}</div>
+      <div class="shift-horaire">${horaire}</div>
+      <label for="sel-${shift}">Où veux-tu aider ?</label>
+      <select id="sel-${shift}" data-shift="${shift}">
+        <option value="">— Choisis ton poste —</option>
+        ${options}
+        <option value="${AUTRE}" ${autreSelected}>🤷 ${AUTRE}</option>
+      </select>
+    </div>
+  `;
+}
+
+function updateSubmitState() {
+  const btn = document.getElementById('submit-btn');
+  // Au moins un des shifts applicables doit avoir une valeur
+  let anyChoice = false;
+  document.querySelectorAll('select[data-shift]').forEach(sel => {
+    if (sel.value) anyChoice = true;
+  });
+  btn.disabled = !anyChoice;
+}
+
+document.getElementById('submit-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Enregistrement...';
+  const resultBox = document.getElementById('result-box');
+  resultBox.innerHTML = '';
+
+  const payload = {};
+  document.querySelectorAll('select[data-shift]').forEach(sel => {
+    const shift = sel.dataset.shift;
+    payload[`station_${shift}`] = sel.value || null;
+  });
+
+  const { error } = await db.from('Benevoles').update(payload).eq('id', moi.id);
+  if (error) {
+    resultBox.innerHTML = `<div class="error">❌ Erreur : ${error.message}</div>`;
+    btn.disabled = false;
+    btn.textContent = 'Valider mon choix';
+    return;
+  }
+
+  // Mise à jour locale
+  Object.assign(moi, payload);
+  const idx = benevoles.findIndex(b => b.id === moi.id);
+  if (idx >= 0) Object.assign(benevoles[idx], payload);
+
+  const parts = [];
+  if (moi.station_matin) parts.push(`<strong>Matin :</strong> ${moi.station_matin}`);
+  if (moi.station_aprem) parts.push(`<strong>Aprem :</strong> ${moi.station_aprem}`);
+  resultBox.innerHTML = `
+    <div class="success">
+      ✅ Merci ${moi.prenom || ''} ! Ton choix est enregistré :<br>
+      ${parts.join('<br>')}<br>
+      <small style="color:#aaa;">Si tu veux changer, modifie ci-dessus et re-valide. À dimanche 🔥</small>
+    </div>
+  `;
+  btn.disabled = false;
+  btn.textContent = 'Valider mon choix';
+  // Recharge les compteurs des shifts (pour refléter les places libres)
+  renderAffectation();
+});
+
+init();
+</script>
+</body>
+</html>
