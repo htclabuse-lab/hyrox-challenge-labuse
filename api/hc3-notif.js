@@ -96,6 +96,67 @@ function mailBenevolesRulebook(prenom) {
   };
 }
 
+function mailBenevolesLienJuge(prenom) {
+  const salut = prenom ? `Salut <strong>${prenom}</strong>,` : 'Salut à toi,';
+  return {
+    subject: '🧑‍⚖️ HC #3 demain — ton lien juge + mot de passe',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>${salut}</p>`
+      + '<p>C\'est demain ! 🎉 Merci encore d\'être là pour nous aider sur le <strong>Hyrox Challenge La Buse #3</strong>.</p>'
+      + '<p>Voici tout ce dont tu as besoin pour ton poste de <strong>juge/starter</strong> :</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:0 0 8px;"><strong>🔗 Lien juge :</strong><br><a href="https://hyrox-challenge-labuse.vercel.app/juge.html" style="color:#C0392B;font-weight:800;">hyrox-challenge-labuse.vercel.app/juge.html</a></p>'
+      + '<p style="margin:0;"><strong>🔐 Mot de passe :</strong> <code style="background:#fff;padding:2px 10px;border-radius:4px;font-size:16px;font-weight:800;">Romu</code></p>'
+      + '</div>'
+      + '<p><strong>Mode d\'emploi (30 s) :</strong></p>'
+      + '<ol style="padding-left:20px;margin:0 0 14px;">'
+      + '<li>Ouvre le lien sur ton téléphone <strong>le jour J</strong> (pas la peine d\'enregistrer l\'appli).</li>'
+      + '<li>Saisis le mot de passe <strong>Romu</strong>.</li>'
+      + '<li>Choisis ton <strong>poste</strong> : « 🏁 Départ (Starter) » ou une des 8 stations (SkiErg, Sled Push, Sled Pull, Burpee BJ, Rowing, Farmer\'s Carry, Sandbag Lunges, Wall Balls).</li>'
+      + '<li>C\'est parti : tu n\'as plus qu\'à valider les athlètes qui passent à ton poste.</li>'
+      + '</ol>'
+      + '<p>👉 <strong>Avant de venir, relis le rulebook</strong> pour maîtriser les règles de ta station : <a href="https://hyrox-challenge-labuse.vercel.app/rulebook.html">rulebook complet ici</a></p>'
+      + '<p>Si tu as un doute sur un mouvement ou une pénalité, demande-nous sur place — on sera toujours à proximité pour t\'épauler.</p>'
+      + '<p>Un ÉNORME merci 🫶. À demain !</p>'
+      + '<p><strong>Stéphanie &amp; l\'équipe La Buse</strong> 💛🖤</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
+function mailRetraitPack(prenom) {
+  const salut = prenom ? `Salut <strong>${prenom}</strong>,` : 'Salut à toi,';
+  return {
+    subject: '📦 Retrait des packs athlètes — HC #3 & Parent-Enfant #2',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>${salut}</p>`
+      + '<p>L\'événement approche ! Voici les infos pour récupérer ton pack athlète.</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:0 0 6px;font-size:16px;font-weight:800;color:#C0392B;">✨ Retrait anticipé — Vendredi 13 novembre à partir de 15h</p>'
+      + '<p style="margin:0;">Chez <strong>Intersport Le Port</strong></p>'
+      + '</div>'
+      + '<div style="background:#E8F5E9;border-left:4px solid #4caf50;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:0 0 8px;font-weight:800;">🎁 Bonus partenaire Intersport sur présentation de ton pack/dossard en caisse :</p>'
+      + '<ul style="margin:0;padding-left:20px;">'
+      + '<li><strong>-20%</strong> sur les vêtements et chaussures running</li>'
+      + '<li><strong>-10%</strong> sur les équipements (sacs, chaussettes, compressions)</li>'
+      + '</ul>'
+      + '<p style="margin:8px 0 0;font-size:12px;color:#666;">(hors promos en cours, hors soldes, offre non cumulable, pas sur la nutrition / électronique / frontales)</p>'
+      + '</div>'
+      + '<p><strong>Sinon : retrait le jour de ta course</strong><br>Sur place au CrossFit La Buse, selon ton horaire de passage :</p>'
+      + '<ul style="padding-left:20px;margin:0 0 14px;">'
+      + '<li><strong>Samedi 14 novembre</strong> pour le Parent-Enfant #2</li>'
+      + '<li><strong>Dimanche 15 novembre</strong> pour le Hyrox Challenge #3</li>'
+      + '</ul>'
+      + '<p>À très vite 🔥</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 function mailVaguesClosed(prenom) {
   const salut = prenom ? `Salut <strong>${prenom}</strong>,` : 'Salut à toi,';
   return {
@@ -289,7 +350,54 @@ export default async function handler(req, res) {
       return res.status(200).json({ envoye: true, nombre: emails.length, envoyes });
     }
 
-    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change, vagues_closed ou benevoles_rulebook' });
+    if (b.mode === 'retrait_pack') {
+      // Mail à TOUS les athlètes payés HC #3 (dimanche 15/11) + PE #2 (samedi 14/11).
+      // Dédoublonne par email (capitaine + co1).
+      const { data, error } = await db.from('Inscriptions')
+        .select('id,prenom,nom,email,co1_prenom,co1_nom,co1_email,categorie,heure_depart,statut_paiement')
+        .gte('heure_depart', '2026-11-14').lt('heure_depart', '2026-11-16')
+        .eq('statut_paiement', 'paye');
+      if (error) return res.status(500).json({ error: error.message });
+      const EXCLUS = ['stephanie.caro31@gmail.com'];
+      const parEmail = {};
+      (data || []).forEach(ins => {
+        const push = (prenom, email) => {
+          const e = String(email || '').trim().toLowerCase();
+          if (!e || EXCLUS.includes(e)) return;
+          (parEmail[e] = parEmail[e] || []).push((prenom || '').trim());
+        };
+        push(ins.prenom, ins.email);
+        push(ins.co1_prenom, ins.co1_email);
+      });
+      const emails = Object.keys(parEmail).sort();
+      const prenomDe = e => {
+        const prenoms = [...new Set(parEmail[e].filter(Boolean))];
+        return prenoms.length === 1 ? prenoms[0] : null;
+      };
+
+      if (b.test_to) {
+        const n = await resendBatch(resendKey,
+          [{ from: FROM, to: String(b.test_to).trim(), reply_to: REPLY_TO, ...mailRetraitPack('Stéphanie (APERÇU)') }],
+          `hc3-retrait-pack-test-${Date.now()}`);
+        return res.status(200).json({ test: true, envoyes: n, nb_destinataires_reels: emails.length });
+      }
+      if (b.envoyer !== true) {
+        return res.status(200).json({
+          dry_run: true,
+          nombre: emails.length,
+          apercu_10_premiers: emails.slice(0, 10).map(e => ({ email: e, salut_avec: prenomDe(e) || '«Salut à toi»' })),
+        });
+      }
+      let envoyes = 0;
+      for (let i = 0; i < emails.length; i += 100) {
+        envoyes += await resendBatch(resendKey,
+          emails.slice(i, i + 100).map(to => ({ from: FROM, to, reply_to: REPLY_TO, ...mailRetraitPack(prenomDe(to)) })),
+          `hc3-retrait-pack-lot${i / 100}-v1`);
+      }
+      return res.status(200).json({ envoye: true, nombre: emails.length, envoyes });
+    }
+
+    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change, vagues_closed, benevoles_rulebook ou retrait_pack' });
   } catch (e) {
     console.error('hc3-notif', e);
     return res.status(500).json({ error: e.message });
