@@ -210,7 +210,7 @@ function buildShiftCard(shift, titre, horaire) {
     // Si c'est MA station actuelle, on compte comme si je n'y étais pas pour le calcul de dispo
     const placesReelles = isMine ? places + 1 : places;
     const complet = placesReelles <= 0;
-    const label = `${st.nom} (${complet ? 'complet' : (placesReelles + ' place' + (placesReelles > 1 ? 's' : ''))})`;
+    const label = `${st.nom} — ${st.zone} (${complet ? 'complet' : (placesReelles + ' place' + (placesReelles > 1 ? 's' : ''))})`;
     const disabled = complet && !isMine ? 'disabled' : '';
     const selected = isMine ? 'selected' : '';
     return `<option value="${st.nom}" ${disabled} ${selected}>${label}</option>`;
