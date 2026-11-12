@@ -88,7 +88,7 @@ const STATIONS = [
   { zone: 'Dehors',         nom: 'Farmer Carry',  besoin: 1 },
   { zone: 'Dehors',         nom: 'Lunges',        besoin: 3 },
 ];
-const AUTRE = 'Autre (mettez-moi où vous voulez)';
+const AUTRE = 'Où vous voulez';
 
 let benevoles = [];
 let moi = null;
@@ -225,8 +225,8 @@ function buildShiftCard(shift, titre, horaire) {
       <label for="sel-${shift}">Où veux-tu aider ?</label>
       <select id="sel-${shift}" data-shift="${shift}">
         <option value="">— Choisis ton poste —</option>
+        <option value="${AUTRE}" ${autreSelected}>🤷 ${AUTRE} (mettez-moi où vous voulez)</option>
         ${options}
-        <option value="${AUTRE}" ${autreSelected}>🤷 ${AUTRE}</option>
       </select>
     </div>
   `;
