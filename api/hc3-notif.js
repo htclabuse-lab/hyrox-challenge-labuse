@@ -295,6 +295,66 @@ function mailBenevoleSterennAccueil() {
   };
 }
 
+function mailBenevoleDemiMatin(prenom, station) {
+  return {
+    subject: '🙌 Ton poste bénévole pour Hyrox Challenge La Buse #3 — Dimanche 15 novembre (matin)',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>Bonjour <strong>${prenom || 'cher bénévole'}</strong>,</p>`
+      + '<p>Merci mille fois de donner de ton temps pour cette édition #3 de l\'Hyrox Challenge La Buse !</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🕖 <strong>Arrivée : 7h15</strong> au CrossFit La Buse (briefing)</p>'
+      + `<p style="margin:10px 0;">🌅 <strong>Shift matin (7h30 - 13h) : ${station}</strong></p>`
+      + '</div>'
+      + '<p>⏰ <strong>Ta ponctualité est cruciale.</strong> Les bénévoles journée comptent sur toi pour pouvoir partir en pause à leur tour — on ne peut laisser aucune station sans personne. Chaque minute compte pour que l\'organisation tourne.</p>'
+      + '<p>🙏 Merci pour ton engagement, on compte vraiment sur toi.</p>'
+      + '<p>❄️ Espace climatisé dispo avant ou après ton shift.</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
+function mailBenevoleDemiAprem(prenom, station) {
+  return {
+    subject: '🙌 Ton poste bénévole pour Hyrox Challenge La Buse #3 — Dimanche 15 novembre (après-midi)',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>Bonjour <strong>${prenom || 'cher bénévole'}</strong>,</p>`
+      + '<p>Merci mille fois de donner de ton temps pour cette édition #3 de l\'Hyrox Challenge La Buse !</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🕐 <strong>Arrivée : 12h45</strong> au CrossFit La Buse (prise de poste)</p>'
+      + `<p style="margin:10px 0;">🌇 <strong>Shift aprem (13h - 18h) : ${station}</strong></p>`
+      + '</div>'
+      + '<p>⏰ <strong>Ta ponctualité est cruciale.</strong> Les bénévoles du matin comptent sur toi pour pouvoir partir à leur tour — on ne peut laisser aucune station sans personne. Chaque minute compte pour que l\'organisation tourne.</p>'
+      + '<p>🙏 Merci pour ton engagement, on compte vraiment sur toi.</p>'
+      + '<p>❄️ Espace climatisé dispo avant ou après ton shift.</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
+function mailBenevoleLorisWallBall() {
+  return {
+    subject: '🙌 Ton poste bénévole — Wall Ball après-midi HC #3',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + '<p>Bonjour <strong>Loris</strong>,</p>'
+      + '<p>Merci pour ton implication en plus de ta course !</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🏃 <strong>Matin :</strong> ta course (vague 100 à <strong>11h15</strong>)</p>'
+      + '<p style="margin:10px 0;">🌇 <strong>Après-midi (13h - 18h) : WALL BALL</strong></p>'
+      + '</div>'
+      + '<p>J\'espère que tu seras <strong>frais pour 13h</strong> au Wall Ball 💪</p>'
+      + '<p>🕐 Prise de poste à 13h directement.</p>'
+      + '<p>❄️ Espace climatisé dispo avant ou après ton shift.</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 function mailBenevoleDanyRenfortBurpees() {
   return {
     subject: '🙌 Ton rôle bénévole — Renfort Burpees HC #3',
@@ -595,6 +655,7 @@ export default async function handler(req, res) {
         'david_renfort_orga': mailBenevoleDavidRenfortOrga,
         'karine_coordination': mailBenevoleKarineCoordination,
         'sterenn_accueil': mailBenevoleSterennAccueil,
+        'loris_wallball': mailBenevoleLorisWallBall,
       };
       const mailFn = templates[b.role];
       if (!mailFn) return res.status(400).json({ error: 'role invalide : ' + Object.keys(templates).join(', ') });
@@ -613,7 +674,56 @@ export default async function handler(req, res) {
       return res.status(200).json({ envoye: true, envoyes: n, to: data.email });
     }
 
-    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change, vagues_closed, benevoles_rulebook, retrait_pack, benevoles_placement ou benevole_special' });
+    if (b.mode === 'benevoles_demi') {
+      // Mail à tous les demi-journée (matin OU aprem) avec leur poste.
+      // shift: 'matin' ou 'aprem'
+      const shift = b.shift;
+      if (shift !== 'matin' && shift !== 'aprem') return res.status(400).json({ error: 'shift requis : matin ou aprem' });
+      const { data, error } = await db.from('Benevoles')
+        .select('id,prenom,nom,email,disponibilites,station_matin,station_aprem')
+        .eq('disponibilites', shift)
+        .gte('created_at', '2026-09-01');
+      if (error) return res.status(500).json({ error: error.message });
+      const EXCLUS_EMAILS = ['stephanie.caro31@gmail.com'];
+      // Exclusions par prénom (ceux qui ont déjà reçu un mail spécial ou n'en reçoivent pas)
+      const EXCLUS_PRENOMS = shift === 'matin'
+        ? ['dany']  // Dany a reçu le mail spécial
+        : ['Loris','Christian'];  // Loris spécial, Christian sans email
+      const stationKey = 'station_' + shift;
+      const fiches = (data || []).filter(r => {
+        const email = String(r.email || '').trim().toLowerCase();
+        if (!email || EXCLUS_EMAILS.includes(email)) return false;
+        if (EXCLUS_PRENOMS.some(p => p.toLowerCase() === (r.prenom || '').trim().toLowerCase())) return false;
+        const st = r[stationKey];
+        if (!st || st === 'Photo') return false;
+        return true;
+      });
+      const mailFn = shift === 'matin' ? mailBenevoleDemiMatin : mailBenevoleDemiAprem;
+
+      if (b.test_to) {
+        const n = await resendBatch(resendKey,
+          [{ from: FROM, to: String(b.test_to).trim(), reply_to: REPLY_TO, ...mailFn('Stéphanie (APERÇU)', 'Wall Ball') }],
+          `hc3-benev-demi-${shift}-test-${Date.now()}`);
+        return res.status(200).json({ test: true, envoyes: n, nb_destinataires_reels: fiches.length });
+      }
+      if (b.envoyer !== true) {
+        return res.status(200).json({
+          dry_run: true,
+          shift,
+          nombre: fiches.length,
+          apercu: fiches.map(f => ({ prenom: f.prenom, nom: f.nom, email: f.email, station: f[stationKey] })),
+        });
+      }
+      let envoyes = 0;
+      for (let i = 0; i < fiches.length; i += 100) {
+        envoyes += await resendBatch(resendKey,
+          fiches.slice(i, i + 100).map(f => ({ from: FROM, to: f.email, reply_to: REPLY_TO, ...mailFn((f.prenom || '').trim(), f[stationKey]) })),
+          `hc3-benev-demi-${shift}-lot${i / 100}-v1`);
+      }
+      return res.status(200).json({ envoye: true, shift, nombre: fiches.length, envoyes });
+    }
+
+    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change, vagues_closed, benevoles_rulebook, retrait_pack, benevoles_placement, benevole_special ou benevoles_demi' });
   } catch (e) {
     console.error('hc3-notif', e);
     return res.status(500).json({ error: e.message });
