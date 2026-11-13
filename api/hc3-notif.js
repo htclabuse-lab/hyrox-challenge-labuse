@@ -379,6 +379,51 @@ function mailBenevoleLorisWallBall() {
   };
 }
 
+function mailBenevoleMichelRenfortMatin() {
+  return {
+    subject: '🙌 Bienvenue Michel — Ton rôle bénévole HC #3',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + '<p>Bonjour <strong>Michel</strong>,</p>'
+      + '<p>Merci de rejoindre l\'équipe bénévole au dernier moment, c\'est super !</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🕖 <strong>Arrivée : 7h15</strong> au CrossFit La Buse (briefing)</p>'
+      + '<p style="margin:10px 0;">🌅 <strong>Matin (7h30 - 11h) : RENFORT / VOLANT</strong><br>Tu te présentes à Karine (coordinatrice matin) qui te placera là où on a besoin, en fonction des besoins du moment.</p>'
+      + '<p style="margin:10px 0;">🥪 <strong>Pause : 11h - 12h</strong></p>'
+      + '<p style="margin:10px 0;">🔁 <strong>12h - 13h : remplacement de Karine</strong> (renfort orga) pendant sa pause déjeuner.</p>'
+      + '<p style="margin:10px 0;">🌇 <strong>Après-midi (13h - 18h) : BURPEES</strong></p>'
+      + '</div>'
+      + '<p>⏰ <strong>La ponctualité est cruciale</strong> : chaque station doit rester couverte pour que tout tourne.</p>'
+      + '<p>❄️ Un espace climatisé est à disposition avant ou après ton shift.</p>'
+      + '<p>📩 Une question ou un changement ? Réponds directement à ce mail.</p>'
+      + '<p>Merci encore, on compte sur toi !</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
+function mailBenevoleCamilleLungesAprem() {
+  return {
+    subject: '🙌 Bienvenue Camille — Ton poste bénévole HC #3',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + '<p>Bonjour <strong>Camille</strong>,</p>'
+      + '<p>Merci de rejoindre l\'équipe bénévole au dernier moment, c\'est super !</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🕐 <strong>Arrivée : 12h45</strong> au CrossFit La Buse (prise de poste)</p>'
+      + '<p style="margin:10px 0;">🌇 <strong>Après-midi (13h - 18h) : LUNGES (Fentes)</strong></p>'
+      + '</div>'
+      + '<p>⏰ <strong>La ponctualité est cruciale</strong> : chaque station doit rester couverte pour que tout tourne.</p>'
+      + '<p>❄️ Un espace climatisé est à disposition avant ou après ton shift.</p>'
+      + '<p>📩 Une question ou un changement ? Réponds directement à ce mail.</p>'
+      + '<p>Merci encore, on compte sur toi !</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 function mailBenevoleDanyRenfortBurpees() {
   return {
     subject: '🙌 Ton rôle bénévole — Renfort Burpees HC #3',
@@ -680,6 +725,8 @@ export default async function handler(req, res) {
         'karine_coordination': mailBenevoleKarineCoordination,
         'sterenn_accueil': mailBenevoleSterennAccueil,
         'loris_wallball': mailBenevoleLorisWallBall,
+        'michel_renfort_matin': mailBenevoleMichelRenfortMatin,
+        'camille_lunges_aprem': mailBenevoleCamilleLungesAprem,
       };
       const mailFn = templates[b.role];
       if (!mailFn) return res.status(400).json({ error: 'role invalide : ' + Object.keys(templates).join(', ') });
