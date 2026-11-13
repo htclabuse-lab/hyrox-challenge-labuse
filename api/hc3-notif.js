@@ -255,19 +255,20 @@ function mailBenevoleDavidRenfortOrga() {
 
 function mailBenevoleKarineCoordination() {
   return {
-    subject: '🙌 Ton rôle bénévole — Coordination + Renfort zone Wall Ball/Burpees HC #3',
+    subject: '🙌 Ton programme journée (mise à jour) — HC #3',
     html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
       + '<p>Bonjour <strong>Karine</strong>,</p>'
-      + '<p>Merci mille fois pour ton implication pour cette édition #3 !</p>'
-      + '<p><strong>Voici ton rôle pour dimanche :</strong></p>'
+      + '<p>Voici ton programme <strong>mis à jour</strong> pour dimanche :</p>'
       + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
-      + '<p style="margin:10px 0;">🕖 <strong>Arrivée : 7h15</strong> au CrossFit La Buse (briefing)</p>'
-      + '<p style="margin:10px 0;">👥 <strong>Matin (7h30 - 13h) : COORDINATION BÉNÉVOLES + RENFORT ORGANISATION</strong><br>Tu es notre <strong>garante du bon placement des bénévoles</strong> le matin — tu t\'assures que chacun est bien à sa station et qu\'ils ont compris leurs horaires de pause.<br>📋 <strong>Stéphanie te transmettra en amont toutes les infos</strong> (liste complète des bénévoles, leurs stations, leurs créneaux de pause) pour que tu puisses vérifier sur place.<br>Entre <strong>11h et 13h</strong>, tu couvres aussi la station <strong>Sled Pull</strong> pendant les pauses déjeuner des titulaires.</p>'
+      + '<p style="margin:10px 0;">🕖 <strong>Arrivée : 7h00</strong> au CrossFit La Buse</p>'
+      + '<p style="margin:10px 0;">👥 <strong>Matin (7h30 - 11h) : COORDINATION BÉNÉVOLES + RENFORT ORGANISATION</strong><br>Tu es notre <strong>garante du bon placement des bénévoles</strong> — tu t\'assures que chacun est bien à sa station et qu\'ils ont compris leurs horaires de pause.</p>'
+      + '<p style="margin:10px 0;">🔁 <strong>11h - 12h : Sled Pull</strong> (renfort pauses des titulaires)</p>'
+      + '<p style="margin:10px 0;">🥪 <strong>Pause déjeuner : 12h - 13h</strong><br>Michel GUTIEZ te remplace au Sled Pull pendant ta pause.</p>'
       + '<p style="margin:10px 0;">🌇 <strong>Après-midi (13h - 18h) : RENFORT ZONE WALL BALL / BURPEES</strong><br>Tu circules entre les deux stations — on manque de bénévoles cet aprem. Tu juges dès que besoin pour épauler les équipes.</p>'
-      + '<p style="margin:10px 0;">🥪 <strong>Pause :</strong> à prendre librement sur place (pas de créneau fixe)</p>'
       + '</div>'
+      + '<p>❄️ Espace climatisé dispo.</p>'
+      + '<p>📋 Je te transmettrai en amont la liste complète des bénévoles, stations et pauses.</p>'
       + '<p>⏰ Tu es un rouage clé — merci à toi !</p>'
-      + '<p>❄️ Espace climatisé dispo pour manger.</p>'
       + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
       + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
       + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
