@@ -209,6 +209,49 @@ function mailBenevolesPlacement(b) {
   };
 }
 
+function mailBenevoleLoicRenfortSP() {
+  return {
+    subject: '🙌 Ton rôle bénévole — Renfort Sled Pull + SkiErg HC #3',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + '<p>Bonjour <strong>Loïc</strong>,</p>'
+      + '<p>Merci pour ton implication en plus de ta course !</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🕖 <strong>Arrivée : 7h15</strong> au CrossFit La Buse (briefing)</p>'
+      + '<p style="margin:10px 0;">💪 <strong>Matin (7h30 - ta vague) : RENFORT SLED PULL</strong><br>Tu viens prêter main forte à l\'équipe Sled Pull pour couvrir la matinée.</p>'
+      + '<p style="margin:10px 0;">🏃 <strong>10h45 : ta course</strong> (vague 17)</p>'
+      + '<p style="margin:10px 0;">🌇 <strong>Après-midi (13h - 18h) : SkiErg</strong><br>Tu nous rejoins à 13h après ta course et ta récup.</p>'
+      + '<p style="margin:10px 0;">🥪 <strong>Pause :</strong> ta course sert de coupure naturelle — pas de créneau pause formel.</p>'
+      + '</div>'
+      + '<p>⏰ <strong>Important de respecter 7h30</strong> pour l\'équipe Sled Pull.</p>'
+      + '<p>❄️ Espace climatisé dispo pour manger.</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
+function mailBenevoleDanyRenfortBurpees() {
+  return {
+    subject: '🙌 Ton rôle bénévole — Renfort Burpees HC #3',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + '<p>Bonjour <strong>Dany</strong>,</p>'
+      + '<p>Merci pour ton implication en plus de ta course !</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🕖 <strong>Arrivée : 7h15</strong> au CrossFit La Buse (briefing)</p>'
+      + '<p style="margin:10px 0;">🤸 <strong>Matin (7h30 - ta vague) : RENFORT BURPEES</strong><br>Tu viens prêter main forte à l\'équipe Burpees pour couvrir la matinée.</p>'
+      + '<p style="margin:10px 0;">🏃 <strong>11h05 : ta course</strong> (vague 19)</p>'
+      + '<p style="margin:10px 0;color:#666;">Après ta course, tu es libre.</p>'
+      + '</div>'
+      + '<p>⏰ <strong>Important de respecter 7h30</strong> pour que l\'équipe Burpees puisse s\'organiser avec toi.</p>'
+      + '<p>❄️ Espace climatisé dispo.</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 async function resendBatch(resendKey, emails, cle) {
   const resp = await fetch('https://api.resend.com/emails/batch', {
     method: 'POST',
@@ -477,7 +520,33 @@ export default async function handler(req, res) {
       return res.status(200).json({ envoye: true, nombre: fiches.length, envoyes });
     }
 
-    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change, vagues_closed, benevoles_rulebook, retrait_pack ou benevoles_placement' });
+    if (b.mode === 'benevole_special') {
+      // Mail à UN bénévole avec rôle atypique. Templates hardcodés.
+      if (!b.id || !b.role) return res.status(400).json({ error: 'id et role requis' });
+      const { data, error } = await db.from('Benevoles').select('id,prenom,nom,email').eq('id', b.id).single();
+      if (error || !data) return res.status(404).json({ error: 'Bénévole introuvable' });
+      const templates = {
+        'loic_sledpull_skierg': mailBenevoleLoicRenfortSP,
+        'dany_burpees': mailBenevoleDanyRenfortBurpees,
+      };
+      const mailFn = templates[b.role];
+      if (!mailFn) return res.status(400).json({ error: 'role invalide : ' + Object.keys(templates).join(', ') });
+
+      if (b.test_to) {
+        const n = await resendBatch(resendKey,
+          [{ from: FROM, to: String(b.test_to).trim(), reply_to: REPLY_TO, ...mailFn() }],
+          `hc3-special-${b.role}-test-${Date.now()}`);
+        return res.status(200).json({ test: true, envoyes: n, fiche: data });
+      }
+      if (b.envoyer !== true) return res.status(200).json({ dry_run: true, fiche: data, role: b.role });
+      if (!data.email) return res.status(400).json({ error: 'Bénévole sans email' });
+      const n = await resendBatch(resendKey,
+        [{ from: FROM, to: data.email, reply_to: REPLY_TO, ...mailFn() }],
+        `hc3-special-${b.role}-v1`);
+      return res.status(200).json({ envoye: true, envoyes: n, to: data.email });
+    }
+
+    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change, vagues_closed, benevoles_rulebook, retrait_pack, benevoles_placement ou benevole_special' });
   } catch (e) {
     console.error('hc3-notif', e);
     return res.status(500).json({ error: e.message });
