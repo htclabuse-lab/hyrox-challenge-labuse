@@ -29,6 +29,7 @@
     .creneau li.renfort::before { content: "➕ "; }
     .creneau li.remplace { color: #4FC3F7; font-style: italic; }
     .creneau li.remplace::before { content: "🔁 "; }
+    .creneau li.coureur { color: #888; font-style: italic; font-size: 12px; }
     .creneau.vide li.empty { color: #666; font-style: italic; font-size: 12px; }
     .creneau.sous-effectif { background: #2a1010; }
     .legend { background: #111; border: 1px solid #333; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #aaa; margin-bottom: 14px; line-height: 1.7; }
@@ -69,6 +70,8 @@
     • Nom en blanc = sur sa station pour ce créneau<br>
     • <span class="l-renfort">➕ Nom en orange</span> = renfort / volant (pas sa station habituelle)<br>
     • <span class="l-rempl">🔁 Nom en bleu</span> = remplaçant pendant la pause d'un titulaire<br>
+    • <span style="color:#888;font-style:italic;">(Nom) 🏃</span> = bénévole qui court aussi — non compté sur le poste<br>
+    • ☀️ = bénévole présent toute la journée<br>
     • Cellule rouge = sous-effectif par rapport au besoin
   </div>
 
@@ -83,6 +86,22 @@
 const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Bénévoles qui courent aussi HC #3 le matin : affichés entre parenthèses,
+// non comptés dans le total (ils font leur course et ne sont pas vraiment sur le poste).
+const COUREURS_MATIN = [
+  { prenom: 'Loïc', nom: 'BERTIL', course: '10h45 (vague 17)' },
+];
+
+function estCoureurMatin(b) {
+  return COUREURS_MATIN.some(c => (c.prenom || '').toLowerCase() === (b.prenom || '').trim().toLowerCase()
+    && (c.nom || '').toLowerCase() === (b.nom || '').trim().toLowerCase());
+}
+function infoCoureur(b) {
+  const c = COUREURS_MATIN.find(x => (x.prenom || '').toLowerCase() === (b.prenom || '').trim().toLowerCase()
+    && (x.nom || '').toLowerCase() === (b.nom || '').trim().toLowerCase());
+  return c ? c.course : '';
+}
 
 const STATIONS = [
   { nom: 'Accueil',      zone: 'Entrée',         besoin: 1 },
@@ -141,12 +160,17 @@ function presents(station, creneau, benevoles) {
   if (creneau === 'matin') {
     benevoles.forEach(b => {
       if (b.station_matin === station && (hasDispo(b, 'matin') || hasDispo(b, 'journee'))) {
-        res.push({ nom: nomAffiche(b), type: 'titulaire' });
+        if (estCoureurMatin(b)) {
+          res.push({ nom: `(${nomAffiche(b)}) 🏃 ${infoCoureur(b)}`, type: 'coureur' });
+        } else {
+          res.push({ nom: nomAffiche(b), type: 'titulaire' });
+        }
       }
     });
   } else if (creneau === '11-12') {
     benevoles.forEach(b => {
       if (b.station_matin === station && (hasDispo(b, 'matin') || hasDispo(b, 'journee'))) {
+        if (estCoureurMatin(b)) return; // ne compte pas et n'affiche pas aux pauses (il court)
         if (b.pause_creneau !== '11h-12h') {
           res.push({ nom: nomAffiche(b), type: 'titulaire' });
         }
@@ -175,6 +199,7 @@ function presents(station, creneau, benevoles) {
   } else if (creneau === '12-13') {
     benevoles.forEach(b => {
       if (b.station_matin === station && (hasDispo(b, 'matin') || hasDispo(b, 'journee'))) {
+        if (estCoureurMatin(b)) return; // ne compte pas aux pauses (il court)
         if (b.pause_creneau !== '12h-13h') {
           res.push({ nom: nomAffiche(b), type: 'titulaire' });
         }
@@ -207,8 +232,9 @@ function presents(station, creneau, benevoles) {
 
 function renderCreneau(station, label, heures, creneau, benevoles, besoin) {
   const liste = presents(station, creneau, benevoles);
+  const nbReel = liste.filter(e => e.type !== 'coureur').length; // coureurs non comptés
   const nb = liste.length;
-  const sousEff = nb < besoin;
+  const sousEff = nbReel < besoin;
   const cls = 'creneau' + (sousEff ? ' sous-effectif' : '') + (nb === 0 ? ' vide' : '');
   const countCls = sousEff ? 'count under' : 'count';
   let items = '';
@@ -216,7 +242,7 @@ function renderCreneau(station, label, heures, creneau, benevoles, besoin) {
     items = '<li class="empty">—</li>';
   } else {
     items = liste.map(e => {
-      const cls2 = e.type === 'remplace' ? 'remplace' : '';
+      const cls2 = e.type === 'remplace' ? 'remplace' : (e.type === 'coureur' ? 'coureur' : '');
       return `<li class="${cls2}">${e.nom}</li>`;
     }).join('');
   }
@@ -224,7 +250,7 @@ function renderCreneau(station, label, heures, creneau, benevoles, besoin) {
     <div class="${cls}">
       <div class="creneau-title">
         <span class="heure">${heures}</span>
-        <span class="${countCls}">${nb}/${besoin}</span>
+        <span class="${countCls}">${nbReel}/${besoin}</span>
       </div>
       <ul>${items}</ul>
     </div>
