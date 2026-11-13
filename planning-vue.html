@@ -115,7 +115,9 @@ async function loadAndRender() {
 function nomAffiche(b) {
   const p = (b.prenom || '').trim();
   const n = (b.nom || '').trim();
-  return n ? `${p} ${n}` : p;
+  const base = n ? `${p} ${n}` : p;
+  const estJournee = hasDispo(b, 'journee');
+  return base + (estJournee ? ' ☀️' : '');
 }
 
 function hasDispo(b, mot) {
