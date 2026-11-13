@@ -751,7 +751,8 @@ export default async function handler(req, res) {
       // Mail à tous les bénévoles PE #2 samedi (dispo contient 'veille').
       const { data, error } = await db.from('Benevoles')
         .select('id,prenom,nom,email,disponibilites')
-        .like('disponibilites', '%veille%');
+        .like('disponibilites', '%veille%')
+        .gte('created_at', '2026-09-01');
       if (error) return res.status(500).json({ error: error.message });
       const EXCLUS_EMAILS = ['stephanie.caro31@gmail.com'];
       const fiches = (data || []).filter(r => {
