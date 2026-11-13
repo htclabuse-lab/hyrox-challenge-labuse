@@ -740,9 +740,10 @@ export default async function handler(req, res) {
       }
       if (b.envoyer !== true) return res.status(200).json({ dry_run: true, fiche: data, role: b.role });
       if (!data.email) return res.status(400).json({ error: 'Bénévole sans email' });
+      const cleSuffixe = b.cle_suffixe ? `-${String(b.cle_suffixe).replace(/[^a-z0-9_-]/gi,'')}` : '-v1';
       const n = await resendBatch(resendKey,
         [{ from: FROM, to: data.email, reply_to: REPLY_TO, ...mailFn() }],
-        `hc3-special-${b.role}-v1`);
+        `hc3-special-${b.role}${cleSuffixe}`);
       return res.status(200).json({ envoye: true, envoyes: n, to: data.email });
     }
 
