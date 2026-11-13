@@ -335,6 +335,30 @@ function mailBenevoleDemiAprem(prenom, station) {
   };
 }
 
+function mailBenevolesPE2(prenom) {
+  return {
+    subject: '🙌 Ton poste bénévole — Parent-Enfant La Buse #2 (samedi 14 novembre)',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>Bonjour <strong>${prenom || 'cher bénévole'}</strong>,</p>`
+      + '<p>Merci mille fois de donner de ton temps pour l\'édition #2 du <strong>Parent-Enfant La Buse</strong> ! C\'est une journée très attendue des familles et chaque bénévole compte.</p>'
+      + '<p><strong>Voici tes infos pour samedi :</strong></p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🕛 <strong>Arrivée : 12h</strong> au CrossFit La Buse (briefing)</p>'
+      + '<p style="margin:10px 0;">🏁 <strong>Début des vagues : 12h30</strong></p>'
+      + '<p style="margin:10px 0;">🏁 <strong>Dernière vague : 15h30</strong></p>'
+      + '<p style="margin:10px 0;">🎯 <strong>Fin de mission : ~16h30 - 17h</strong> (après la dernière course et le rangement)</p>'
+      + '</div>'
+      + '<p>⏰ <strong>Ta ponctualité est cruciale.</strong> Chaque station doit rester couverte pour que l\'événement tourne — on compte vraiment sur toi pour arriver à l\'heure.</p>'
+      + '<p>🙏 Un <strong>immense merci</strong> pour ton engagement ❤️</p>'
+      + '<p>📩 N\'hésite pas à <strong>répondre directement à ce mail</strong> pour toute question ou changement.</p>'
+      + '<p>À samedi ! 💪</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 function mailBenevoleLorisWallBall() {
   return {
     subject: '🙌 Ton poste bénévole — Wall Ball après-midi HC #3',
@@ -723,7 +747,42 @@ export default async function handler(req, res) {
       return res.status(200).json({ envoye: true, shift, nombre: fiches.length, envoyes });
     }
 
-    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change, vagues_closed, benevoles_rulebook, retrait_pack, benevoles_placement, benevole_special ou benevoles_demi' });
+    if (b.mode === 'benevoles_pe2') {
+      // Mail à tous les bénévoles PE #2 samedi (dispo contient 'veille').
+      const { data, error } = await db.from('Benevoles')
+        .select('id,prenom,nom,email,disponibilites')
+        .like('disponibilites', '%veille%');
+      if (error) return res.status(500).json({ error: error.message });
+      const EXCLUS_EMAILS = ['stephanie.caro31@gmail.com'];
+      const fiches = (data || []).filter(r => {
+        const email = String(r.email || '').trim().toLowerCase();
+        if (!email || EXCLUS_EMAILS.includes(email)) return false;
+        return true;
+      });
+
+      if (b.test_to) {
+        const n = await resendBatch(resendKey,
+          [{ from: FROM, to: String(b.test_to).trim(), reply_to: REPLY_TO, ...mailBenevolesPE2('Stéphanie (APERÇU)') }],
+          `hc3-benev-pe2-test-${Date.now()}`);
+        return res.status(200).json({ test: true, envoyes: n, nb_destinataires_reels: fiches.length });
+      }
+      if (b.envoyer !== true) {
+        return res.status(200).json({
+          dry_run: true,
+          nombre: fiches.length,
+          apercu: fiches.map(f => ({ prenom: f.prenom, nom: f.nom, email: f.email, dispo: f.disponibilites })),
+        });
+      }
+      let envoyes = 0;
+      for (let i = 0; i < fiches.length; i += 100) {
+        envoyes += await resendBatch(resendKey,
+          fiches.slice(i, i + 100).map(f => ({ from: FROM, to: f.email, reply_to: REPLY_TO, ...mailBenevolesPE2((f.prenom || '').trim()) })),
+          `hc3-benev-pe2-lot${i / 100}-v1`);
+      }
+      return res.status(200).json({ envoye: true, nombre: fiches.length, envoyes });
+    }
+
+    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change, vagues_closed, benevoles_rulebook, retrait_pack, benevoles_placement, benevole_special, benevoles_demi ou benevoles_pe2' });
   } catch (e) {
     console.error('hc3-notif', e);
     return res.status(500).json({ error: e.message });
