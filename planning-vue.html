@@ -30,6 +30,7 @@
     .creneau li.remplace { color: #4FC3F7; font-style: italic; }
     .creneau li.remplace::before { content: "🔁 "; }
     .creneau li.coureur { color: #888; font-style: italic; font-size: 12px; }
+    .creneau li.retard { color: #FF7043; font-weight: 700; font-size: 12px; }
     .creneau.vide li.empty { color: #666; font-style: italic; font-size: 12px; }
     .creneau.sous-effectif { background: #2a1010; }
     .legend { background: #111; border: 1px solid #333; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #aaa; margin-bottom: 14px; line-height: 1.7; }
@@ -71,6 +72,7 @@
     • <span class="l-renfort">➕ Nom en orange</span> = renfort / volant (pas sa station habituelle)<br>
     • <span class="l-rempl">🔁 Nom en bleu</span> = remplaçant pendant la pause d'un titulaire<br>
     • <span style="color:#888;font-style:italic;">(Nom) 🏃</span> = bénévole qui court aussi — non compté sur le poste<br>
+    • <span style="color:#FF7043;font-weight:700;">Nom ⏱️ EN RETARD</span> = course qui chevauche le shift, il arrivera en retard<br>
     • ☀️ = bénévole présent toute la journée<br>
     • Cellule rouge = sous-effectif par rapport au besoin
   </div>
@@ -94,13 +96,23 @@ const COUREURS_MATIN = [
   { prenom: 'dany', nom: 'RIVIERE', course: '11h05 (vague 19)' },
 ];
 
-function estCoureurMatin(b) {
-  return COUREURS_MATIN.some(c => (c.prenom || '').toLowerCase() === (b.prenom || '').trim().toLowerCase()
-    && (c.nom || '').toLowerCase() === (b.nom || '').trim().toLowerCase());
+// Coureurs dont la course chevauche leur shift APREM : ils seront EN RETARD au poste.
+const COUREURS_APREM = [
+  { prenom: 'Camille', nom: 'BROCHET', course: '11h45 (vague 23)' },
+];
+
+function matchNom(a, b) {
+  return (a.prenom || '').toLowerCase() === (b.prenom || '').trim().toLowerCase()
+    && (a.nom || '').toLowerCase() === (b.nom || '').trim().toLowerCase();
 }
+function estCoureurMatin(b) { return COUREURS_MATIN.some(c => matchNom(c, b)); }
+function estCoureurAprem(b) { return COUREURS_APREM.some(c => matchNom(c, b)); }
 function infoCoureur(b) {
-  const c = COUREURS_MATIN.find(x => (x.prenom || '').toLowerCase() === (b.prenom || '').trim().toLowerCase()
-    && (x.nom || '').toLowerCase() === (b.nom || '').trim().toLowerCase());
+  const c = COUREURS_MATIN.find(x => matchNom(x, b));
+  return c ? c.course : '';
+}
+function infoCoureurAprem(b) {
+  const c = COUREURS_APREM.find(x => matchNom(x, b));
   return c ? c.course : '';
 }
 
@@ -223,7 +235,11 @@ function presents(station, creneau, benevoles) {
   } else if (creneau === 'aprem') {
     benevoles.forEach(b => {
       if (b.station_aprem === station && (hasDispo(b, 'aprem') || hasDispo(b, 'journee'))) {
-        res.push({ nom: nomAffiche(b), type: 'titulaire' });
+        if (estCoureurAprem(b)) {
+          res.push({ nom: `${nomAffiche(b)} ⏱️ EN RETARD (course ${infoCoureurAprem(b)})`, type: 'retard' });
+        } else {
+          res.push({ nom: nomAffiche(b), type: 'titulaire' });
+        }
       }
     });
   }
@@ -243,7 +259,10 @@ function renderCreneau(station, label, heures, creneau, benevoles, besoin) {
     items = '<li class="empty">—</li>';
   } else {
     items = liste.map(e => {
-      const cls2 = e.type === 'remplace' ? 'remplace' : (e.type === 'coureur' ? 'coureur' : '');
+      const cls2 = e.type === 'remplace' ? 'remplace'
+        : e.type === 'coureur' ? 'coureur'
+        : e.type === 'retard' ? 'retard'
+        : '';
       return `<li class="${cls2}">${e.nom}</li>`;
     }).join('');
   }
