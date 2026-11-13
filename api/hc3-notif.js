@@ -231,6 +231,70 @@ function mailBenevoleLoicRenfortSP() {
   };
 }
 
+function mailBenevoleDavidRenfortOrga() {
+  return {
+    subject: '🙌 Ton rôle bénévole — Renfort organisation + Lunges HC #3',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + '<p>Bonjour <strong>David</strong>,</p>'
+      + '<p>Merci mille fois pour ton implication pour cette édition #3 !</p>'
+      + '<p><strong>Voici ton rôle pour dimanche :</strong></p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🕖 <strong>Arrivée : 7h15</strong> au CrossFit La Buse (briefing)</p>'
+      + '<p style="margin:10px 0;">🔧 <strong>Matin (7h30 - 13h) : RENFORT ORGANISATION</strong><br>Entre <strong>11h et 13h</strong>, tu couvres la station <strong>Sled Pull</strong> pendant que les titulaires prennent leur pause déjeuner.</p>'
+      + '<p style="margin:10px 0;">🌇 <strong>Après-midi (13h - 18h) : RENFORT ZONE LUNGES</strong><br>Tu es sur la station <strong>Lunges</strong> — on manque de bénévoles cet aprem, donc tu juges activement pour épauler l\'équipe.</p>'
+      + '<p style="margin:10px 0;">🥪 <strong>Pause :</strong> à prendre librement sur place (pas de créneau fixe)</p>'
+      + '</div>'
+      + '<p>⏰ Tu es un rouage clé — merci à toi !</p>'
+      + '<p>❄️ Espace climatisé dispo pour manger.</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
+function mailBenevoleKarineCoordination() {
+  return {
+    subject: '🙌 Ton rôle bénévole — Coordination + Renfort zone Wall Ball/Burpees HC #3',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + '<p>Bonjour <strong>Karine</strong>,</p>'
+      + '<p>Merci mille fois pour ton implication pour cette édition #3 !</p>'
+      + '<p><strong>Voici ton rôle pour dimanche :</strong></p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🕖 <strong>Arrivée : 7h15</strong> au CrossFit La Buse (briefing)</p>'
+      + '<p style="margin:10px 0;">👥 <strong>Matin (7h30 - 13h) : COORDINATION BÉNÉVOLES + RENFORT ORGANISATION</strong><br>Tu es notre <strong>garante du bon placement des bénévoles</strong> le matin — tu t\'assures que chacun est bien à sa station et qu\'ils ont compris leurs horaires de pause.<br>📋 <strong>Stéphanie te transmettra en amont toutes les infos</strong> (liste complète des bénévoles, leurs stations, leurs créneaux de pause) pour que tu puisses vérifier sur place.<br>Entre <strong>11h et 13h</strong>, tu couvres aussi la station <strong>Sled Pull</strong> pendant les pauses déjeuner des titulaires.</p>'
+      + '<p style="margin:10px 0;">🌇 <strong>Après-midi (13h - 18h) : RENFORT ZONE WALL BALL / BURPEES</strong><br>Tu circules entre les deux stations — on manque de bénévoles cet aprem. Tu juges dès que besoin pour épauler les équipes.</p>'
+      + '<p style="margin:10px 0;">🥪 <strong>Pause :</strong> à prendre librement sur place (pas de créneau fixe)</p>'
+      + '</div>'
+      + '<p>⏰ Tu es un rouage clé — merci à toi !</p>'
+      + '<p>❄️ Espace climatisé dispo pour manger.</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
+function mailBenevoleSterennAccueil() {
+  return {
+    subject: '🙌 Ton poste bénévole — Accueil HC #3',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + '<p>Bonjour <strong>Stérenn</strong>,</p>'
+      + '<p>Merci pour ton engagement journée entière !</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🕖 <strong>Arrivée : 7h15</strong> au CrossFit La Buse (briefing)</p>'
+      + '<p style="margin:10px 0;">🌅 <strong>Matin (7h30 - 13h) : Accueil</strong></p>'
+      + '<p style="margin:10px 0;">🌇 <strong>Après-midi (13h - 18h) : Accueil</strong></p>'
+      + '</div>'
+      + '<p>Vu la nature de ton poste, <strong>pas de créneau pause formel</strong> attribué. Avec Steph qui est aussi à l\'Accueil, vous pouvez vous relayer librement pour manger sur place.</p>'
+      + '<p>❄️ Espace climatisé juste à côté pour grignoter.</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 function mailBenevoleDanyRenfortBurpees() {
   return {
     subject: '🙌 Ton rôle bénévole — Renfort Burpees HC #3',
@@ -528,6 +592,9 @@ export default async function handler(req, res) {
       const templates = {
         'loic_sledpull_skierg': mailBenevoleLoicRenfortSP,
         'dany_burpees': mailBenevoleDanyRenfortBurpees,
+        'david_renfort_orga': mailBenevoleDavidRenfortOrga,
+        'karine_coordination': mailBenevoleKarineCoordination,
+        'sterenn_accueil': mailBenevoleSterennAccueil,
       };
       const mailFn = templates[b.role];
       if (!mailFn) return res.status(400).json({ error: 'role invalide : ' + Object.keys(templates).join(', ') });
