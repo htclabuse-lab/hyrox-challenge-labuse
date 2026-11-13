@@ -174,6 +174,41 @@ function mailVaguesClosed(prenom) {
   };
 }
 
+function mailBenevolesPlacement(b) {
+  const prenom = (b.prenom || '').trim() || 'cher bénévole';
+  const sm = b.station_matin;
+  const sa = b.station_aprem;
+  const pause = b.pause_creneau;
+  const r11 = b.remplace_11h30;
+
+  const matinHTML = sm
+    ? `<p style="margin:10px 0;">🌅 <strong>Matin (7h30 - 13h)</strong><br>→ Station : <strong>${sm}</strong>${r11 ? '<br><em style="color:#C0392B">À noter : ' + r11 + '</em>' : ''}</p>`
+    : `<p style="margin:10px 0;">🌅 <strong>Matin (7h30 - 13h)</strong><br>→ Rôle flottant·e${r11 ? '<br><em style="color:#C0392B">À noter : ' + r11 + '</em>' : ' — précisions au briefing'}</p>`;
+  const apremHTML = `<p style="margin:10px 0;">🌇 <strong>Après-midi (13h - 18h)</strong><br>→ Station : <strong>${sa || '—'}</strong></p>`;
+  const pauseHTML = pause ? `<p style="margin:10px 0;">🥪 <strong>Pause déjeuner : ${pause}</strong></p>` : '';
+
+  return {
+    subject: '🙌 Ton poste bénévole pour Hyrox Challenge La Buse #3 — Dimanche 15 novembre',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>Bonjour <strong>${prenom}</strong>,</p>`
+      + '<p>Merci mille fois de donner de ton temps pour cette édition #3 de l\'Hyrox Challenge La Buse ! On a hâte de te voir dimanche.</p>'
+      + '<p><strong>Voici ton poste pour la journée :</strong></p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + matinHTML
+      + apremHTML
+      + pauseHTML
+      + '</div>'
+      + '<p>⏰ <strong>Il est crucial de respecter ces horaires.</strong> L\'organisation tourne comme une horloge : chaque station doit rester couverte en permanence pour que tes collègues puissent partir en pause à leur tour.</p>'
+      + '<p>❄️ Pendant ta pause, <strong>un espace climatisé</strong> sera à ta disposition pour manger et te poser au calme.</p>'
+      + '<p>Rendez-vous <strong>à 7h15</strong> au CrossFit La Buse pour un briefing rapide avant le début de la course à 8h.</p>'
+      + '<p>À dimanche ! 💪</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 async function resendBatch(resendKey, emails, cle) {
   const resp = await fetch('https://api.resend.com/emails/batch', {
     method: 'POST',
@@ -397,7 +432,52 @@ export default async function handler(req, res) {
       return res.status(200).json({ envoye: true, nombre: emails.length, envoyes });
     }
 
-    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change, vagues_closed, benevoles_rulebook ou retrait_pack' });
+    if (b.mode === 'benevoles_placement') {
+      // Mail personnalisé à chaque bénévole journée avec son poste (matin, aprem, pause).
+      const { data, error } = await db.from('Benevoles')
+        .select('id,prenom,nom,email,disponibilites,station_matin,station_aprem,pause_creneau,remplace_11h30')
+        .gte('created_at', '2026-09-01');
+      if (error) return res.status(500).json({ error: error.message });
+      const EXCLUS_EMAILS = ['stephanie.caro31@gmail.com'];
+      const EXCLUS_PRENOMS = ['Alex mandre','David','Karine','Loïc','Maryan','Romu','Steph','Stérenn'];
+      const fiches = (data || []).filter(r => {
+        if (!(r.disponibilites || '').includes('journee')) return false;
+        const email = String(r.email || '').trim().toLowerCase();
+        if (!email || EXCLUS_EMAILS.includes(email)) return false;
+        if (EXCLUS_PRENOMS.includes((r.prenom || '').trim())) return false;
+        const hasStation = (r.station_matin && r.station_matin !== 'Photo') || (r.station_aprem && r.station_aprem !== 'Photo');
+        if (!hasStation) return false;
+        return true;
+      });
+
+      if (b.test_to) {
+        const mock = { prenom: 'Stéphanie (APERÇU)', station_matin: 'Wall Ball', station_aprem: 'Wall Ball', pause_creneau: '11h-12h', remplace_11h30: null };
+        const n = await resendBatch(resendKey,
+          [{ from: FROM, to: String(b.test_to).trim(), reply_to: REPLY_TO, ...mailBenevolesPlacement(mock) }],
+          `hc3-benev-plc-test-${Date.now()}`);
+        return res.status(200).json({ test: true, envoyes: n, nb_destinataires_reels: fiches.length });
+      }
+      if (b.envoyer !== true) {
+        return res.status(200).json({
+          dry_run: true,
+          nombre: fiches.length,
+          apercu: fiches.map(f => ({
+            prenom: f.prenom, nom: f.nom, email: f.email,
+            matin: f.station_matin, aprem: f.station_aprem, pause: f.pause_creneau,
+            note: f.remplace_11h30 || null,
+          })),
+        });
+      }
+      let envoyes = 0;
+      for (let i = 0; i < fiches.length; i += 100) {
+        envoyes += await resendBatch(resendKey,
+          fiches.slice(i, i + 100).map(f => ({ from: FROM, to: f.email, reply_to: REPLY_TO, ...mailBenevolesPlacement(f) })),
+          `hc3-benev-plc-lot${i / 100}-v1`);
+      }
+      return res.status(200).json({ envoye: true, nombre: fiches.length, envoyes });
+    }
+
+    return res.status(400).json({ error: 'mode manquant : vague_change, categorie_change, vagues_closed, benevoles_rulebook, retrait_pack ou benevoles_placement' });
   } catch (e) {
     console.error('hc3-notif', e);
     return res.status(500).json({ error: e.message });
