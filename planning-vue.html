@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planning Bénévoles (Vue) — HC #3</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; }
+    .wrap { max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 22px; color: #FFEE00; margin-bottom: 4px; }
+    .sub { color: #888; font-size: 13px; margin-bottom: 1rem; }
+    .toolbar { background: #1a1a1a; padding: 10px 14px; border-radius: 12px; margin-bottom: 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+    .toolbar button { padding: 8px 12px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 13px; }
+    .station { background: #151515; border: 1px solid #2a2a2a; border-radius: 12px; margin-bottom: 14px; overflow: hidden; }
+    .station-head { background: linear-gradient(90deg, #C0392B, #FFEE00); color: #0a0a0a; padding: 10px 14px; font-weight: 900; font-size: 15px; letter-spacing: 1px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+    .station-head .zone { font-size: 11px; opacity: 0.8; letter-spacing: 0.5px; }
+    .creneaux { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; }
+    .creneau { padding: 10px 12px; border-right: 1px solid #222; min-height: 110px; }
+    .creneau:last-child { border-right: none; }
+    .creneau-title { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .creneau-title .heure { color: #FFEE00; font-weight: 800; }
+    .creneau-title .count { color: #4caf50; font-weight: 800; }
+    .creneau-title .count.under { color: #ff6666; }
+    .creneau ul { list-style: none; padding: 0; margin: 0; }
+    .creneau li { font-size: 13px; padding: 3px 0; color: #eee; }
+    .creneau li.renfort { color: #FFA726; font-style: italic; }
+    .creneau li.renfort::before { content: "➕ "; }
+    .creneau li.remplace { color: #4FC3F7; font-style: italic; }
+    .creneau li.remplace::before { content: "🔁 "; }
+    .creneau.vide li.empty { color: #666; font-style: italic; font-size: 12px; }
+    .creneau.sous-effectif { background: #2a1010; }
+    .legend { background: #111; border: 1px solid #333; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #aaa; margin-bottom: 14px; line-height: 1.7; }
+    .legend b { color: #FFEE00; }
+    .legend .l-renfort { color: #FFA726; }
+    .legend .l-rempl { color: #4FC3F7; }
+    footer { text-align: center; color: #666; font-size: 12px; padding: 16px; margin-top: 10px; }
+    @media (max-width: 760px) {
+      .creneaux { grid-template-columns: 1fr; }
+      .creneau { border-right: none; border-bottom: 1px solid #222; }
+      .creneau:last-child { border-bottom: none; }
+    }
+    @media print {
+      body { background: #fff; color: #000; }
+      .toolbar { display: none; }
+      .station { border: 2px solid #000; break-inside: avoid; margin-bottom: 20px; }
+      .station-head { background: #FFEE00; color: #000; }
+      .creneau { border-right: 1px solid #000; }
+      .creneau li { color: #000; }
+      .creneau.sous-effectif { background: #ffeeee; }
+      .legend { border: 1px solid #000; color: #000; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>📋 Planning Bénévoles — Vue par station</h1>
+  <div class="sub">Hyrox Challenge La Buse #3 — Dimanche 15 novembre 2026</div>
+
+  <div class="toolbar">
+    <button onclick="window.print()">🖨️ Imprimer</button>
+    <span style="color:#888;">Besoin exprimé pour matin / aprem — pauses & remplaçants pris en compte sur 11h-12h et 12h-13h</span>
+  </div>
+
+  <div class="legend">
+    <b>Légende</b><br>
+    • Nom en blanc = sur sa station pour ce créneau<br>
+    • <span class="l-renfort">➕ Nom en orange</span> = renfort / volant (pas sa station habituelle)<br>
+    • <span class="l-rempl">🔁 Nom en bleu</span> = remplaçant pendant la pause d'un titulaire<br>
+    • Cellule rouge = sous-effectif par rapport au besoin
+  </div>
+
+  <div id="content">Chargement…</div>
+</div>
+
+<footer>
+  Hyrox Training Club La Buse — Maryan, Romuald et Stéphanie
+</footer>
+
+<script>
+const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const STATIONS = [
+  { nom: 'Accueil',      zone: 'Entrée',         besoin: 1 },
+  { nom: 'SkiErg',       zone: 'Dehors',         besoin: 2 },
+  { nom: 'Sled Push',    zone: 'Salle Hyrox',    besoin: 5 },
+  { nom: 'Rameur',       zone: 'Salle Hyrox',    besoin: 2 },
+  { nom: 'Sled Pull',    zone: 'Salle CrossFit', besoin: 5 },
+  { nom: 'Burpees',      zone: 'Dehors',         besoin: 3 },
+  { nom: 'Wall Ball',    zone: 'Dehors',         besoin: 6 },
+  { nom: 'Farmer Carry', zone: 'Dehors',         besoin: 1 },
+  { nom: 'Lunges',       zone: 'Dehors',         besoin: 3 },
+];
+
+async function loadAndRender() {
+  const { data: rows, error } = await db.from('Benevoles')
+    .select('prenom,nom,disponibilites,station_matin,station_aprem,pause_creneau,remplace_11h30,remplace_12h30')
+    .gte('created_at', '2026-09-01')
+    .order('prenom');
+
+  if (error) {
+    document.getElementById('content').innerHTML = '<div style="color:#ff6666;">Erreur : ' + error.message + '</div>';
+    return;
+  }
+
+  const benevoles = rows || [];
+  const html = STATIONS.map(st => renderStation(st, benevoles)).join('');
+  document.getElementById('content').innerHTML = html;
+}
+
+function nomAffiche(b) {
+  const p = (b.prenom || '').trim();
+  const n = (b.nom || '').trim();
+  return n ? `${p} ${n}` : p;
+}
+
+function hasDispo(b, mot) {
+  return (b.disponibilites || '').toLowerCase().includes(mot);
+}
+
+function textContient(txt, mot) {
+  if (!txt) return false;
+  return txt.toLowerCase().includes(mot.toLowerCase());
+}
+
+// Retourne les bénévoles présents à cette station pour un créneau
+function presents(station, creneau, benevoles) {
+  const res = [];
+
+  // 1. Titulaires matin 7h30-11h : station_matin = station et dispo matin/journee
+  // 2. Titulaires aprem 13h-18h : station_aprem = station et dispo aprem/journee
+  // 3. Titulaires 11h-12h : station_matin = station, pas en pause 11h-12h
+  // 4. Titulaires 12h-13h : station_matin = station, pas en pause 12h-13h
+
+  if (creneau === 'matin') {
+    benevoles.forEach(b => {
+      if (b.station_matin === station && (hasDispo(b, 'matin') || hasDispo(b, 'journee'))) {
+        res.push({ nom: nomAffiche(b), type: 'titulaire' });
+      }
+    });
+  } else if (creneau === '11-12') {
+    benevoles.forEach(b => {
+      if (b.station_matin === station && (hasDispo(b, 'matin') || hasDispo(b, 'journee'))) {
+        if (b.pause_creneau !== '11h-12h') {
+          res.push({ nom: nomAffiche(b), type: 'titulaire' });
+        }
+      }
+    });
+    // Remplaçants : chercher dans remplace_11h30 des autres
+    benevoles.forEach(b => {
+      const r = b.remplace_11h30 || '';
+      if (!r) return;
+      // Le texte remplace cible-t-il cette station ?
+      if (textContient(r, station)) {
+        // Est-ce que ce créneau 11h-12h est couvert ? (texte contient "11h-12h" ou "11h-13h")
+        if (textContient(r, '11h-12h') || textContient(r, '11h-13h')) {
+          res.push({ nom: nomAffiche(b), type: 'remplace', note: r });
+        }
+      }
+    });
+    // Remplaçants dans remplace_12h30 (rare mais possible si couvre 11h-13h)
+    benevoles.forEach(b => {
+      const r = b.remplace_12h30 || '';
+      if (!r) return;
+      if (textContient(r, station) && textContient(r, '11h-13h')) {
+        res.push({ nom: nomAffiche(b), type: 'remplace', note: r });
+      }
+    });
+  } else if (creneau === '12-13') {
+    benevoles.forEach(b => {
+      if (b.station_matin === station && (hasDispo(b, 'matin') || hasDispo(b, 'journee'))) {
+        if (b.pause_creneau !== '12h-13h') {
+          res.push({ nom: nomAffiche(b), type: 'titulaire' });
+        }
+      }
+    });
+    benevoles.forEach(b => {
+      const r = b.remplace_11h30 || '';
+      if (!r) return;
+      if (textContient(r, station) && textContient(r, '11h-13h')) {
+        res.push({ nom: nomAffiche(b), type: 'remplace', note: r });
+      }
+    });
+    benevoles.forEach(b => {
+      const r = b.remplace_12h30 || '';
+      if (!r) return;
+      if (textContient(r, station) && (textContient(r, '12h-13h') || textContient(r, '11h-13h'))) {
+        res.push({ nom: nomAffiche(b), type: 'remplace', note: r });
+      }
+    });
+  } else if (creneau === 'aprem') {
+    benevoles.forEach(b => {
+      if (b.station_aprem === station && (hasDispo(b, 'aprem') || hasDispo(b, 'journee'))) {
+        res.push({ nom: nomAffiche(b), type: 'titulaire' });
+      }
+    });
+  }
+
+  return res;
+}
+
+function renderCreneau(station, label, heures, creneau, benevoles, besoin) {
+  const liste = presents(station, creneau, benevoles);
+  const nb = liste.length;
+  const sousEff = nb < besoin;
+  const cls = 'creneau' + (sousEff ? ' sous-effectif' : '') + (nb === 0 ? ' vide' : '');
+  const countCls = sousEff ? 'count under' : 'count';
+  let items = '';
+  if (nb === 0) {
+    items = '<li class="empty">—</li>';
+  } else {
+    items = liste.map(e => {
+      const cls2 = e.type === 'remplace' ? 'remplace' : '';
+      return `<li class="${cls2}">${e.nom}</li>`;
+    }).join('');
+  }
+  return `
+    <div class="${cls}">
+      <div class="creneau-title">
+        <span class="heure">${heures}</span>
+        <span class="${countCls}">${nb}/${besoin}</span>
+      </div>
+      <ul>${items}</ul>
+    </div>
+  `;
+}
+
+function renderStation(st, benevoles) {
+  const creneaux = `
+    ${renderCreneau(st.nom, 'Matin', '7h30 - 11h', 'matin', benevoles, st.besoin)}
+    ${renderCreneau(st.nom, 'Pause 1', '11h - 12h', '11-12', benevoles, st.besoin)}
+    ${renderCreneau(st.nom, 'Pause 2', '12h - 13h', '12-13', benevoles, st.besoin)}
+    ${renderCreneau(st.nom, 'Aprem', '13h - 18h', 'aprem', benevoles, st.besoin)}
+  `;
+  return `
+    <div class="station">
+      <div class="station-head">
+        <span>${st.nom}</span>
+        <span class="zone">${st.zone} — besoin : ${st.besoin}/shift</span>
+      </div>
+      <div class="creneaux">${creneaux}</div>
+    </div>
+  `;
+}
+
+loadAndRender();
+</script>
+
+</body>
+</html>
