@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon poste bénévole — Hyrox La Buse</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 680px; margin: 0 auto; }
+    .hero { text-align: center; padding: 20px 10px; }
+    .hero h1 { font-size: 24px; color: #FFEE00; margin-bottom: 8px; line-height: 1.2; }
+    .hero .sub { color: #aaa; font-size: 14px; line-height: 1.5; }
+    .card { background: #151515; border: 1px solid #2a2a2a; border-radius: 14px; padding: 18px; margin: 14px 0; }
+    .card h2 { font-size: 16px; color: #FFEE00; margin-bottom: 12px; letter-spacing: 0.5px; }
+    label { display: block; font-size: 13px; color: #aaa; margin-bottom: 6px; font-weight: 600; margin-top: 10px; }
+    input { width: 100%; padding: 14px; background: #0a0a0a; color: #fff; border: 1px solid #333; border-radius: 10px; font-size: 16px; font-family: inherit; }
+    input:focus { border-color: #FFEE00; outline: none; }
+    .btn { width: 100%; padding: 16px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 10px; font-size: 16px; font-weight: 800; cursor: pointer; margin-top: 16px; }
+    .btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+    .section { background: #1a1a1a; border-left: 4px solid #FFA726; padding: 14px 18px; margin: 14px 0; border-radius: 6px; }
+    .section.aprem { border-left-color: #FF7043; }
+    .section.pe2 { border-left-color: #4FC3F7; }
+    .section-title { font-size: 15px; font-weight: 800; margin-bottom: 8px; color: #FFEE00; }
+    .section.aprem .section-title { color: #FF7043; }
+    .section.pe2 .section-title { color: #4FC3F7; }
+    .section p { margin: 6px 0; font-size: 14px; line-height: 1.6; }
+    .note { color: #FFD54F; font-style: italic; font-size: 13px; margin-top: 8px; }
+    .error { background: #3a1b1b; border: 1px solid #C0392B; color: #ff9999; padding: 14px; border-radius: 10px; margin-top: 10px; font-size: 14px; }
+    .reminder { background: #0a2a0a; border: 1px solid #4caf50; color: #a5d6a7; padding: 14px; border-radius: 8px; margin: 14px 0; font-size: 13px; line-height: 1.6; }
+    footer { text-align: center; color: #666; font-size: 12px; padding: 20px; margin-top: 20px; }
+    footer a { color: #FFEE00; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="hero">
+    <h1>🙌 Mon poste bénévole</h1>
+    <div class="sub">Hyrox La Buse — PE #2 (samedi) & HC #3 (dimanche)<br>Consulte ton rôle en tapant ton prénom et ton nom</div>
+  </div>
+
+  <div class="card" id="form-card">
+    <h2>👤 Qui es-tu ?</h2>
+    <label for="prenom">Prénom</label>
+    <input type="text" id="prenom" placeholder="Ex : Marie" autocomplete="given-name">
+    <label for="nom">Nom de famille</label>
+    <input type="text" id="nom" placeholder="Ex : Dupont" autocomplete="family-name">
+    <button id="submit-btn" class="btn">Voir mon poste</button>
+    <div id="error-box"></div>
+  </div>
+
+  <div id="result-card" class="card" style="display:none;"></div>
+</div>
+
+<footer>
+  Un souci ? Contacte-nous directement.<br>
+  <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">hyrox-challenge-labuse.vercel.app</a>
+</footer>
+
+<script>
+const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+function norm(s) {
+  return (s || '').trim().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+async function lookup() {
+  const prenom = document.getElementById('prenom').value;
+  const nom = document.getElementById('nom').value;
+  const errorBox = document.getElementById('error-box');
+  const resultCard = document.getElementById('result-card');
+  errorBox.innerHTML = '';
+  resultCard.style.display = 'none';
+
+  if (!prenom.trim() || !nom.trim()) {
+    errorBox.innerHTML = '<div class="error">Merci de renseigner ton prénom et ton nom.</div>';
+    return;
+  }
+
+  const { data, error } = await db.from('Benevoles')
+    .select('id,prenom,nom,disponibilites,station_matin,station_aprem,pause_creneau,remplace_11h30,remplace_12h30')
+    .gte('created_at', '2026-09-01');
+
+  if (error) {
+    errorBox.innerHTML = '<div class="error">Erreur de chargement : ' + error.message + '</div>';
+    return;
+  }
+
+  const np = norm(prenom);
+  const nn = norm(nom);
+  const match = (data || []).find(b => norm(b.prenom) === np && norm(b.nom) === nn);
+
+  if (!match) {
+    errorBox.innerHTML = '<div class="error">Désolé, on ne te trouve pas dans la liste des bénévoles. Vérifie l\'orthographe ou contacte-nous directement.</div>';
+    return;
+  }
+
+  afficher(match);
+}
+
+function afficher(b) {
+  const resultCard = document.getElementById('result-card');
+  const prenom = (b.prenom || '').trim();
+  const dispo = (b.disponibilites || '').split(',').map(x => x.trim());
+  const estVeille = dispo.includes('veille');
+  const estJournee = dispo.includes('journee');
+  const estMatin = dispo.includes('matin');
+  const estAprem = dispo.includes('aprem');
+
+  let html = `<h2>👋 Bonjour ${prenom} !</h2>`;
+  html += `<p style="color:#aaa;font-size:14px;margin-bottom:14px;">Voici tes infos pour l'événement :</p>`;
+
+  // Samedi PE #2
+  if (estVeille) {
+    html += `
+      <div class="section pe2">
+        <div class="section-title">🎉 Samedi 14 novembre — Parent-Enfant #2</div>
+        <p>🕛 <strong>Arrivée : 12h</strong> au CrossFit La Buse (briefing)</p>
+        <p>🏁 <strong>Début des vagues : 12h30</strong></p>
+        <p>🏁 <strong>Dernière vague : 15h30</strong></p>
+        <p>🎯 <strong>Fin de mission : ~16h30 - 17h</strong> (après la dernière course et le rangement)</p>
+      </div>
+    `;
+  }
+
+  // Dimanche HC #3
+  if (estJournee || estMatin || estAprem) {
+    html += `<div class="section">
+      <div class="section-title">🏃 Dimanche 15 novembre — Hyrox Challenge #3</div>`;
+
+    if (estJournee) {
+      html += `<p>🕖 <strong>Arrivée : 7h15</strong> au CrossFit La Buse (briefing)</p>`;
+
+      // Matin
+      if (b.station_matin && b.station_matin !== 'Photo') {
+        html += `<p>🌅 <strong>Matin (7h30 - 13h) :</strong> ${b.station_matin}</p>`;
+      } else {
+        html += `<p>🌅 <strong>Matin (7h30 - 13h) :</strong> Rôle flottant</p>`;
+      }
+      if (b.remplace_11h30) {
+        html += `<p class="note">À noter : ${b.remplace_11h30}</p>`;
+      }
+      if (b.remplace_12h30) {
+        html += `<p class="note">À noter : ${b.remplace_12h30}</p>`;
+      }
+
+      // Aprem
+      if (b.station_aprem && b.station_aprem !== 'Photo') {
+        html += `<p>🌇 <strong>Après-midi (13h - 18h) :</strong> ${b.station_aprem}</p>`;
+      }
+
+      // Pause
+      if (b.pause_creneau) {
+        html += `<p>🥪 <strong>Pause déjeuner :</strong> ${b.pause_creneau}</p>`;
+      } else {
+        html += `<p>🥪 <strong>Pause :</strong> à prendre librement sur place</p>`;
+      }
+    } else if (estMatin) {
+      html += `
+        <p>🕖 <strong>Arrivée : 7h15</strong> au CrossFit La Buse (briefing)</p>
+        <p>🌅 <strong>Shift matin (7h30 - 13h) :</strong> ${b.station_matin || '—'}</p>
+      `;
+    } else if (estAprem) {
+      html += `
+        <p>🕐 <strong>Arrivée : 12h45</strong> au CrossFit La Buse (prise de poste)</p>
+        <p>🌇 <strong>Shift aprem (13h - 18h) :</strong> ${b.station_aprem || '—'}</p>
+      `;
+    }
+    html += `</div>`;
+  }
+
+  // Rappel ponctualité
+  html += `
+    <div class="reminder">
+      ⏰ <strong>La ponctualité est cruciale.</strong> Chaque station doit rester couverte pour que tout tourne.<br>
+      🙏 <strong>Merci sincèrement</strong> pour ton engagement.<br>
+      ❄️ Un espace climatisé est à disposition avant/après ton shift.<br>
+      📩 Question ? Écris-nous directement.
+    </div>
+  `;
+
+  html += `<p style="text-align:center;color:#888;font-size:13px;margin-top:14px;"><em>Hyrox Training Club La Buse — Maryan, Romuald et Stéphanie</em></p>`;
+
+  resultCard.innerHTML = html;
+  resultCard.style.display = 'block';
+  document.getElementById('form-card').style.display = 'none';
+}
+
+document.getElementById('submit-btn').addEventListener('click', lookup);
+document.getElementById('nom').addEventListener('keypress', e => { if (e.key === 'Enter') lookup(); });
+</script>
+
+</body>
+</html>
