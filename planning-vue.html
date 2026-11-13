@@ -317,6 +317,11 @@ function renderStation(st, benevoles) {
 }
 
 loadAndRender();
+
+// Mode light auto si ?light=1 dans l'URL (pour export PDF propre)
+if (new URLSearchParams(location.search).get('light') === '1') {
+  document.body.classList.add('light');
+}
 </script>
 
 </body>
