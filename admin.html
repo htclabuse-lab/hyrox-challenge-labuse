@@ -1009,6 +1009,10 @@
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     document.getElementById('tab-' + tab).classList.add('active');
     btn.classList.add('active');
+    // Masque la barre de recherche admin pour les onglets qui embarquent un iframe (check-in accueil)
+    var adminInput = document.getElementById('admin-search');
+    var searchWrap = adminInput ? adminInput.parentElement : null;
+    if (searchWrap) searchWrap.style.display = (tab === 'pack-hc3' || tab === 'pack-pe2') ? 'none' : '';
     filterAdminTables(); // réapplique le filtre quand on change d'onglet
   }
 
