@@ -27,6 +27,9 @@ export default async function handler(req, res) {
       .update({ heure_debut_reelle: heureDepart })
       .eq('vague', vague)
       .is('heure_debut_reelle', null)
+      .neq('absent', true)
+      .neq('abandon', true)
+      .gte('created_at', '2026-09-01')
       .select('id');
 
     if (error) {
