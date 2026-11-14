@@ -14,9 +14,10 @@
     .login { background: #1a1a1a; border-radius: 12px; padding: 1.5rem; max-width: 400px; margin: 3rem auto; text-align: center; }
     .login input { width: 100%; padding: 12px; background: #0a0a0a; color: #fff; border: 1px solid #333; border-radius: 8px; font-size: 16px; margin: 10px 0; }
     .login button { width: 100%; padding: 12px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; }
-    .day-switch { display: flex; gap: 10px; background: #1a1a1a; padding: 10px; border-radius: 12px; margin-bottom: 14px; }
-    .day-switch button { flex: 1; padding: 12px 10px; background: #0a0a0a; color: #ccc; border: 1px solid #333; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
-    .day-switch button.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
+    .tabs { display: flex; gap: 0; border-bottom: 2px solid #333; margin-bottom: 14px; }
+    .tabs button { flex: 1; padding: 14px 10px; background: transparent; color: #888; border: none; border-bottom: 3px solid transparent; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+    .tabs button:hover { color: #ccc; }
+    .tabs button.active { color: #FFEE00; border-bottom-color: #FFEE00; }
     .search { width: 100%; padding: 12px; background: #1a1a1a; color: #fff; border: 1px solid #333; border-radius: 10px; font-size: 15px; margin-bottom: 10px; }
     .stats { background: #111; border: 1px solid #333; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #ccc; margin-bottom: 10px; }
     .stats b { color: #FFEE00; }
@@ -38,18 +39,11 @@
 </head>
 <body>
 
-<div id="login" class="login" style="display:none;">
-  <div style="color:#888;margin-bottom:10px;">Mot de passe</div>
-  <input type="password" id="pwd" placeholder="••••••••" onkeypress="if(event.key==='Enter')login()">
-  <button onclick="login()">Connexion</button>
-  <div id="login-error" style="color:#C0392B;font-size:13px;margin-top:8px;"></div>
-</div>
-
-<div id="app" class="wrap" style="display:none;">
+<div id="app" class="wrap">
   <h1>🙌 Check-in Bénévoles</h1>
   <div class="sub">Pointage présence + remise t-shirt</div>
 
-  <div class="day-switch">
+  <div class="tabs">
     <button id="btn-samedi" onclick="setJour('samedi')">👨‍👧 Samedi PE #2</button>
     <button id="btn-dimanche" onclick="setJour('dimanche')">🏁 Dimanche HC #3</button>
   </div>
@@ -63,26 +57,12 @@
 <script>
 const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
-const PWD = 'labuse';
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let data = [];
 let jour = 'samedi';
 
-function login() {
-  const p = document.getElementById('pwd').value.trim();
-  if (p !== PWD) { document.getElementById('login-error').textContent = '❌ Mot de passe incorrect'; return; }
-  sessionStorage.setItem('ben_checkin_auth', '1');
-  document.getElementById('login').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  load();
-}
-if (sessionStorage.getItem('ben_checkin_auth') === '1') {
-  document.getElementById('app').style.display = 'block';
-  setTimeout(load, 0);
-} else {
-  document.getElementById('login').style.display = 'block';
-}
+load();
 
 function setJour(j) {
   jour = j;
