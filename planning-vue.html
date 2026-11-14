@@ -277,6 +277,14 @@ function presents(station, creneau, benevoles) {
         }
       }
     });
+    // Renforts aprem : remplace_12h30 (ou remplace_11h30) contenant "aprem" ou "13h-18h"
+    benevoles.forEach(b => {
+      const r = (b.remplace_12h30 || '') + ' ' + (b.remplace_11h30 || '');
+      if (!r.trim()) return;
+      if (textContient(r, station) && (textContient(r, 'aprem') || textContient(r, '13h-18h'))) {
+        res.push({ nom: nomAffiche(b), type: 'remplace', note: r });
+      }
+    });
   }
 
   return res;
