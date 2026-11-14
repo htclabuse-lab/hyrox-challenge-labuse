@@ -49,7 +49,7 @@ export default async function handler(req, res) {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + process.env.RESEND_API_KEY, 'Content-Type': 'application/json',
-        'Idempotency-Key': 'pe2-bravo-' + Number(b.id) },
+        'Idempotency-Key': 'pe2-bravo-' + Number(b.id) + (b.cle_suffixe ? '-' + String(b.cle_suffixe).replace(/[^a-z0-9_-]/gi,'') : '') },
       body: JSON.stringify({ from: FROM, to: d.email, reply_to: REPLY_TO, subject: String(b.subject || '').slice(0, 200), html: String(b.html || '') }),
     });
     if (!r.ok) return res.status(500).json({ error: 'Resend ' + r.status });
