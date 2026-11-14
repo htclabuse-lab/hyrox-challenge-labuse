@@ -110,7 +110,8 @@ function render() {
   const list = data.filter(b => hasDispoJour(b, jour))
     .filter(b => !q || (b.prenom + ' ' + (b.nom || '')).toLowerCase().includes(q));
 
-  const done = list.filter(b => b.tshirt_distribue_at).length;
+  const WEEKEND_DEBUT_STATS = new Date('2026-11-14T00:00:00Z').getTime();
+  const done = list.filter(b => b.tshirt_distribue_at && new Date(b.tshirt_distribue_at).getTime() >= WEEKEND_DEBUT_STATS).length;
   document.getElementById('stats').innerHTML = `<b>${done}</b> / ${list.length} t-shirts remis ${q ? `(filtrés)` : ''}`;
 
   if (!list.length) {
@@ -118,13 +119,18 @@ function render() {
     return;
   }
 
+  // On ne prend en compte le t-shirt remis QUE si distribué pendant ce weekend (>= 2026-11-14)
+  // Les t-shirts remis lors de PE #1 ou HC #2 ne comptent pas — nouvel événement, nouveau t-shirt.
+  const WEEKEND_DEBUT = new Date('2026-11-14T00:00:00Z').getTime();
+
   document.getElementById('list').innerHTML = list.map(b => {
     const nom = ((b.prenom || '') + ' ' + (b.nom || '')).trim();
     const deuxJours = estDeuxJours(b);
     const badge = deuxJours ? '<span class="badge">🔁 2 JOURS</span>' : '';
     const coupe = b.tshirt_coupe || '—';
     const taille = b.tshirt_taille || '—';
-    const dateDistrib = b.tshirt_distribue_at ? new Date(b.tshirt_distribue_at).toLocaleDateString('fr-FR') : null;
+    const distribWeekend = b.tshirt_distribue_at && new Date(b.tshirt_distribue_at).getTime() >= WEEKEND_DEBUT;
+    const dateDistrib = distribWeekend ? new Date(b.tshirt_distribue_at).toLocaleDateString('fr-FR') : null;
     let action;
     if (dateDistrib) {
       if (deuxJours && jour === 'dimanche') {
@@ -137,7 +143,7 @@ function render() {
     } else {
       action = `<button class="btn-tshirt" onclick="markTshirt(${b.id})">👕 Remettre le t-shirt</button>`;
     }
-    const doneCls = b.tshirt_distribue_at ? 'done' : '';
+    const doneCls = distribWeekend ? 'done' : '';
     return `
       <div class="ben ${doneCls}">
         <div class="ben-head">
