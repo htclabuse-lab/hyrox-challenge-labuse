@@ -484,8 +484,6 @@ function mailBenevolesRappelAccueil(prenom) {
       + '<div style="background:#E8F5E9;border-left:4px solid #1B7B49;padding:14px 18px;margin:14px 0;border-radius:4px;">'
       + '<p style="margin:10px 0;">📍 <strong>En arrivant, passe à l\'Accueil</strong> pour te checker.</p>'
       + '<p style="margin:10px 0;color:#444;">C\'est important : ça nous permet de <strong>savoir qui est bien présent</strong> et de réorganiser les stations immédiatement si quelqu\'un manque à l\'appel.</p>'
-      + '<p style="margin:10px 0;">🎁 À l\'Accueil tu récupères aussi t-shirt, bon conso, chèque Intersport (et repas pour les journées complètes).</p>'
-      + '<p style="margin:10px 0;">⏰ Pour les horaires et ta station, tu peux relire le mail avec ton planning.</p>'
       + '</div>'
       + '<p>📱 <strong>Viens avec ton téléphone chargé</strong> — tout se fera sur application (pointage des athlètes à chaque station).</p>'
       + '<p>⏰ <strong>La ponctualité est cruciale</strong> : si une station se vide, les athlètes sont bloqués et les bénévoles journée ne peuvent pas prendre leur pause.</p>'
