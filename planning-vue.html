@@ -44,14 +44,24 @@
       .creneau:last-child { border-bottom: none; }
     }
     @media print {
-      body { background: #fff; color: #000; }
-      .toolbar { display: none; }
-      .station { border: 2px solid #000; break-inside: avoid; margin-bottom: 20px; }
-      .station-head { background: #FFEE00; color: #000; }
-      .creneau { border-right: 1px solid #000; }
-      .creneau li { color: #000; }
-      .creneau.sous-effectif { background: #ffeeee; }
-      .legend { border: 1px solid #000; color: #000; }
+      @page { size: A4 landscape; margin: 6mm; }
+      html, body { background: #fff !important; color: #000 !important; }
+      body { padding: 0 !important; font-size: 9px; }
+      .wrap { max-width: none !important; }
+      .toolbar, .legend, footer, .sub, h1 { display: none !important; }
+      .station { border: 1.5px solid #000 !important; background: #fff !important; break-inside: avoid; margin-bottom: 3px !important; border-radius: 4px !important; overflow: hidden; }
+      .station-head { background: #FFEE00 !important; color: #000 !important; padding: 3px 6px !important; font-size: 10px !important; }
+      .station-head .zone { font-size: 8px !important; }
+      .creneaux { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; }
+      .creneau { border-right: 1px solid #000 !important; padding: 3px 5px !important; min-height: auto !important; background: #fff !important; }
+      .creneau:last-child { border-right: none !important; }
+      .creneau-title { font-size: 8px !important; margin-bottom: 2px !important; }
+      .creneau-title .heure, .creneau-title .count { font-size: 9px !important; }
+      .creneau li { font-size: 9px !important; color: #000 !important; padding: 1px 0 !important; line-height: 1.2 !important; }
+      .creneau li.remplace { color: #0366d6 !important; }
+      .creneau li.coureur { color: #555 !important; font-size: 8px !important; }
+      .creneau li.retard { color: #D84315 !important; font-size: 8px !important; }
+      .creneau.sous-effectif { background: #ffe8e8 !important; }
     }
 
     /* MODE FOND BLANC (toggle via bouton) — override complet pour affichage lisible */
