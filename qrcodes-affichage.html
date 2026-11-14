@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Affichage Public — Hyrox Challenge La Buse</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #fff; color: #1a1a1a; font-family: sans-serif; padding: 1rem; }
+    .wrap { max-width: 1000px; margin: 0 auto; }
+    .hero { background: linear-gradient(135deg, #C0392B, #FFEE00); padding: 20px 20px; border-radius: 14px; text-align: center; color: #0a0a0a; margin-bottom: 1.2rem; }
+    .hero h1 { font-size: 28px; font-weight: 900; letter-spacing: 1px; }
+    .hero p { font-size: 15px; margin-top: 6px; font-weight: 600; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1rem; }
+    .card { background: #fff; border: 3px solid #1a1a1a; border-radius: 14px; padding: 1.4rem; text-align: center; page-break-inside: avoid; }
+    .card.podium { border-color: #FFA726; background: linear-gradient(180deg, #fff, #fff5e6); }
+    .card.live { border-color: #C0392B; background: linear-gradient(180deg, #fff, #fff5ee); }
+    .card-icon { font-size: 52px; margin-bottom: 8px; line-height: 1; }
+    .card-title { font-size: 22px; font-weight: 900; margin-bottom: 6px; letter-spacing: 0.5px; }
+    .card.podium .card-title { color: #d67e00; }
+    .card.live .card-title { color: #C0392B; }
+    .card-desc { font-size: 14px; color: #555; margin-bottom: 14px; line-height: 1.4; }
+    .card img { display: block; width: 100%; max-width: 320px; height: auto; margin: 0 auto 10px; border: 1px solid #eee; }
+    .card-cta { font-weight: 800; font-size: 15px; padding: 8px 18px; border-radius: 8px; display: inline-block; }
+    .card.podium .card-cta { background: #FFA726; color: #0a0a0a; }
+    .card.live .card-cta { background: #C0392B; color: #fff; }
+    .footer { text-align: center; font-size: 13px; color: #555; line-height: 1.5; padding: 10px 12px; background: #f5f5f5; border-radius: 10px; }
+    .footer strong { color: #C0392B; }
+    .print-btn { display: block; margin: 0 auto 1rem; background: #1B7B49; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    @media print {
+      .print-btn { display: none; }
+      body { padding: 0.5cm; }
+      .card { border-width: 3px; }
+      @page { size: A4 landscape; margin: 0.5cm; }
+    }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <button class="print-btn" onclick="window.print()">🖨️ Imprimer</button>
+
+  <div class="hero">
+    <h1>🏁 Hyrox Challenge La Buse</h1>
+    <p>Scanne pour suivre les podiums et le live des courses 💪</p>
+  </div>
+
+  <div class="grid">
+    <div class="card podium">
+      <div class="card-icon">🏆</div>
+      <div class="card-title">Horaires podiums</div>
+      <div class="card-desc">L'heure du podium par catégorie.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Fpodiums.html" alt="QR Podiums">
+      <div class="card-cta">🏆 Podiums</div>
+    </div>
+
+    <div class="card live">
+      <div class="card-icon">📱</div>
+      <div class="card-title">Live des courses</div>
+      <div class="card-desc">Classements et positions en direct.</div>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=10&data=https%3A%2F%2Fhyrox-challenge-labuse.vercel.app%2Flive.html" alt="QR Live">
+      <div class="card-cta">📱 Live</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <strong>Crossfit La Buse — Saint-Paul, La Réunion</strong> · À retrouver aussi sur les écrans de l'événement 📱
+  </div>
+</div>
+</body>
+</html>
