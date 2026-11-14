@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-in Bénévoles — HC #3 & PE #2</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0a0a0a; color: #fff; font-family: sans-serif; padding: 1rem; min-height: 100vh; }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    h1 { font-size: 22px; color: #FFEE00; margin-bottom: 4px; }
+    .sub { color: #888; font-size: 13px; margin-bottom: 1rem; }
+    .login { background: #1a1a1a; border-radius: 12px; padding: 1.5rem; max-width: 400px; margin: 3rem auto; text-align: center; }
+    .login input { width: 100%; padding: 12px; background: #0a0a0a; color: #fff; border: 1px solid #333; border-radius: 8px; font-size: 16px; margin: 10px 0; }
+    .login button { width: 100%; padding: 12px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; }
+    .day-switch { display: flex; gap: 10px; background: #1a1a1a; padding: 10px; border-radius: 12px; margin-bottom: 14px; }
+    .day-switch button { flex: 1; padding: 12px 10px; background: #0a0a0a; color: #ccc; border: 1px solid #333; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .day-switch button.active { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
+    .search { width: 100%; padding: 12px; background: #1a1a1a; color: #fff; border: 1px solid #333; border-radius: 10px; font-size: 15px; margin-bottom: 10px; }
+    .stats { background: #111; border: 1px solid #333; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #ccc; margin-bottom: 10px; }
+    .stats b { color: #FFEE00; }
+    .ben { background: #151515; border: 1px solid #2a2a2a; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
+    .ben.done { border-color: #1B7B49; background: #0a2a0a; }
+    .ben-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .ben-nom { font-size: 16px; font-weight: 700; color: #fff; }
+    .ben-nom .badge { background: #4FC3F7; color: #0a0a0a; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: 6px; letter-spacing: 0.5px; }
+    .ben-tshirt { font-size: 13px; color: #FFA726; margin-top: 4px; font-weight: 700; }
+    .ben-infos { font-size: 12px; color: #888; margin-top: 4px; }
+    .ben-action { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-tshirt { padding: 10px 14px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; }
+    .btn-tshirt:disabled { background: #333; color: #666; cursor: not-allowed; }
+    .tshirt-done { font-size: 13px; color: #4caf50; font-weight: 700; padding: 10px 14px; background: #0a2a0a; border-radius: 8px; }
+    .tshirt-already { font-size: 13px; color: #4FC3F7; font-weight: 700; padding: 10px 14px; background: #0a1a2a; border-radius: 8px; border: 1px solid #4FC3F7; }
+    .undo { background: transparent; color: #888; border: 1px solid #444; padding: 10px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; }
+    .empty { text-align: center; color: #666; padding: 2rem; font-size: 14px; }
+  </style>
+</head>
+<body>
+
+<div id="login" class="login" style="display:none;">
+  <div style="color:#888;margin-bottom:10px;">Mot de passe</div>
+  <input type="password" id="pwd" placeholder="••••••••" onkeypress="if(event.key==='Enter')login()">
+  <button onclick="login()">Connexion</button>
+  <div id="login-error" style="color:#C0392B;font-size:13px;margin-top:8px;"></div>
+</div>
+
+<div id="app" class="wrap" style="display:none;">
+  <h1>🙌 Check-in Bénévoles</h1>
+  <div class="sub">Pointage présence + remise t-shirt</div>
+
+  <div class="day-switch">
+    <button id="btn-samedi" onclick="setJour('samedi')">👨‍👧 Samedi PE #2</button>
+    <button id="btn-dimanche" onclick="setJour('dimanche')">🏁 Dimanche HC #3</button>
+  </div>
+
+  <input type="text" id="search" class="search" placeholder="🔍 Chercher par prénom ou nom…" oninput="render()">
+
+  <div id="stats" class="stats"></div>
+  <div id="list"></div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://mzyfnmjzlosranptwucr.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_SjaqadxtlQdtASZ6TqE61g_2MyPRKEC';
+const PWD = 'labuse';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let data = [];
+let jour = 'samedi';
+
+function login() {
+  const p = document.getElementById('pwd').value.trim();
+  if (p !== PWD) { document.getElementById('login-error').textContent = '❌ Mot de passe incorrect'; return; }
+  sessionStorage.setItem('ben_checkin_auth', '1');
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  load();
+}
+if (sessionStorage.getItem('ben_checkin_auth') === '1') {
+  document.getElementById('app').style.display = 'block';
+  setTimeout(load, 0);
+} else {
+  document.getElementById('login').style.display = 'block';
+}
+
+function setJour(j) {
+  jour = j;
+  document.getElementById('btn-samedi').classList.toggle('active', j === 'samedi');
+  document.getElementById('btn-dimanche').classList.toggle('active', j === 'dimanche');
+  render();
+}
+
+async function load() {
+  const { data: rows, error } = await db.from('Benevoles')
+    .select('id,prenom,nom,disponibilites,tshirt_coupe,tshirt_taille,tshirt_distribue_at,email,telephone')
+    .gte('created_at', '2026-09-01')
+    .order('prenom');
+  if (error) {
+    document.getElementById('list').innerHTML = '<div class="empty">Erreur : ' + error.message + '</div>';
+    return;
+  }
+  data = rows || [];
+  // Init bouton jour selon la date du jour (samedi par défaut, dimanche après 0h)
+  const auj = new Date();
+  jour = (auj.getDay() === 0) ? 'dimanche' : 'samedi';
+  setJour(jour);
+}
+
+function hasDispoJour(b, j) {
+  const d = (b.disponibilites || '').toLowerCase();
+  if (j === 'samedi') return d.includes('veille');
+  if (j === 'dimanche') return d.includes('journee') || d.includes('matin') || d.includes('aprem');
+  return false;
+}
+
+function estDeuxJours(b) {
+  const d = (b.disponibilites || '').toLowerCase();
+  return d.includes('veille') && (d.includes('journee') || d.includes('matin') || d.includes('aprem'));
+}
+
+function render() {
+  const q = (document.getElementById('search').value || '').trim().toLowerCase();
+  const list = data.filter(b => hasDispoJour(b, jour))
+    .filter(b => !q || (b.prenom + ' ' + (b.nom || '')).toLowerCase().includes(q));
+
+  const done = list.filter(b => b.tshirt_distribue_at).length;
+  document.getElementById('stats').innerHTML = `<b>${done}</b> / ${list.length} t-shirts remis ${q ? `(filtrés)` : ''}`;
+
+  if (!list.length) {
+    document.getElementById('list').innerHTML = '<div class="empty">Aucun bénévole pour ce jour</div>';
+    return;
+  }
+
+  document.getElementById('list').innerHTML = list.map(b => {
+    const nom = ((b.prenom || '') + ' ' + (b.nom || '')).trim();
+    const deuxJours = estDeuxJours(b);
+    const badge = deuxJours ? '<span class="badge">🔁 2 JOURS</span>' : '';
+    const coupe = b.tshirt_coupe || '—';
+    const taille = b.tshirt_taille || '—';
+    const dateDistrib = b.tshirt_distribue_at ? new Date(b.tshirt_distribue_at).toLocaleDateString('fr-FR') : null;
+    let action;
+    if (dateDistrib) {
+      if (deuxJours && jour === 'dimanche') {
+        action = `<div class="tshirt-already">👕 T-shirt déjà remis le ${dateDistrib} (samedi)</div>
+          <button class="undo" onclick="undoTshirt(${b.id})">Annuler</button>`;
+      } else {
+        action = `<div class="tshirt-done">✓ T-shirt remis le ${dateDistrib}</div>
+          <button class="undo" onclick="undoTshirt(${b.id})">Annuler</button>`;
+      }
+    } else {
+      action = `<button class="btn-tshirt" onclick="markTshirt(${b.id})">👕 Remettre le t-shirt</button>`;
+    }
+    const doneCls = b.tshirt_distribue_at ? 'done' : '';
+    return `
+      <div class="ben ${doneCls}">
+        <div class="ben-head">
+          <div>
+            <div class="ben-nom">${nom} ${badge}</div>
+            <div class="ben-tshirt">👕 ${coupe} ${taille}</div>
+            <div class="ben-infos">${b.email || 'pas d\\'email'} · ${b.telephone || ''}</div>
+          </div>
+        </div>
+        <div class="ben-action">${action}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function markTshirt(id) {
+  const now = new Date().toISOString();
+  const { error } = await db.from('Benevoles').update({ tshirt_distribue_at: now }).eq('id', id);
+  if (error) { alert('Erreur : ' + error.message); return; }
+  const b = data.find(x => x.id === id);
+  if (b) b.tshirt_distribue_at = now;
+  render();
+}
+
+async function undoTshirt(id) {
+  if (!confirm('Annuler la remise du t-shirt ?')) return;
+  const { error } = await db.from('Benevoles').update({ tshirt_distribue_at: null }).eq('id', id);
+  if (error) { alert('Erreur : ' + error.message); return; }
+  const b = data.find(x => x.id === id);
+  if (b) b.tshirt_distribue_at = null;
+  render();
+}
+</script>
+
+</body>
+</html>
