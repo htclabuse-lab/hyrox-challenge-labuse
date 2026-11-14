@@ -449,6 +449,31 @@ function mailBenevoleDanyRenfortBurpees() {
   };
 }
 
+function mailBenevoleSabineWallBall() {
+  return {
+    subject: '🙌 Bienvenue Sabine — Ton poste bénévole HC #3',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + '<p>Bonjour <strong>Sabine</strong>,</p>'
+      + '<p>Bienvenue sur le <strong>Hyrox Challenge La Buse #3</strong> ! Merci beaucoup de rejoindre l\'équipe bénévole au dernier moment, ton aide va vraiment compter 🙌</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🕐 <strong>Arrivée : 12h</strong> au CrossFit La Buse</p>'
+      + '<p style="margin:10px 0;">📍 <strong>Passe d\'abord à l\'Accueil</strong> pour te présenter — on te briefera et t\'orientera vers ton poste.</p>'
+      + '<p style="margin:10px 0;">🏋️ <strong>Ton poste : WALL BALL</strong></p>'
+      + '<p style="margin:10px 0;color:#444;">— <strong>12h - 13h</strong> : renfort Wall Ball pendant la pause déjeuner de l\'équipe</p>'
+      + '<p style="margin:10px 0;color:#444;">— <strong>13h - 18h</strong> : titulaire Wall Ball</p>'
+      + '</div>'
+      + '<p>👕 <strong>Petit mot sur le t-shirt :</strong> comme ton inscription est arrivée au dernier moment, nous n\'avons pas pu te commander ton t-shirt bénévole 😔 Désolés ! Si tu peux venir avec un <strong>haut blanc</strong>, ça permettra au staff et aux athlètes de te repérer facilement.</p>'
+      + '<p>⏰ <strong>La ponctualité est cruciale</strong> : si une station se vide, les athlètes sont bloqués. On compte sur toi pour respecter 12h 🙏</p>'
+      + '<p>❄️ Un espace climatisé est à disposition avant ou après ton shift.</p>'
+      + '<p>📩 Une question ou un changement ? Réponds directement à ce mail.</p>'
+      + '<p>Merci encore pour ton engagement, on a hâte de te rencontrer demain !</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 async function resendBatch(resendKey, emails, cle) {
   const resp = await fetch('https://api.resend.com/emails/batch', {
     method: 'POST',
@@ -731,6 +756,7 @@ export default async function handler(req, res) {
         'loris_wallball': mailBenevoleLorisWallBall,
         'michel_renfort_matin': mailBenevoleMichelRenfortMatin,
         'camille_lunges_aprem': mailBenevoleCamilleLungesAprem,
+        'sabine_wallball': mailBenevoleSabineWallBall,
       };
       const mailFn = templates[b.role];
       if (!mailFn) return res.status(400).json({ error: 'role invalide : ' + Object.keys(templates).join(', ') });
