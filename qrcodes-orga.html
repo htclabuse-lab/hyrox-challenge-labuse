@@ -30,21 +30,23 @@
     .footer { text-align: center; font-size: 12px; color: #888; margin-top: 1.5rem; line-height: 1.6; }
     .print-btn { display: block; margin: 0 auto 1rem; background: #C0392B; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; }
     @media print {
-      @page { size: A4 portrait; margin: 5mm; }
+      @page { size: A4 portrait; margin: 10mm; }
       .print-btn { display: none; }
       body { padding: 0; }
-      h1 { font-size: 14px; margin-bottom: 1px; }
-      .subtitle { font-size: 10px; margin-bottom: 6px; }
-      .pwd-banner { padding: 5px 8px; font-size: 10px; margin-bottom: 6px; border-radius: 5px; }
-      .pwd-banner strong { font-size: 13px; margin-top: 1px; letter-spacing: 2px; }
-      .grid { gap: 6px; }
-      .card { padding: 5px; border-width: 1.5px; border-radius: 8px; }
-      .card-icon { font-size: 18px; margin-bottom: 1px; line-height: 1; }
-      .card-title { font-size: 11px; margin-bottom: 2px; }
-      .card-desc { font-size: 9px; min-height: 0; margin-bottom: 4px; line-height: 1.25; }
-      .card img { max-width: 145px; margin-bottom: 2px; }
-      .card-url { font-size: 7px; padding: 1px 3px; }
-      .footer { font-size: 9px; margin-top: 6px; }
+      .wrap { max-width: none; }
+      h1 { font-size: 20px; margin-bottom: 2px; }
+      .subtitle { font-size: 12px; margin-bottom: 10px; }
+      .pwd-banner { padding: 10px 14px; font-size: 13px; margin-bottom: 10px; border-radius: 8px; }
+      .pwd-banner strong { font-size: 20px; margin-top: 2px; letter-spacing: 3px; }
+      /* Passage en 1 colonne : cards horizontales (QR à gauche, texte à droite) */
+      .grid { grid-template-columns: 1fr; gap: 10px; }
+      .card { display: grid; grid-template-columns: 75mm 1fr; gap: 14px; align-items: center; text-align: left; padding: 10px 14px; border-width: 3px; border-radius: 12px; }
+      .card img { max-width: 75mm; width: 75mm; margin: 0; grid-row: 1 / span 4; }
+      .card-icon { font-size: 28px; margin-bottom: 0; grid-column: 2; }
+      .card-title { font-size: 20px; margin-bottom: 4px; grid-column: 2; }
+      .card-desc { font-size: 13px; min-height: 0; margin-bottom: 6px; line-height: 1.45; grid-column: 2; }
+      .card-url { font-size: 11px; padding: 4px 8px; grid-column: 2; display: inline-block; max-width: 100%; }
+      .footer { font-size: 11px; margin-top: 10px; }
     }
     @media (max-width: 900px) { .grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 500px) { .grid { grid-template-columns: 1fr; } }
