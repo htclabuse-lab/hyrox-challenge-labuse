@@ -39,8 +39,8 @@ export default async function handler(req, res) {
   }
 
   if (b.action === 'mail') {
-    // ⚠️ MAIL_ENABLED = false pendant les tests. Repasser à true avant le 14/11.
-    const MAIL_ENABLED = false;
+    // ⚠️ MAIL_ENABLED = true pour le jour J PE #2 (14/11/2026). Repasser à false après l'événement.
+    const MAIL_ENABLED = true;
     if (!MAIL_ENABLED) return res.status(200).json({ ok: true, skipped: 'MAIL_ENABLED=false' });
     if (!process.env.RESEND_API_KEY) return res.status(500).json({ error: 'Configuration serveur incomplète' });
     const { data: d, error } = await pe2(db.from('Inscriptions').select('email').eq('id', Number(b.id))).maybeSingle();
