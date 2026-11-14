@@ -474,6 +474,30 @@ function mailBenevoleSabineWallBall() {
   };
 }
 
+function mailBenevolesRappelAccueil(prenom) {
+  const salut = prenom ? `Bonjour <strong>${prenom}</strong>,` : 'Bonjour,';
+  return {
+    subject: '📍 HC #3 demain — Passe à l\'Accueil en arrivant',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + '<p>' + salut + '</p>'
+      + '<p>Petit rappel important pour demain 🙌</p>'
+      + '<div style="background:#E8F5E9;border-left:4px solid #1B7B49;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">📍 <strong>En arrivant, passe à l\'Accueil</strong> pour te checker.</p>'
+      + '<p style="margin:10px 0;color:#444;">C\'est important : ça nous permet de <strong>savoir qui est bien présent</strong> et de réorganiser les stations immédiatement si quelqu\'un manque à l\'appel.</p>'
+      + '<p style="margin:10px 0;">🎁 À l\'Accueil tu récupères aussi t-shirt, bon conso, chèque Intersport (et repas pour les journées complètes).</p>'
+      + '<p style="margin:10px 0;">⏰ Pour les horaires et ta station, tu peux relire le mail avec ton planning.</p>'
+      + '</div>'
+      + '<p>📱 <strong>Viens avec ton téléphone chargé</strong> — tout se fera sur application (pointage des athlètes à chaque station).</p>'
+      + '<p>⏰ <strong>La ponctualité est cruciale</strong> : si une station se vide, les athlètes sont bloqués et les bénévoles journée ne peuvent pas prendre leur pause.</p>'
+      + '<p>❄️ Un espace climatisé est à disposition avant ou après ton shift.</p>'
+      + '<p>Merci encore pour ton engagement, à demain !</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 async function resendBatch(resendKey, emails, cle) {
   const resp = await fetch('https://api.resend.com/emails/batch', {
     method: 'POST',
@@ -646,6 +670,48 @@ export default async function handler(req, res) {
         envoyes += await resendBatch(resendKey,
           emails.slice(i, i + 100).map(to => ({ from: FROM, to, reply_to: REPLY_TO, ...mailBenevolesRulebook(prenomDe(to)) })),
           `hc3-benev-rb-lot${i / 100}-v1`);
+      }
+      return res.status(200).json({ envoye: true, nombre: emails.length, envoyes });
+    }
+
+    if (b.mode === 'benevoles_rappel_accueil') {
+      // Rappel la veille : passer à l'Accueil en arrivant. Même pivot que benevoles_rulebook.
+      const { data, error } = await db.from('Benevoles')
+        .select('id,prenom,email,disponibilites,created_at')
+        .gte('created_at', '2026-09-01');
+      if (error) return res.status(500).json({ error: error.message });
+      const EXCLUS = ['stephanie.caro31@gmail.com'];
+      const parEmail = {};
+      (data || []).forEach(r => {
+        if ((r.disponibilites || '').trim() === 'veille') return; // samedi PE uniquement : ignorer
+        const e = String(r.email || '').trim().toLowerCase();
+        if (!e || EXCLUS.includes(e)) return;
+        (parEmail[e] = parEmail[e] || []).push((r.prenom || '').trim());
+      });
+      const emails = Object.keys(parEmail).sort();
+      const prenomDe = e => {
+        const prenoms = [...new Set(parEmail[e].filter(Boolean))];
+        return prenoms.length === 1 ? prenoms[0] : null;
+      };
+      if (b.test_to) {
+        const n = await resendBatch(resendKey,
+          [{ from: FROM, to: String(b.test_to).trim(), reply_to: REPLY_TO, ...mailBenevolesRappelAccueil('Stéphanie (APERÇU)') }],
+          `hc3-benev-ra-test-${Date.now()}`);
+        return res.status(200).json({ test: true, envoyes: n, nb_destinataires_reels: emails.length });
+      }
+      if (b.envoyer !== true) {
+        return res.status(200).json({
+          dry_run: true,
+          nombre: emails.length,
+          apercu_10_premiers: emails.slice(0, 10).map(e => ({ email: e, salut_avec: prenomDe(e) || '«Bonjour»' })),
+        });
+      }
+      const cleSuffixe = b.cle_suffixe ? `-${String(b.cle_suffixe).replace(/[^a-z0-9_-]/gi,'')}` : '-v1';
+      let envoyes = 0;
+      for (let i = 0; i < emails.length; i += 100) {
+        envoyes += await resendBatch(resendKey,
+          emails.slice(i, i + 100).map(to => ({ from: FROM, to, reply_to: REPLY_TO, ...mailBenevolesRappelAccueil(prenomDe(to)) })),
+          `hc3-benev-ra-lot${i / 100}${cleSuffixe}`);
       }
       return res.status(200).json({ envoye: true, nombre: emails.length, envoyes });
     }
