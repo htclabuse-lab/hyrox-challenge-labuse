@@ -31,6 +31,7 @@
     .creneau li.remplace::before { content: "🔁 "; }
     .creneau li.coureur { color: #888; font-style: italic; font-size: 12px; }
     .creneau li.retard { color: #FF7043; font-weight: 700; font-size: 12px; }
+    .creneau li.absent { color: #C0392B; font-weight: 700; text-decoration: line-through; }
     .creneau.vide li.empty { color: #666; font-style: italic; font-size: 12px; }
     .creneau.sous-effectif { background: #2a1010; }
     .legend { background: #111; border: 1px solid #333; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: #aaa; margin-bottom: 14px; line-height: 1.7; }
@@ -61,6 +62,7 @@
       .creneau li.remplace { color: #0366d6 !important; }
       .creneau li.coureur { color: #555 !important; font-size: 8px !important; }
       .creneau li.retard { color: #D84315 !important; font-size: 8px !important; }
+      .creneau li.absent { color: #C0392B !important; text-decoration: line-through !important; }
       .creneau.sous-effectif { background: #ffe8e8 !important; }
     }
 
@@ -81,6 +83,7 @@
     body.light .creneau li.remplace { color: #0366d6 !important; }
     body.light .creneau li.coureur { color: #555 !important; }
     body.light .creneau li.retard { color: #D84315 !important; }
+    body.light .creneau li.absent { color: #C0392B !important; text-decoration: line-through !important; }
     body.light .creneau.sous-effectif { background: #ffe8e8 !important; }
     body.light footer { color: #666 !important; }
   </style>
@@ -161,7 +164,7 @@ const STATIONS = [
 
 async function loadAndRender() {
   const { data: rows, error } = await db.from('Benevoles')
-    .select('prenom,nom,disponibilites,station_matin,station_aprem,pause_creneau,remplace_11h30,remplace_12h30')
+    .select('prenom,nom,disponibilites,station_matin,station_aprem,pause_creneau,remplace_11h30,remplace_12h30,statut_checkin')
     .gte('created_at', '2026-09-01')
     .order('prenom');
 
@@ -180,7 +183,8 @@ function nomAffiche(b) {
   const n = (b.nom || '').trim();
   const base = n ? `${p} ${n}` : p;
   const estJournee = hasDispo(b, 'journee');
-  return base + (estJournee ? ' ☀️' : '');
+  const prefix = b.statut_checkin === 'absent' ? '❌ ' : (b.statut_checkin === 'present' ? '✅ ' : '');
+  return prefix + base + (estJournee ? ' ☀️' : '');
 }
 
 function hasDispo(b, mot) {
@@ -280,7 +284,8 @@ function presents(station, creneau, benevoles) {
 
 function renderCreneau(station, label, heures, creneau, benevoles, besoin) {
   const liste = presents(station, creneau, benevoles);
-  const nbReel = liste.filter(e => e.type !== 'coureur').length; // coureurs non comptés
+  const estAbsent = (e) => e.nom && e.nom.startsWith('❌');
+  const nbReel = liste.filter(e => e.type !== 'coureur' && !estAbsent(e)).length; // coureurs + absents non comptés
   const nb = liste.length;
   const sousEff = nbReel < besoin;
   const cls = 'creneau' + (sousEff ? ' sous-effectif' : '') + (nb === 0 ? ' vide' : '');
@@ -290,7 +295,8 @@ function renderCreneau(station, label, heures, creneau, benevoles, besoin) {
     items = '<li class="empty">—</li>';
   } else {
     items = liste.map(e => {
-      const cls2 = e.type === 'remplace' ? 'remplace'
+      const cls2 = estAbsent(e) ? 'absent'
+        : e.type === 'remplace' ? 'remplace'
         : e.type === 'coureur' ? 'coureur'
         : e.type === 'retard' ? 'retard'
         : '';

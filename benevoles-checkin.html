@@ -22,17 +22,21 @@
     .stats { background: #111; border: 1px solid #333; border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #ccc; margin-bottom: 10px; }
     .stats b { color: #FFEE00; }
     .ben { background: #151515; border: 1px solid #2a2a2a; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; }
-    .ben.done { border-color: #1B7B49; background: #0a2a0a; }
+    .ben.present { border-color: #1B7B49; background: #0a2a0a; }
+    .ben.absent { border-color: #C0392B; background: #2a0a0a; opacity: 0.75; }
     .ben-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
     .ben-nom { font-size: 16px; font-weight: 700; color: #fff; }
     .ben-nom .badge { background: #4FC3F7; color: #0a0a0a; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; margin-left: 6px; letter-spacing: 0.5px; }
     .ben-tshirt { font-size: 13px; color: #FFA726; margin-top: 4px; font-weight: 700; }
     .ben-infos { font-size: 12px; color: #888; margin-top: 4px; }
     .ben-action { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
-    .btn-tshirt { padding: 10px 14px; background: #FFEE00; color: #0a0a0a; border: none; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer; }
-    .btn-tshirt:disabled { background: #333; color: #666; cursor: not-allowed; }
-    .tshirt-done { font-size: 13px; color: #4caf50; font-weight: 700; padding: 10px 14px; background: #0a2a0a; border-radius: 8px; }
-    .tshirt-already { font-size: 13px; color: #4FC3F7; font-weight: 700; padding: 10px 14px; background: #0a1a2a; border-radius: 8px; border: 1px solid #4FC3F7; }
+    .btn-pres { padding: 12px 18px; background: #1B7B49; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; }
+    .btn-abs { padding: 12px 18px; background: transparent; color: #C0392B; border: 2px solid #C0392B; border-radius: 8px; font-size: 14px; font-weight: 800; cursor: pointer; letter-spacing: 0.5px; }
+    .btn-pres.on { background: #1B7B49; color: #fff; }
+    .btn-abs.on { background: #C0392B; color: #fff; border-color: #C0392B; }
+    .status-pill { display: inline-block; font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 6px; letter-spacing: 0.5px; }
+    .status-pill.pres { background: #1B7B49; color: #fff; }
+    .status-pill.abs { background: #C0392B; color: #fff; }
     .undo { background: transparent; color: #888; border: 1px solid #444; padding: 10px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; }
     .empty { text-align: center; color: #666; padding: 2rem; font-size: 14px; }
   </style>
@@ -41,7 +45,7 @@
 
 <div id="app" class="wrap">
   <h1>🙌 Check-in Bénévoles</h1>
-  <div class="sub">Pointage présence + remise t-shirt</div>
+  <div class="sub">Pointage présence (Présent / Absent)</div>
 
   <div class="tabs">
     <button id="btn-samedi" onclick="setJour('samedi')">👨‍👧 Samedi PE #2</button>
@@ -73,7 +77,7 @@ function setJour(j) {
 
 async function load() {
   const { data: rows, error } = await db.from('Benevoles')
-    .select('id,prenom,nom,disponibilites,tshirt_coupe,tshirt_taille,tshirt_distribue_at,email,telephone')
+    .select('id,prenom,nom,disponibilites,tshirt_coupe,tshirt_taille,tshirt_distribue_at,email,telephone,statut_checkin,station_matin,station_aprem')
     .gte('created_at', '2026-09-01')
     .order('prenom');
   if (error) {
@@ -110,18 +114,15 @@ function render() {
   const list = data.filter(b => hasDispoJour(b, jour))
     .filter(b => !q || (b.prenom + ' ' + (b.nom || '')).toLowerCase().includes(q));
 
-  const WEEKEND_DEBUT_STATS = new Date('2026-11-14T00:00:00Z').getTime();
-  const done = list.filter(b => b.tshirt_distribue_at && new Date(b.tshirt_distribue_at).getTime() >= WEEKEND_DEBUT_STATS).length;
-  document.getElementById('stats').innerHTML = `<b>${done}</b> / ${list.length} t-shirts remis ${q ? `(filtrés)` : ''}`;
+  const nbPresents = list.filter(b => b.statut_checkin === 'present').length;
+  const nbAbsents = list.filter(b => b.statut_checkin === 'absent').length;
+  const nbNonPointes = list.length - nbPresents - nbAbsents;
+  document.getElementById('stats').innerHTML = `✅ <b>${nbPresents}</b> présent·e·s · ❌ <b>${nbAbsents}</b> absent·e·s · ⏳ <b>${nbNonPointes}</b> non pointé·e·s ${q ? `(filtrés)` : ''}`;
 
   if (!list.length) {
     document.getElementById('list').innerHTML = '<div class="empty">Aucun bénévole pour ce jour</div>';
     return;
   }
-
-  // On ne prend en compte le t-shirt remis QUE si distribué pendant ce weekend (>= 2026-11-14)
-  // Les t-shirts remis lors de PE #1 ou HC #2 ne comptent pas — nouvel événement, nouveau t-shirt.
-  const WEEKEND_DEBUT = new Date('2026-11-14T00:00:00Z').getTime();
 
   document.getElementById('list').innerHTML = list.map(b => {
     const nom = ((b.prenom || '') + ' ' + (b.nom || '')).trim();
@@ -129,28 +130,22 @@ function render() {
     const badge = deuxJours ? '<span class="badge">🔁 2 JOURS</span>' : '';
     const coupe = b.tshirt_coupe || '—';
     const taille = b.tshirt_taille || '—';
-    const distribWeekend = b.tshirt_distribue_at && new Date(b.tshirt_distribue_at).getTime() >= WEEKEND_DEBUT;
-    const dateDistrib = distribWeekend ? new Date(b.tshirt_distribue_at).toLocaleDateString('fr-FR') : null;
-    let action;
-    if (dateDistrib) {
-      if (deuxJours && jour === 'dimanche') {
-        action = `<div class="tshirt-already">👕 T-shirt déjà remis le ${dateDistrib} (samedi)</div>
-          <button class="undo" onclick="undoTshirt(${b.id})">Annuler</button>`;
-      } else {
-        action = `<div class="tshirt-done">✓ T-shirt remis le ${dateDistrib}</div>
-          <button class="undo" onclick="undoTshirt(${b.id})">Annuler</button>`;
-      }
-    } else {
-      action = `<button class="btn-tshirt" onclick="markTshirt(${b.id})">👕 Remettre le t-shirt</button>`;
-    }
-    const doneCls = distribWeekend ? 'done' : '';
+    const st = b.statut_checkin;
+    let statusBadge = '';
+    if (st === 'present') statusBadge = '<span class="status-pill pres">✅ PRÉSENT·E</span>';
+    else if (st === 'absent') statusBadge = '<span class="status-pill abs">❌ ABSENT·E</span>';
+    const cls = st === 'present' ? 'present' : (st === 'absent' ? 'absent' : '');
+    const action = `
+      <button class="btn-pres ${st === 'present' ? 'on' : ''}" onclick="markStatus(${b.id}, 'present')">✅ Présent·e</button>
+      <button class="btn-abs ${st === 'absent' ? 'on' : ''}" onclick="markStatus(${b.id}, 'absent')">❌ Absent·e</button>
+      ${st ? `<button class="undo" onclick="markStatus(${b.id}, null)">Annuler</button>` : ''}`;
     return `
-      <div class="ben ${doneCls}">
+      <div class="ben ${cls}">
         <div class="ben-head">
           <div>
-            <div class="ben-nom">${nom} ${badge}</div>
+            <div class="ben-nom">${nom} ${badge} ${statusBadge}</div>
             <div class="ben-tshirt">👕 ${coupe} ${taille}</div>
-            <div class="ben-infos">${b.email || "pas d'email"} · ${b.telephone || ''}</div>
+            <div class="ben-infos">📞 ${b.telephone || '—'} · ${b.email || "pas d'email"}</div>
           </div>
         </div>
         <div class="ben-action">${action}</div>
@@ -159,21 +154,11 @@ function render() {
   }).join('');
 }
 
-async function markTshirt(id) {
-  const now = new Date().toISOString();
-  const { error } = await db.from('Benevoles').update({ tshirt_distribue_at: now }).eq('id', id);
+async function markStatus(id, statut) {
+  const { error } = await db.from('Benevoles').update({ statut_checkin: statut }).eq('id', id);
   if (error) { alert('Erreur : ' + error.message); return; }
   const b = data.find(x => x.id === id);
-  if (b) b.tshirt_distribue_at = now;
-  render();
-}
-
-async function undoTshirt(id) {
-  if (!confirm('Annuler la remise du t-shirt ?')) return;
-  const { error } = await db.from('Benevoles').update({ tshirt_distribue_at: null }).eq('id', id);
-  if (error) { alert('Erreur : ' + error.message); return; }
-  const b = data.find(x => x.id === id);
-  if (b) b.tshirt_distribue_at = null;
+  if (b) b.statut_checkin = statut;
   render();
 }
 </script>
