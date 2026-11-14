@@ -81,9 +81,15 @@ async function load() {
     return;
   }
   data = rows || [];
-  // Init bouton jour selon la date du jour (samedi par défaut, dimanche après 0h)
-  const auj = new Date();
-  jour = (auj.getDay() === 0) ? 'dimanche' : 'samedi';
+  // Init bouton jour : si ?jour=... dans l'URL on force, sinon selon la date (dimanche = 0, samedi = 6)
+  const params = new URLSearchParams(location.search);
+  const jourParam = params.get('jour');
+  if (jourParam === 'samedi' || jourParam === 'dimanche') {
+    jour = jourParam;
+  } else {
+    const auj = new Date();
+    jour = (auj.getDay() === 0) ? 'dimanche' : 'samedi';
+  }
   setJour(jour);
 }
 

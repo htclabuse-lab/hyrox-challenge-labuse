@@ -110,6 +110,8 @@
       <button type="button" class="main-tab" data-tab="parent-enfant" onclick="showMainTab('parent-enfant', this)">👨‍👧 Parent-Enfant</button>
       <button type="button" class="main-tab" data-tab="benevoles" onclick="showMainTab('benevoles', this)">🙌 Bénévoles</button>
       <button type="button" class="main-tab" data-tab="planning-benevoles" onclick="showMainTab('planning-benevoles', this)">📋 Planning bénévoles</button>
+      <button type="button" class="main-tab" data-tab="checkin-benevoles-pe2" onclick="showMainTab('checkin-benevoles-pe2', this)">👕 Check-in bénévoles PE #2</button>
+      <button type="button" class="main-tab" data-tab="checkin-benevoles-hc3" onclick="showMainTab('checkin-benevoles-hc3', this)">👕 Check-in bénévoles HC #3</button>
       <button type="button" class="main-tab" data-tab="kids-appel" onclick="showMainTab('kids-appel', this)">📋 Feuille d'appel Kids</button>
       <button type="button" class="main-tab" data-tab="kids-inscrits" onclick="showMainTab('kids-inscrits', this)">✅ Inscriptions cours Kids</button>
       <button type="button" class="main-tab" data-tab="kids" onclick="showMainTab('kids', this)">🧒 Pré-inscriptions Kids</button>
@@ -218,6 +220,18 @@
       <iframe src="planning-benevoles.html" style="width:100%;height:calc(100vh - 220px);min-height:600px;border:1px solid #333;border-radius:10px;background:#0a0a0a;" title="Planning bénévoles"></iframe>
     </div>
 
+    <!-- ONGLET CHECK-IN BÉNÉVOLES PE #2 (iframe vers benevoles-checkin.html?jour=samedi) -->
+    <div class="tab-content" id="tab-checkin-benevoles-pe2">
+      <div style="font-size:13px;color:#888;margin-bottom:10px;">Pointage présence + remise t-shirt des bénévoles présents samedi (PE #2). Les bénévoles présents les 2 jours sont marqués 🔁 — le dimanche, le t-shirt ne sera pas donné 2 fois. Fonctionne aussi en direct depuis <a href="benevoles-checkin.html?jour=samedi" target="_blank" style="color:#FFEE00;">benevoles-checkin.html</a>.</div>
+      <iframe src="benevoles-checkin.html?jour=samedi" style="width:100%;height:calc(100vh - 220px);min-height:600px;border:1px solid #333;border-radius:10px;background:#0a0a0a;" title="Check-in bénévoles PE #2"></iframe>
+    </div>
+
+    <!-- ONGLET CHECK-IN BÉNÉVOLES HC #3 (iframe vers benevoles-checkin.html?jour=dimanche) -->
+    <div class="tab-content" id="tab-checkin-benevoles-hc3">
+      <div style="font-size:13px;color:#888;margin-bottom:10px;">Pointage présence + remise t-shirt des bénévoles présents dimanche (HC #3). Pour ceux qui étaient déjà là samedi, l'app indique que le t-shirt est déjà donné. Fonctionne aussi en direct depuis <a href="benevoles-checkin.html?jour=dimanche" target="_blank" style="color:#FFEE00;">benevoles-checkin.html</a>.</div>
+      <iframe src="benevoles-checkin.html?jour=dimanche" style="width:100%;height:calc(100vh - 220px);min-height:600px;border:1px solid #333;border-radius:10px;background:#0a0a0a;" title="Check-in bénévoles HC #3"></iframe>
+    </div>
+
     <!-- ONGLET FEUILLE D'APPEL KIDS -->
     <div class="tab-content" id="tab-kids-appel">
       <div id="kids-appel-content"></div>
@@ -290,9 +304,9 @@
   // Onglets visibles selon l'événement sélectionné
   var EVENT_TABS = {
     'hc2': ['inscription','categories','passage','tshirts','inventaire','pack-photo','benevoles'],
-    'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','pack-hc3','benevoles','planning-benevoles'],
+    'hc3': ['inscription','categories','passage','tshirts','inventaire','pack-photo','pack-hc3','benevoles','planning-benevoles','checkin-benevoles-hc3'],
     'pe':  ['parent-enfant'],
-    'pe2': ['parent-enfant','tshirts','pack-photo','pack-pe2'],
+    'pe2': ['parent-enfant','tshirts','pack-photo','pack-pe2','checkin-benevoles-pe2'],
     'kids': ['kids-appel','kids-inscrits','kids']
   };
 
@@ -1009,10 +1023,11 @@
     document.querySelectorAll('.main-tab').forEach(function(t){ t.classList.remove('active'); });
     document.getElementById('tab-' + tab).classList.add('active');
     btn.classList.add('active');
-    // Masque la barre de recherche admin pour les onglets qui embarquent un iframe (check-in accueil)
+    // Masque la barre de recherche admin pour les onglets qui embarquent un iframe (check-in accueil, check-in bénévoles)
     var adminInput = document.getElementById('admin-search');
     var searchWrap = adminInput ? adminInput.parentElement : null;
-    if (searchWrap) searchWrap.style.display = (tab === 'pack-hc3' || tab === 'pack-pe2') ? 'none' : '';
+    var iframeTabs = ['pack-hc3', 'pack-pe2', 'checkin-benevoles-pe2', 'checkin-benevoles-hc3'];
+    if (searchWrap) searchWrap.style.display = iframeTabs.indexOf(tab) !== -1 ? 'none' : '';
     filterAdminTables(); // réapplique le filtre quand on change d'onglet
   }
 
