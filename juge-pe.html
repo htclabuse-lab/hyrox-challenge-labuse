@@ -239,7 +239,7 @@
   async function startVague(v) {
     if (!confirm(`Démarrer la vague ${v} maintenant ?`)) return;
     const now = new Date().toISOString();
-    const ids = data.filter(d => d.vague === v).map(d => d.id);
+    const ids = data.filter(d => d.vague === v && !isAbsent(d)).map(d => d.id);
     await majPE(ids, {heure_debut_reelle: now});
     await load();
   }
