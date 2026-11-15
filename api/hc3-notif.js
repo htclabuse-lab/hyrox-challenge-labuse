@@ -474,6 +474,32 @@ function mailBenevoleSabineWallBall() {
   };
 }
 
+function mailResultatCapitaine(fiche) {
+  const prenom = (fiche.prenom || '').trim();
+  const co1Prenom = (fiche.co1_prenom || '').trim();
+  const equipe = (fiche.nom_equipe || '').trim();
+  const t = Number(fiche.temps_final_s || 0);
+  const mi = Math.floor(t / 60), se = t % 60, h = Math.floor(mi / 60), m = mi % 60;
+  const tempsStr = h > 0 ? `${h}h${String(m).padStart(2,'0')}:${String(se).padStart(2,'0')}` : `${String(m).padStart(2,'0')}:${String(se).padStart(2,'0')}`;
+  const cardTitre = equipe || (co1Prenom ? `${prenom} & ${co1Prenom}` : prenom);
+  return {
+    subject: '🎉 BRAVO ' + prenom + ' ! Ton temps Hyrox Challenge La Buse #3',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>Bonjour <strong>${prenom}</strong>,</p>`
+      + '<p>Bravo pour ta performance au Hyrox Challenge La Buse #3 ! 💪</p>'
+      + '<div style="background:#f0f8f3;border:3px solid #1B7B49;border-radius:12px;padding:20px;margin:18px 0;text-align:center;">'
+      + `<div style="font-size:13px;color:#888;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;">⏱ Ton temps final</div>`
+      + `<div style="font-size:42px;font-weight:800;color:#1B7B49;font-family:monospace;">${tempsStr}</div>`
+      + (equipe || co1Prenom ? `<div style="font-size:14px;color:#555;margin-top:8px;">Équipe <strong>${cardTitre}</strong></div>` : '')
+      + '</div>'
+      + '<p>Merci d\'avoir participé à l\'aventure 🙌</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Résultats complets : <a href="https://hyrox-challenge-labuse.vercel.app/resultats.html">https://hyrox-challenge-labuse.vercel.app/resultats.html</a></p>'
+      + '</div>'
+  };
+}
+
 function mailResultatCo1(fiche) {
   const prenom = (fiche.co1_prenom || '').trim();
   const capitaine = (fiche.prenom || '').trim();
@@ -609,6 +635,26 @@ export default async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   try {
+    if (b.mode === 'resultat_capitaine') {
+      const ids = (b.ids || []).map(Number).filter(Boolean);
+      if (!ids.length) return res.status(400).json({ error: 'ids vide' });
+      const { data, error } = await db.from('Inscriptions')
+        .select('id,prenom,nom,co1_prenom,co1_nom,email,nom_equipe,temps_final_s')
+        .in('id', ids);
+      if (error) return res.status(500).json({ error: error.message });
+      const fiches = (data || []).filter(r => r.email && r.temps_final_s);
+      if (!fiches.length) return res.status(400).json({ error: 'aucune fiche avec email + temps_final_s' });
+      if (b.envoyer !== true) return res.status(200).json({ dry_run: true, fiches });
+      const cleSuffixe = b.cle_suffixe ? `-${String(b.cle_suffixe).replace(/[^a-z0-9_-]/gi,'')}` : '-v1';
+      let envoyes = 0;
+      for (const f of fiches) {
+        envoyes += await resendBatch(resendKey,
+          [{ from: FROM, to: f.email, reply_to: REPLY_TO, ...mailResultatCapitaine(f) }],
+          `hc3-rescap-${f.id}${cleSuffixe}`);
+      }
+      return res.status(200).json({ envoye: true, envoyes });
+    }
+
     if (b.mode === 'resultat_co1') {
       const ids = (b.ids || []).map(Number).filter(Boolean);
       if (!ids.length) return res.status(400).json({ error: 'ids vide' });
