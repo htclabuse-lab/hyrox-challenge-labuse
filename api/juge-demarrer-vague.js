@@ -29,7 +29,8 @@ export default async function handler(req, res) {
       .is('heure_debut_reelle', null)
       .neq('absent', true)
       .neq('abandon', true)
-      .gte('created_at', '2026-09-01')
+      .gte('heure_depart', '2026-11-15')
+      .lt('heure_depart', '2026-11-16')
       .select('id');
 
     if (error) {
