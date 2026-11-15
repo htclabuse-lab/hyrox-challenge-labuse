@@ -125,14 +125,14 @@ function render() {
     return;
   }
 
-  // Cutoff commande t-shirts : les inscrits à partir du 12/11 (heure locale La Réunion UTC+4) n'ont pas de t-shirt commandé
-  const TSHIRT_CUTOFF_MS = new Date('2026-11-11T20:00:00Z').getTime(); // = 2026-11-12T00:00+04:00
+  // Cutoff commande t-shirts : les inscrits à partir de novembre (heure locale La Réunion UTC+4) n'ont pas de t-shirt
+  const TSHIRT_CUTOFF_MS = new Date('2026-10-31T20:00:00Z').getTime(); // = 2026-11-01T00:00+04:00
   document.getElementById('list').innerHTML = list.map(b => {
     const nom = ((b.prenom || '') + ' ' + (b.nom || '')).trim();
     const deuxJours = estDeuxJours(b);
     const badge = deuxJours ? '<span class="badge">🔁 2 JOURS</span>' : '';
     const inscriptionTardive = b.created_at && new Date(b.created_at).getTime() >= TSHIRT_CUTOFF_MS;
-    const badgeTshirt = inscriptionTardive ? '<span class="badge-tshirt-later">🛒 T-SHIRT À COMMANDER</span>' : '';
+    const badgeTshirt = inscriptionTardive ? '<span class="badge-tshirt-later">🚫 PAS DE T-SHIRT</span>' : '';
     const coupe = b.tshirt_coupe || '—';
     const taille = b.tshirt_taille || '—';
     const st = b.statut_checkin;

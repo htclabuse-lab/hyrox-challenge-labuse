@@ -474,6 +474,26 @@ function mailBenevoleSabineWallBall() {
   };
 }
 
+function mailBenevoleSarahAprem() {
+  return {
+    subject: '🙌 Bienvenue Sarah — Inscription bénévole HC #3',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + '<p>Bonjour <strong>Sarah</strong>,</p>'
+      + '<p>Merci beaucoup pour ton inscription en tant que bénévole, c\'est très gentil 🙏</p>'
+      + '<p>Comme ton inscription est arrivée au dernier moment, toutes les stations du <strong>matin</strong> sont déjà callées avec l\'équipe en place.</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:10px 0;">🌇 <strong>Tu es la bienvenue dès l\'après-midi, à partir de 13h.</strong></p>'
+      + '<p style="margin:10px 0;">📍 En arrivant, passe à l\'<strong>Accueil</strong> pour te présenter — on t\'orientera vers la station où on a besoin de toi.</p>'
+      + '</div>'
+      + '<p>👕 <strong>Petit mot sur le t-shirt :</strong> comme ton inscription est arrivée au dernier moment, nous n\'avons pas pu te commander ton t-shirt bénévole 😔 Si tu peux venir avec un <strong>haut blanc</strong>, ça permettra au staff et aux athlètes de te repérer facilement.</p>'
+      + '<p>Merci encore pour ton engagement, on a hâte de te rencontrer !</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 function mailBenevolesRappelAccueil(prenom) {
   const salut = prenom ? `Bonjour <strong>${prenom}</strong>,` : 'Bonjour,';
   return {
@@ -821,6 +841,7 @@ export default async function handler(req, res) {
         'michel_renfort_matin': mailBenevoleMichelRenfortMatin,
         'camille_lunges_aprem': mailBenevoleCamilleLungesAprem,
         'sabine_wallball': mailBenevoleSabineWallBall,
+        'sarah_aprem': mailBenevoleSarahAprem,
       };
       const mailFn = templates[b.role];
       if (!mailFn) return res.status(400).json({ error: 'role invalide : ' + Object.keys(templates).join(', ') });
