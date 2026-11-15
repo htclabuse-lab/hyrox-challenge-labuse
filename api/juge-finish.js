@@ -96,7 +96,7 @@ export default async function handler(req, res) {
     // pour PROTÉGER les vrais athlètes pendant les tests end-to-end.
     // AVANT HC #3 : MAIL_ENABLED reste true mais MAIL_REDIRECT_TO = null pour envoi réel.
     const MAIL_ENABLED = true;
-    const MAIL_REDIRECT_TO = null; // mode réel HC #3 (15/11/2026) — envoi aux vrais athlètes
+    const MAIL_REDIRECT_TO = 'stephanie.caro31@gmail.com'; // briefing juges — tests, pas d'envoi aux vrais athlètes. Repasser à null juste avant la 1ère vague.
     let mailStatus = 'skipped';
     // Pour les Duos : envoi aux 2 (capitaine + coéquipier) si co1_email valide.
     const isDuo = (inscr.categorie || '').toLowerCase().startsWith('duo');
