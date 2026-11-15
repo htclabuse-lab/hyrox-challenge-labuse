@@ -474,6 +474,29 @@ function mailBenevoleSabineWallBall() {
   };
 }
 
+function mailVagueArrangement(fiche) {
+  const prenom = (fiche.prenom || '').trim();
+  const vague = fiche.vague;
+  const h = heureLocale(fiche.heure_depart);
+  return {
+    subject: '⏱ Hyrox Challenge La Buse #3 — Ton nouveau créneau de départ',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>Salut <strong>${prenom}</strong>,</p>`
+      + '<p>Suite à ta demande, on a pu te caler un nouveau créneau qui devrait mieux t\'arranger 🙌</p>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:10px 0;border-radius:4px;">'
+      + `<div style="font-size:20px;font-weight:800;color:#C0392B;">Nouvelle vague : ${vague} — départ ${h}</div>`
+      + '<div style="font-size:13px;color:#666;margin-top:4px;">Dimanche 15 novembre 2026</div>'
+      + '</div>'
+      + '<p>Rien d\'autre ne change — ta catégorie, ton t-shirt et ton pack sont inchangés.</p>'
+      + '<p>On compte sur ta ponctualité à ' + h + ' 🙏 — pense à arriver un peu avant pour la mise en file au sas de départ.</p>'
+      + '<p>À tout à l\'heure et bonne course ! 💛🖤</p>'
+      + '<p><strong>Stéphanie &amp; l\'équipe La Buse</strong></p>'
+      + '<hr style="border:none;border-top:1px solid #ddd;margin:20px 0;">'
+      + '<p style="font-size:13px;color:#666;">Site de l\'événement : <a href="https://hyrox-challenge-labuse.vercel.app/#accueil">https://hyrox-challenge-labuse.vercel.app/#accueil</a></p>'
+      + '</div>'
+  };
+}
+
 function mailBenevoleSarahAprem() {
   return {
     subject: '🙌 Bienvenue Sarah — Inscription bénévole HC #3',
@@ -538,6 +561,27 @@ export default async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   try {
+    if (b.mode === 'vague_arrangement') {
+      // Mail à un seul (ou quelques) athlète(s) pour nouveau créneau à sa demande.
+      const ids = (b.ids || []).map(Number).filter(Boolean);
+      if (!ids.length) return res.status(400).json({ error: 'ids vide' });
+      const { data, error } = await db.from('Inscriptions')
+        .select('id,prenom,nom,email,vague,heure_depart,categorie')
+        .in('id', ids);
+      if (error) return res.status(500).json({ error: error.message });
+      const fiches = (data || []).filter(r => r.email && r.vague);
+      if (!fiches.length) return res.status(400).json({ error: 'aucune fiche avec email' });
+      if (b.envoyer !== true) return res.status(200).json({ dry_run: true, fiches });
+      const cleSuffixe = b.cle_suffixe ? `-${String(b.cle_suffixe).replace(/[^a-z0-9_-]/gi,'')}` : '-v1';
+      let envoyes = 0;
+      for (const f of fiches) {
+        envoyes += await resendBatch(resendKey,
+          [{ from: FROM, to: f.email, reply_to: REPLY_TO, ...mailVagueArrangement(f) }],
+          `hc3-vaguearr-${f.id}${cleSuffixe}`);
+      }
+      return res.status(200).json({ envoye: true, envoyes });
+    }
+
     if (b.mode === 'vague_change') {
       const ids = (b.ids || []).map(Number).filter(Boolean);
       if (!ids.length) return res.status(400).json({ error: 'ids vide' });
