@@ -474,6 +474,28 @@ function mailBenevoleSabineWallBall() {
   };
 }
 
+function mailTempsCorrection(fiche) {
+  const prenom = (fiche.prenom || '').trim();
+  const retrait = Math.abs(Number(fiche.temps_ajustement_s || 0));
+  const retraitFr = retrait.toFixed(2).replace('.', ',');
+  const t = Number(fiche.temps_final_s || 0);
+  const mi = Math.floor(t / 60), se = t % 60, h = Math.floor(mi / 60), m = mi % 60;
+  const tempsStr = h > 0 ? `${h}h${String(m).padStart(2,'0')}:${String(se).padStart(2,'0')}` : `${String(m).padStart(2,'0')}:${String(se).padStart(2,'0')}`;
+  return {
+    subject: '⏱ Hyrox Challenge La Buse #3 — Correction de ton temps',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>Salut <strong>${prenom}</strong>,</p>`
+      + '<p>Suite à un souci technique au pointage, on a corrigé ton temps : '
+      + `<strong>-${retraitFr} s</strong> t'ont été retirés.</p>`
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + `<div style="font-size:14px;color:#666;">⏱ Ton temps final corrigé :</div>`
+      + `<div style="font-size:28px;font-weight:900;color:#C0392B;font-family:monospace;">${tempsStr}</div>`
+      + '</div>'
+      + '<p><strong>Stéphanie &amp; l\'équipe La Buse</strong></p>'
+      + '</div>'
+  };
+}
+
 function mailVagueArrangement(fiche) {
   const prenom = (fiche.prenom || '').trim();
   const vague = fiche.vague;
@@ -561,6 +583,26 @@ export default async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   try {
+    if (b.mode === 'temps_correction') {
+      const ids = (b.ids || []).map(Number).filter(Boolean);
+      if (!ids.length) return res.status(400).json({ error: 'ids vide' });
+      const { data, error } = await db.from('Inscriptions')
+        .select('id,prenom,nom,email,temps_final_s,temps_ajustement_s')
+        .in('id', ids);
+      if (error) return res.status(500).json({ error: error.message });
+      const fiches = (data || []).filter(r => r.email && r.temps_final_s);
+      if (!fiches.length) return res.status(400).json({ error: 'aucune fiche avec email + temps_final_s' });
+      if (b.envoyer !== true) return res.status(200).json({ dry_run: true, fiches });
+      const cleSuffixe = b.cle_suffixe ? `-${String(b.cle_suffixe).replace(/[^a-z0-9_-]/gi,'')}` : '-v1';
+      let envoyes = 0;
+      for (const f of fiches) {
+        envoyes += await resendBatch(resendKey,
+          [{ from: FROM, to: f.email, reply_to: REPLY_TO, ...mailTempsCorrection(f) }],
+          `hc3-tempscorr-${f.id}${cleSuffixe}`);
+      }
+      return res.status(200).json({ envoye: true, envoyes });
+    }
+
     if (b.mode === 'vague_arrangement') {
       // Mail à un seul (ou quelques) athlète(s) pour nouveau créneau à sa demande.
       const ids = (b.ids || []).map(Number).filter(Boolean);
