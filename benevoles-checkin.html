@@ -118,16 +118,22 @@ function render() {
   const nbPresents = list.filter(b => b.statut_checkin === 'present').length;
   const nbAbsents = list.filter(b => b.statut_checkin === 'absent').length;
   const nbNonPointes = list.length - nbPresents - nbAbsents;
-  document.getElementById('stats').innerHTML = `✅ <b>${nbPresents}</b> présent·e·s · ❌ <b>${nbAbsents}</b> absent·e·s · ⏳ <b>${nbNonPointes}</b> non pointé·e·s ${q ? `(filtrés)` : ''}`;
+  document.getElementById('stats').innerHTML = `✅ <b>${nbPresents}</b> présent·e·s <span style="color:#666;">(masqués)</span> · ❌ <b>${nbAbsents}</b> absent·e·s · ⏳ <b>${nbNonPointes}</b> non pointé·e·s ${q ? `(filtrés)` : ''}`;
+  // Les présents disparaissent de la liste pour que l'accueil se concentre sur les restants
+  const listVisible = list.filter(b => b.statut_checkin !== 'present');
 
   if (!list.length) {
     document.getElementById('list').innerHTML = '<div class="empty">Aucun bénévole pour ce jour</div>';
     return;
   }
+  if (!listVisible.length) {
+    document.getElementById('list').innerHTML = '<div class="empty">🎉 Tous les bénévoles sont pointés présents ou absents.</div>';
+    return;
+  }
 
   // Cutoff commande t-shirts : les inscrits à partir de novembre (heure locale La Réunion UTC+4) n'ont pas de t-shirt
   const TSHIRT_CUTOFF_MS = new Date('2026-10-31T20:00:00Z').getTime(); // = 2026-11-01T00:00+04:00
-  document.getElementById('list').innerHTML = list.map(b => {
+  document.getElementById('list').innerHTML = listVisible.map(b => {
     const nom = ((b.prenom || '') + ' ' + (b.nom || '')).trim();
     const deuxJours = estDeuxJours(b);
     const badge = deuxJours ? '<span class="badge">🔁 2 JOURS</span>' : '';
