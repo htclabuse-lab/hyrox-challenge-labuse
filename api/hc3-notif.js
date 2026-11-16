@@ -613,6 +613,43 @@ function mailBenevolesRappelAccueil(prenom) {
   };
 }
 
+function mailPackPhotoInfoSolo(prenom) {
+  const salut = prenom ? `Salut <strong>${prenom}</strong>,` : 'Salut,';
+  return {
+    subject: '📸 Tes photos — on te tient au courant',
+    html: '<div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;color:#111;line-height:1.6;font-size:15px;">'
+      + '<p>' + salut + '</p>'
+      + '<p>Un énorme merci d\'avoir été là ce week-end et bravo pour ta course ! 🔥</p>'
+      + '<p>Petit mot pour t\'expliquer rapidement comment ça va se passer pour les photos, parce que la question nous est beaucoup revenue.</p>'
+      + '<p>On utilise un système de <strong>reconnaissance faciale</strong> : le photographe a mitraillé tout le monde (c\'est indispensable pour que le système fonctionne), mais chacun n\'accèdera qu\'à SES propres photos via un selfie — personne ne verra celles des autres.</p>'
+      + '<p>Tout le monde a droit à <strong>3 photos gratuites</strong> en clair. Les autres s\'affichent avec un <strong>filigrane</strong> (marquage en travers de l\'image). Toi, parce que tu as pris le pack photo, tes photos se <strong>débloqueront automatiquement</strong> en HD, sans filigrane, prêtes à télécharger — rien à faire de spécial 💛</p>'
+      + '<p>Les photographes sont en plein traitement des photos — merci de ta patience, on te tiendra informé dès que la plateforme est prête.</p>'
+      + '<p>À très vite 🔥</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '</div>'
+  };
+}
+
+function mailPackPhotoInfoDuoHC3(prenom) {
+  const salut = prenom ? `Salut <strong>${prenom}</strong>,` : 'Salut,';
+  return {
+    subject: '📸 Vos photos Duo HC #3 — on vous tient au courant',
+    html: '<div style="font-family:Arial,sans-serif;max-width:620px;margin:0 auto;color:#111;line-height:1.6;font-size:15px;">'
+      + '<p>' + salut + '</p>'
+      + '<p>Un énorme merci d\'avoir été là ce week-end et bravo pour votre course en duo ! 🔥</p>'
+      + '<p>Petit mot pour vous expliquer rapidement comment ça va se passer pour les photos, parce que la question nous est beaucoup revenue.</p>'
+      + '<p>On utilise un système de <strong>reconnaissance faciale</strong> : le photographe a mitraillé tout le monde (c\'est indispensable pour que le système fonctionne), mais chacun n\'accèdera qu\'à SES propres photos via un selfie — personne ne verra celles des autres.</p>'
+      + '<p>Tout le monde a droit à <strong>3 photos gratuites</strong> en clair. Les autres s\'affichent avec un <strong>filigrane</strong> (marquage en travers de l\'image).</p>'
+      + '<div style="background:#FFF9E5;border-left:4px solid #FFEE00;padding:14px 18px;margin:14px 0;border-radius:4px;">'
+      + '<p style="margin:0;">🏃 <strong>Spécial Duo :</strong> UN seul pack photo suffit pour tout votre binôme. Chacun des deux coéquipiers accède à <strong>TOUTES ses photos personnelles débloquées</strong> en HD, sans filigrane, prêtes à télécharger. Il suffit à chacun d\'aller sur la plateforme et de prendre son propre selfie (la reconnaissance faciale est individuelle) — rien d\'autre à faire 💛</p>'
+      + '</div>'
+      + '<p>Les photographes sont en plein traitement des photos — merci de votre patience, on vous tiendra informé dès que la plateforme est prête.</p>'
+      + '<p>À très vite 🔥</p>'
+      + '<p><strong>Hyrox Training Club La Buse</strong><br>Maryan, Romuald et Stéphanie</p>'
+      + '</div>'
+  };
+}
+
 async function resendBatch(resendKey, emails, cle) {
   const resp = await fetch('https://api.resend.com/emails/batch', {
     method: 'POST',
@@ -673,6 +710,60 @@ export default async function handler(req, res) {
           `hc3-resco1-${f.id}${cleSuffixe}`);
       }
       return res.status(200).json({ envoye: true, envoyes });
+    }
+
+    if (b.mode === 'pack_photo_info') {
+      // Mail info plateforme photos aux inscrits pack_photo=true (HC #3 + PE #2).
+      // Routage automatique selon la catégorie de l'inscription :
+      //   - Duo HC #3  → variante Duo
+      //   - Solo HC #3 + Parent-Enfant PE #2 → variante Solo
+      // Un mail par destinataire (capitaine + co1 si présent), prénom du destinataire réel.
+      const { data, error } = await db.from('Inscriptions')
+        .select('id,dossard,prenom,nom,email,co1_prenom,co1_nom,co1_email,categorie,heure_depart')
+        .eq('pack_photo', true)
+        .gte('heure_depart', '2026-11-14')
+        .lt('heure_depart', '2026-11-16');
+      if (error) return res.status(500).json({ error: error.message });
+      const envois = [];
+      for (const r of data || []) {
+        const cat = String(r.categorie || '').toLowerCase();
+        const dateDep = String(r.heure_depart || '');
+        const isDuoHC3 = cat.startsWith('duo') && dateDep.startsWith('2026-11-15');
+        if (r.email && r.email.includes('@')) {
+          envois.push({
+            inscription_id: r.id, dossard: r.dossard, role: 'capitaine',
+            prenom: r.prenom, email: r.email, variante: isDuoHC3 ? 'duo_hc3' : 'solo',
+          });
+        }
+        if (r.co1_email && r.co1_email.includes('@')) {
+          envois.push({
+            inscription_id: r.id, dossard: r.dossard, role: 'co1',
+            prenom: r.co1_prenom, email: r.co1_email, variante: isDuoHC3 ? 'duo_hc3' : 'solo',
+          });
+        }
+      }
+      if (!envois.length) return res.status(400).json({ error: 'aucun destinataire' });
+      const variantes = envois.reduce((acc, e) => { acc[e.variante] = (acc[e.variante] || 0) + 1; return acc; }, {});
+      if (b.envoyer !== true) {
+        if (b.test_to) {
+          const cleSuffixe = b.cle_suffixe ? `-${String(b.cle_suffixe).replace(/[^a-z0-9_-]/gi,'')}` : '-test';
+          const mA = mailPackPhotoInfoSolo('TestPrenom');
+          const mB = mailPackPhotoInfoDuoHC3('TestPrenom');
+          await resendBatch(resendKey, [{ from: FROM, to: b.test_to, reply_to: REPLY_TO, subject: '[TEST A] ' + mA.subject, html: mA.html }], `hc3-packphoto-testA${cleSuffixe}`);
+          await resendBatch(resendKey, [{ from: FROM, to: b.test_to, reply_to: REPLY_TO, subject: '[TEST B] ' + mB.subject, html: mB.html }], `hc3-packphoto-testB${cleSuffixe}`);
+          return res.status(200).json({ test_envoye: true, to: b.test_to, variantes, nb_envois: envois.length });
+        }
+        return res.status(200).json({ dry_run: true, nb_envois: envois.length, variantes, envois });
+      }
+      const cleSuffixe = b.cle_suffixe ? `-${String(b.cle_suffixe).replace(/[^a-z0-9_-]/gi,'')}` : '-v1';
+      let envoyes = 0;
+      for (const e of envois) {
+        const m = e.variante === 'duo_hc3' ? mailPackPhotoInfoDuoHC3(e.prenom) : mailPackPhotoInfoSolo(e.prenom);
+        envoyes += await resendBatch(resendKey,
+          [{ from: FROM, to: e.email, reply_to: REPLY_TO, ...m }],
+          `hc3-packphoto-${e.inscription_id}-${e.role}${cleSuffixe}`);
+      }
+      return res.status(200).json({ envoye: true, envoyes, variantes });
     }
 
     if (b.mode === 'temps_correction') {
