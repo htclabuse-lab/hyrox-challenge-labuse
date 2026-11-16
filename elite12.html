@@ -39,6 +39,7 @@
     .event-badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; margin-left: 6px; vertical-align: middle; }
     .event-badge.e1 { background: #1B7B49; color: #fff; }
     .event-badge.e2 { background: #C0392B; color: #fff; }
+    .event-badge.e3 { background: #FFEE00; color: #0a0a0a; }
     .footer { text-align: center; font-size: 11px; color: #666; margin-top: 1.5rem; }
     #loading { text-align: center; padding: 2rem; color: #888; }
     .back-btn { display: inline-flex; align-items: center; gap: 6px; background: #1a1a1a; color: #FFEE00; border: 1px solid #333; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none; margin-bottom: 12px; }
@@ -50,7 +51,7 @@
   <a href="index.html" class="back-btn">← Retour à l'accueil</a>
   <div class="header">
     <h1>🏆 ELITE 12 LA BUSE</h1>
-    <div class="sub">Top 12 chronos par catégorie · HC #1 + HC #2</div>
+    <div class="sub">Top 12 chronos par catégorie · HC #1 + HC #2 + HC #3</div>
   </div>
 
   <div class="concept">
@@ -60,8 +61,7 @@
   </div>
 
   <div class="provisoire">
-    ⏳ CLASSEMENT PROVISOIRE — un 3<sup>e</sup> event Hyrox Challenge La Buse est prévu.<br>
-    Ce classement sera mis à jour après HC #3.
+    ✅ Classement mis à jour après HC #3 (15 novembre 2026).
   </div>
 
   <div class="filters">
@@ -73,8 +73,8 @@
   <div id="content"></div>
 
   <div class="footer">
-    Doublons dédupliqués — meilleur temps gardé lorsqu'une même équipe a couru sur les 2 éditions.<br>
-    <span class="event-badge e1">HC #1</span> = 26 avril 2026 · <span class="event-badge e2">HC #2</span> = 12 juillet 2026
+    Doublons dédupliqués — meilleur temps gardé lorsqu'une même équipe a couru sur plusieurs éditions.<br>
+    <span class="event-badge e1">HC #1</span> = 26 avril 2026 · <span class="event-badge e2">HC #2</span> = 12 juillet 2026 · <span class="event-badge e3">HC #3</span> = 15 novembre 2026
   </div>
 </div>
 
@@ -139,7 +139,7 @@ async function load() {
     ]);
     const merged = [];
     (ev1Res.resultats || []).forEach(r => merged.push({...r, _event:'HC #1'}));
-    (ev2Res.resultats || []).forEach(r => merged.push({...r, _event:'HC #2'}));
+    (ev2Res.resultats || []).forEach(r => merged.push({...r, _event: r.event || 'HC #2'}));
     // Dédupe : meilleur temps par (cat, teamKey)
     const best = {};
     for (const r of merged) {
@@ -193,7 +193,9 @@ function render() {
       const pos = i + 1;
       const posClass = pos === 1 ? 'p1' : pos === 2 ? 'p2' : pos === 3 ? 'p3' : '';
       const medal = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : pos;
-      const evBadge = r._event === 'HC #1' ? '<span class="event-badge e1">HC #1</span>' : '<span class="event-badge e2">HC #2</span>';
+      const evBadge = r._event === 'HC #1' ? '<span class="event-badge e1">HC #1</span>'
+                     : r._event === 'HC #3' ? '<span class="event-badge e3">HC #3</span>'
+                     : '<span class="event-badge e2">HC #2</span>';
       const members = r.membres ? `<div class="members">${escapeHtml(r.membres)}</div>` : '';
       html += `<div class="row">
         <div class="pos ${posClass}">${medal}</div>

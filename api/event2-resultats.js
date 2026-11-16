@@ -141,6 +141,9 @@ export default async function handler(req, res) {
         membres = team.join(' / ');
       }
 
+      const heureDepartDate = new Date(ins.heure_depart);
+      const event = heureDepartDate >= new Date('2026-11-01') ? 'HC #3' : 'HC #2';
+
       resultats.push({
         nom,
         membres,
@@ -153,6 +156,7 @@ export default async function handler(req, res) {
         total_sec: totalSec,
         penalite_30s: totalPen30,
         penalite_5min: totalPen5,
+        event,
         splits,
       });
     }
