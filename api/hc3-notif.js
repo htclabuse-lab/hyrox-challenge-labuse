@@ -756,12 +756,16 @@ export default async function handler(req, res) {
         return res.status(200).json({ dry_run: true, nb_envois: envois.length, variantes, envois });
       }
       const cleSuffixe = b.cle_suffixe ? `-${String(b.cle_suffixe).replace(/[^a-z0-9_-]/gi,'')}` : '-v1';
+      // Regroupe par batch de 100 (limite Resend batch) pour éviter le rate limit.
+      const BATCH_SIZE = 100;
       let envoyes = 0;
-      for (const e of envois) {
-        const m = e.variante === 'duo_hc3' ? mailPackPhotoInfoDuoHC3(e.prenom) : mailPackPhotoInfoSolo(e.prenom);
-        envoyes += await resendBatch(resendKey,
-          [{ from: FROM, to: e.email, reply_to: REPLY_TO, ...m }],
-          `hc3-packphoto-${e.inscription_id}-${e.role}${cleSuffixe}`);
+      for (let i = 0; i < envois.length; i += BATCH_SIZE) {
+        const chunk = envois.slice(i, i + BATCH_SIZE);
+        const emails = chunk.map(e => {
+          const m = e.variante === 'duo_hc3' ? mailPackPhotoInfoDuoHC3(e.prenom) : mailPackPhotoInfoSolo(e.prenom);
+          return { from: FROM, to: e.email, reply_to: REPLY_TO, ...m };
+        });
+        envoyes += await resendBatch(resendKey, emails, `hc3-packphoto-batch${Math.floor(i / BATCH_SIZE) + 1}${cleSuffixe}`);
       }
       return res.status(200).json({ envoye: true, envoyes, variantes });
     }
