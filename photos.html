@@ -86,7 +86,8 @@
 
   <!-- 1. Email -->
   <div class="card hidden" id="bloc-email">
-    <h2>1. L'email de ton inscription</h2>
+    <h2>1. L'email <span style="color:#FFEE00;text-decoration:underline;">de ton inscription</span></h2>
+    <p style="font-weight:600;color:#fff;">(adresse que tu as utilisée pour ton inscription)</p>
     <p>Il nous permet de retrouver ton équipe, tes photos offertes et ton pack photo.</p>
     <input type="email" id="email" class="champ" placeholder="ton.email@exemple.fr" autocomplete="email">
     <button class="btn" id="btn-continuer">Continuer</button>
@@ -324,7 +325,7 @@ function afficherProfil() {
   const eq = profil.equipe, n = profil.gratuites.max;
   const autre = eq.partenaire ? esc(eq.partenaire) : (eq.type === 'parent_enfant' ? 'ton enfant' : 'ton/ta partenaire');
   const nbOff = profil.gratuites.photos.length, reste = resteGratuites();
-  const lim = profil.pack.limite, deja = profil.pack.deja.length;
+  const deja = profil.pack.deja.length;
   const lignes = [];
   if (eq.type === 'solo') {
     lignes.push('🏃 Solo');
@@ -336,8 +337,8 @@ function afficherProfil() {
   if (nbOff && reste) lignes.push(`➡️ Ton équipe en a déjà choisi <b>${nbOff}</b> : il en reste <b>${reste}</b>.`);
   if (nbOff && !reste) lignes.push(`➡️ Les ${n} photos offertes de ton équipe sont choisies : elles sont juste en dessous.`);
   lignes.push(profil.a_le_pack
-    ? `🔓 <b>Ton équipe a le pack photo</b> : jusqu'à ${lim} photos en HD.` + (deja ? ` Déjà choisies : <b>${deja} / ${lim}</b>.` : '')
-    : `🔓 Pack photo : <b>${prixTxt()}</b> pour toute l'équipe, jusqu'à <b>${lim} photos</b> en HD.`);
+    ? `🔓 <b>Ton équipe a le pack photo</b> : tes photos en HD.` + (deja ? ` Déjà choisies : <b>${deja}</b>.` : '')
+    : `🔓 Pack photo : <b>${prixTxt()}</b> pour toute l'équipe, tes photos en HD.`);
   $('equipe-txt').innerHTML = lignes.join('<br>');
 
   $('grille-offertes').innerHTML = profil.gratuites.photos.map(p =>
@@ -350,8 +351,8 @@ function afficherProfil() {
     : `🎁 Photos offertes<small>déjà toutes choisies</small>`;
   $('mode-gratuit').disabled = !reste;
   $('mode-pack').innerHTML = restePack()
-    ? `🔓 Choisir les photos de mon pack<small>jusqu'à ${restePack()} photos${profil.a_le_pack ? '' : ' · ' + prixTxt()}</small>`
-    : `🔓 Pack photo<small>complet (${lim} photos)</small>`;
+    ? `🔓 Choisir les photos de mon pack<small>${profil.a_le_pack ? 'en HD' : prixTxt() + ' pour toute l\'équipe'}</small>`
+    : `🔓 Pack photo<small>complet</small>`;
   $('mode-pack').disabled = !restePack();
   majSelfie();
   rafraichirTuiles();
@@ -436,7 +437,7 @@ document.addEventListener('click', e => {
     if (selection.size >= max) {
       majBarre(mode === 'gratuit'
         ? `Tu as déjà coché tes ${max} photo(s) offerte(s). Décoche-en une pour en choisir une autre.`
-        : `Ton pack est limité à ${profil.pack.limite} photos : tu ne peux plus en ajouter.`);
+        : `Ton pack est complet : tu ne peux plus ajouter de photos.`);
       return;
     }
     selection.add(id);
@@ -454,7 +455,7 @@ function entrerMode(m) {
   $('mode-pack').classList.toggle('actif', m === 'pack');
   msg('msg-mode', 'info', m === 'gratuit'
     ? `Touche les photos que tu veux dans la galerie ci-dessous (<b>${resteGratuites()}</b> au maximum), puis « Valider » en bas de l'écran. ⚠️ Ce choix est <b>définitif</b> et vaut pour toute ton équipe.`
-    : `Touche les photos que tu veux dans la galerie ci-dessous (<b>${restePack()}</b> au maximum), puis « ${profil.a_le_pack ? 'Recevoir' : 'Débloquer'} » en bas de l'écran.`);
+    : `Touche les photos que tu veux dans la galerie ci-dessous, puis « ${profil.a_le_pack ? 'Recevoir' : 'Débloquer'} » en bas de l'écran.`);
   montrer('barre');
   majBarre();
   rafraichirTuiles();
@@ -484,7 +485,7 @@ function majBarre(alerte = '') {
     $('barre-txt').innerHTML = `🎁 <b>${n} / ${resteGratuites()}</b> photo(s) offerte(s)`;
     $('barre-valider').textContent = 'Valider';
   } else if (mode === 'pack') {
-    $('barre-txt').innerHTML = `🔓 <b>${n} / ${restePack()}</b> photo(s) pour ton pack`;
+    $('barre-txt').innerHTML = `🔓 <b>${n}</b> photo(s) pour ton pack`;
     $('barre-valider').textContent = profil.a_le_pack ? 'Recevoir' : 'Débloquer';
   }
   $('barre-valider').disabled = !n;

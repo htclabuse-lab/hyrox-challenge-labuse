@@ -131,7 +131,7 @@ export default async function handler(req, res) {
       const nouvellesEquipe = ids.filter(id => !dejaEquipe.has(id));
       const reste = Math.max(0, LIMITE_PACK - dejaEquipe.size);
       if (nouvellesEquipe.length > reste) {
-        return res.status(400).json({ error: `Le pack permet ${LIMITE_PACK} photos par équipe : il t'en reste ${reste}. Retire quelques photos de ta sélection.` });
+        return res.status(400).json({ error: reste ? 'Ta sélection dépasse ce que permet ton pack : retire quelques photos.' : 'Ton pack est complet : tu ne peux plus ajouter de photos.' });
       }
       if (!ids.length && !dejaEquipe.size) return res.status(400).json({ error: 'Choisis au moins une photo.' });
       if (!origine) {
@@ -280,7 +280,7 @@ export default async function handler(req, res) {
       const nouvelles = (await photosValides(db, acces.evenement_id, b.photo_ids)).filter(id => !avant.has(id));
       const pourEquipe = nouvelles.filter(id => !equipe.has(id));
       if (equipe.size + pourEquipe.length > LIMITE_PACK) {
-        return res.status(400).json({ error: `Ton pack est complet : ${LIMITE_PACK} photos par équipe au maximum.` });
+        return res.status(400).json({ error: 'Ton pack est complet : tu ne peux plus ajouter de photos.' });
       }
       if (nouvelles.length) {
         const { error } = await db.from('photos_acces').update({

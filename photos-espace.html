@@ -77,7 +77,7 @@
     <!-- Ajouter des photos -->
     <div class="card" id="bloc-ajout">
       <h2>Il te manque des photos ?</h2>
-      <p>Ton pack comprend jusqu'à <strong id="limite-txt">50</strong> photos pour ton équipe : <strong id="compteur-txt"></strong>. Ajoute celles qui manquent depuis la galerie ci-dessous. Un selfie peut t'aider à les retrouver (toi, ton enfant ou ton/ta partenaire).</p>
+      <p>Ton équipe a déjà <strong id="compteur-txt"></strong> dans son pack. Ajoute celles qui manquent depuis la galerie ci-dessous. Un selfie peut t'aider à les retrouver (toi, ton enfant ou ton/ta partenaire).</p>
       <label class="consent">
         <input type="checkbox" id="consent">
         <span id="consent-txt">J'accepte que ce visage soit analysé pour retrouver les photos de l'événement.</span>
@@ -159,8 +159,7 @@ async function charger() {
   $('paquets').querySelectorAll('button').forEach(b => { b.onclick = () => telechargerPaquet(+b.dataset.paquet, b); });
 
   // Limite du pack (par équipe)
-  $('limite-txt').textContent = espace.limite;
-  $('compteur-txt').textContent = `${espace.equipe_total} / ${espace.limite} déjà choisies`;
+  $('compteur-txt').textContent = `${espace.equipe_total} photo(s)`;
   if (espace.evenement.type === 'parent_enfant') {
     $('consent-txt').textContent = "J'accepte que ce visage (le mien ou celui de mon enfant, dont je suis responsable) soit analysé pour retrouver nos photos.";
   }
