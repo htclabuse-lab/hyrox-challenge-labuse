@@ -137,7 +137,7 @@ const WEB_MAX = 1600;
 const APERCU_MAX = 900;
 const FILIGRANE = 'HTC LA BUSE · APERÇU';
 const ZEROS_MAX = 25;          // photos de suite sans visage → reconnaissance bloquée, on arrête
-const EN_PARALLELE = 2;        // photos traitées en même temps
+const EN_PARALLELE = 1;        // photos traitées en même temps
 
 const $ = id => document.getElementById(id);
 let motDePasse = '';
@@ -146,6 +146,7 @@ let fichiers = [];
 let enCours = false;
 let confirmation = null;   // clé « événement|photographe|nb » déjà confirmée une fois
 let arret = false;
+let gpuPerdu = false;
 
 // ---------------------------------------------------------------- API
 async function api(action, donnees = {}) {
@@ -246,6 +247,13 @@ function chargerModeles() {
     modelesPrets = (async () => {
       await faceapi.tf.setBackend('webgl');
       await faceapi.tf.ready();
+      // Libère tout de suite la mémoire de la carte graphique après chaque photo
+      // (sinon elle se remplit au fil des centaines de photos et finit par lâcher).
+      try { faceapi.tf.env().set('WEBGL_DELETE_TEXTURE_THRESHOLD', 0); } catch (e) {}
+      // Si la carte graphique lâche quand même, on le sait immédiatement.
+      try {
+        faceapi.tf.backend().gpgpu.gl.canvas.addEventListener('webglcontextlost', () => { gpuPerdu = true; arret = true; });
+      } catch (e) {}
       await faceapi.nets.ssdMobilenetv1.loadFromUri(MODELES);
       await faceapi.nets.faceLandmark68Net.loadFromUri(MODELES);
       await faceapi.nets.faceRecognitionNet.loadFromUri(MODELES);
@@ -508,6 +516,7 @@ $('btn-go').onclick = async () => {
           // en veille…), elle ne trouve plus aucun visage SANS signaler d'erreur. On s'arrête.
           zerosDeSuite = n ? 0 : zerosDeSuite + 1;
           if (zerosDeSuite >= ZEROS_MAX && !bloquee) { bloquee = true; arret = true; }
+          if (gpuPerdu) throw new Error('la carte graphique du navigateur a lâché');
         } catch (e) {
           stats.erreurs++;
           journal(`✗ ${nom} — ${e.message}`);
@@ -524,9 +533,9 @@ $('btn-go').onclick = async () => {
     if (!total) $('barre').style.width = '100%';
     await Promise.all(Array.from({ length: EN_PARALLELE }, ouvrier));
 
-    if (bloquee) {
-      msg('choix-msg', 'err', `⚠️ Arrêt automatique : ${ZEROS_MAX} photos de suite sans aucun visage, la reconnaissance semble bloquée.<br>
-        <strong>Recharge la page</strong> (Cmd + R), reconnecte-toi, puis relance sur le même dossier : les photos sans visage seront ré-analysées, sans être renvoyées.`);
+    if (bloquee || gpuPerdu) {
+      msg('choix-msg', 'err', `⚠️ Arrêt automatique : la reconnaissance des visages est bloquée (carte graphique du navigateur).<br>
+        <strong>Quitte complètement le navigateur</strong> (Cmd + Q), rouvre-le, reconnecte-toi, puis relance sur le même dossier : les photos sans visage seront ré-analysées, sans être renvoyées.`);
     } else if (arret) {
       msg('choix-msg', 'info', `⏸ En pause. ${stats.faites} photo(s) mises en ligne. Relance quand tu veux : les photos déjà faites seront sautées.`);
     } else if (stats.erreurs) {
