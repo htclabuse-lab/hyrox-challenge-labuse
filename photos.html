@@ -118,7 +118,12 @@
     <!-- 2. Selfie (facultatif) -->
     <div class="card">
       <h2>2. Retrouve-toi plus vite <span style="font-size:13px;color:#888;font-weight:400;">(facultatif)</span></h2>
-      <p id="selfie-intro">Prends un selfie : on met en haut de la galerie les photos où tu apparais probablement. La reconnaissance n'est pas parfaite (surtout pour les enfants) : vérifie aussi dans toutes les photos.</p>
+      <p id="selfie-intro">Prends un selfie : on met en haut de la galerie les photos où tu apparais probablement.</p>
+      <div id="selfie-alerte" style="margin:14px 0;padding:14px 16px;border:2px solid #FFEE00;border-radius:12px;background:#2a2600;color:#fff;font-size:16px;line-height:1.5;">
+        ⚠️ <b style="color:#FFEE00;font-size:17px;">La reconnaissance n'est pas parfaite !</b><br>
+        <span id="selfie-alerte-txt">Elle peut oublier des photos où tu es, ou en montrer où ce n'est pas toi.</span><br>
+        👉 <b>Parcours aussi toutes les photos de l'événement</b> pour ne rien rater.
+      </div>
       <div class="conseils">
         <b>Pour de meilleurs résultats :</b><br>
         👤 regarde l'objectif, <b>de face</b><br>
@@ -139,7 +144,8 @@
     <!-- 3. Choix -->
     <div class="card">
       <h2>3. Choisis tes photos</h2>
-      <div class="modes">
+      <div id="explic-choix" style="background:#1b1b1b;border:2px solid #FFEE00;border-radius:12px;padding:14px 16px;margin-bottom:12px;color:#fff;font-size:16px;line-height:1.6;"></div>
+      <div class="modes" style="grid-template-columns:1fr;">
         <button class="mode" id="mode-gratuit"></button>
         <button class="mode" id="mode-pack"></button>
       </div>
@@ -286,6 +292,8 @@ async function ouvrirEquipe() {
   montrer('bloc-choix-equipe', false);
   montrer('bloc-principal');
   await pageGalerie();
+  // Pack déjà payé : rien à choisir, on passe directement en sélection.
+  if (profil.a_le_pack && restePack() > 0) entrerMode('pack');
 }
 
 $('btn-continuer').onclick = async () => {
@@ -346,14 +354,28 @@ function afficherProfil() {
       <span class="tag">🎁 OFFERTE</span><a class="dl" href="${esc(p.telecharger)}">⬇ Télécharger</a></div>`).join('');
   montrer('bloc-mes-offertes', nbOff > 0);
 
-  $('mode-gratuit').innerHTML = reste
-    ? `🎁 Choisir mes photos offertes<small>${reste} à choisir pour ton équipe</small>`
-    : `🎁 Photos offertes<small>déjà toutes choisies</small>`;
-  $('mode-gratuit').disabled = !reste;
-  $('mode-pack').innerHTML = restePack()
-    ? `🔓 Choisir les photos de mon pack<small>${profil.a_le_pack ? 'en HD' : prixTxt() + ' pour toute l\'équipe'}</small>`
-    : `🔓 Pack photo<small>complet</small>`;
-  $('mode-pack').disabled = !restePack();
+  // On connaît déjà l'équipe : pas de choix à faire, on lui dit directement quoi faire.
+  const offTxt = eq.type === 'solo' ? `tes <b>${n} photos offertes</b>` : `tes <b>${n} photos offertes</b> (pour toute ton équipe, pas ${n} chacun)`;
+  const valider = `dans la galerie en dessous, puis appuie sur le <b>bouton jaune en bas de l'écran</b>.`;
+  if (profil.a_le_pack) {
+    $('explic-choix').innerHTML = restePack()
+      ? `✅ <b style="color:#FFEE00;">Tu as payé ton pack photo.</b><br>👉 Sélectionne tes photos ${valider}`
+      : `✅ <b style="color:#FFEE00;">Ton pack photo est complet.</b><br>Retrouve tes photos dans le mail reçu après ta sélection.`;
+  } else if (reste) {
+    $('explic-choix').innerHTML = `<b style="color:#FFEE00;">Tu n'as pas pris de pack photo.</b> Tu as 2 possibilités :<br>
+      🎁 <b>Gratuit</b> : choisir ${offTxt}.<br>
+      🔓 <b>Payant</b> : prendre le pack photo à <b>${prixTxt()}</b> pour toute l'équipe et choisir tes photos en HD, sans filigrane.<br>
+      👉 <b>Appuie sur le bouton de ton choix ci-dessous</b>, puis sélectionne tes photos ${valider}`;
+  } else {
+    $('explic-choix').innerHTML = `🎁 <b style="color:#FFEE00;">Tu as déjà choisi tes ${n} photos offertes.</b> Elles sont en haut de la page, à télécharger.<br>
+      🔓 Tu en veux d'autres ? Prends le pack photo à <b>${prixTxt()}</b> pour toute l'équipe : appuie sur le bouton ci-dessous, puis sélectionne tes photos ${valider}`;
+  }
+  $('mode-pack').innerHTML = profil.a_le_pack
+    ? '🔓 Sélectionner les photos de mon pack'
+    : `🔓 PAYANT : prendre le pack photo<small>${prixTxt()} pour toute l'équipe · photos en HD sans filigrane</small>`;
+  $('mode-gratuit').innerHTML = `🎁 GRATUIT : choisir mes ${reste} photos offertes<small>${eq.type === 'solo' ? '' : 'pour toute ton équipe · '}choix définitif</small>`;
+  montrer('mode-pack', restePack() > 0);
+  montrer('mode-gratuit', !profil.a_le_pack && reste > 0);
   majSelfie();
   rafraichirTuiles();
 }
@@ -365,8 +387,12 @@ function majSelfie() {
   const autre = eq.partenaire ? esc(eq.partenaire) : (eq.type === 'parent_enfant' ? 'ton enfant' : 'ton/ta partenaire');
   const duo = eq.type !== 'solo';
   $('selfie-intro').innerHTML = duo
-    ? `Vous êtes deux : <b>fais un selfie de chacun</b> (toi, puis ${autre}). On met en haut de la galerie les photos où vous apparaissez probablement : les résultats des selfies <b>s'additionnent</b>. La reconnaissance n'est pas parfaite (surtout pour les enfants) : vérifie aussi dans toutes les photos.`
-    : "Prends un selfie : on met en haut de la galerie les photos où tu apparais probablement. La reconnaissance n'est pas parfaite : vérifie aussi dans toutes les photos.";
+    ? `Vous êtes deux : <b>fais un selfie de chacun</b> (toi, puis ${autre}). On met en haut de la galerie les photos où vous apparaissez probablement : les résultats des selfies <b>s'additionnent</b>.`
+    : "Prends un selfie : on met en haut de la galerie les photos où tu apparais probablement.";
+  $('selfie-alerte-txt').textContent = eq.type === 'parent_enfant'
+    ? "Elle peut oublier des photos où vous êtes, ou en montrer où ce n'est pas vous. C'est encore plus vrai pour les enfants."
+    : duo ? "Elle peut oublier des photos où vous êtes, ou en montrer où ce n'est pas vous."
+    : "Elle peut oublier des photos où tu es, ou en montrer où ce n'est pas toi.";
   $('titre-probables').textContent = duo ? '📸 Probablement vous' : '📸 Probablement toi';
   $('btn-selfie').textContent = !nbSelfies ? '📸 Prendre un selfie maintenant'
     : duo && nbSelfies === 1 ? `📸 Maintenant le selfie de ${eq.partenaire || (eq.type === 'parent_enfant' ? 'ton enfant' : 'ton/ta partenaire')}`
@@ -453,9 +479,9 @@ function entrerMode(m) {
   document.body.classList.add('en-choix');
   $('mode-gratuit').classList.toggle('actif', m === 'gratuit');
   $('mode-pack').classList.toggle('actif', m === 'pack');
-  msg('msg-mode', 'info', m === 'gratuit'
-    ? `Touche les photos que tu veux dans la galerie ci-dessous (<b>${resteGratuites()}</b> au maximum), puis « Valider » en bas de l'écran. ⚠️ Ce choix est <b>définitif</b> et vaut pour toute ton équipe.`
-    : `Touche les photos que tu veux dans la galerie ci-dessous, puis « ${profil.a_le_pack ? 'Recevoir' : 'Débloquer'} » en bas de l'écran.`);
+  msg('msg-mode', 'info', m === 'pack' && !profil.a_le_pack
+    ? `🔓 Pack photo : sélectionne les photos que tu veux dans la galerie, puis « Débloquer » en bas de l'écran pour passer au paiement (${prixTxt()} pour toute l'équipe).`
+    : '');
   montrer('barre');
   majBarre();
   rafraichirTuiles();
@@ -473,8 +499,8 @@ function quitterMode() {
   rafraichirTuiles();
 }
 
-$('mode-gratuit').onclick = () => mode === 'gratuit' ? quitterMode() : entrerMode('gratuit');
-$('mode-pack').onclick = () => mode === 'pack' ? quitterMode() : entrerMode('pack');
+$('mode-gratuit').onclick = () => { if (mode !== 'gratuit') entrerMode('gratuit'); };
+$('mode-pack').onclick = () => { if (mode !== 'pack') entrerMode('pack'); };
 $('barre-annuler').onclick = quitterMode;
 
 let confirmation = false;
