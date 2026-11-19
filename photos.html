@@ -6,55 +6,68 @@
 <title>Retrouve tes photos — HTC La Buse</title>
 <style>
   * { box-sizing: border-box; }
-  body { margin: 0; background: #0a0a0a; color: #fff; font-family: Arial, Helvetica, sans-serif; padding: 1.5rem 1rem 3rem; }
-  .wrap { max-width: 620px; margin: 0 auto; }
+  body { margin: 0; background: #0a0a0a; color: #fff; font-family: Arial, Helvetica, sans-serif; padding: 1.5rem 1rem 7rem; }
+  .wrap { max-width: 720px; margin: 0 auto; }
   .logo { text-align: center; margin-bottom: 1rem; }
   .logo img { width: 80px; height: 80px; border-radius: 18px; }
   h1 { text-align: center; font-size: 24px; margin: 0 0 6px; }
   h1 span { color: #FFEE00; }
   h2 { font-size: 18px; margin: 0 0 12px; }
+  h3 { font-size: 15px; margin: 18px 0 10px; color: #FFEE00; }
   .sub { text-align: center; color: #888; font-size: 14px; margin-bottom: 1.5rem; }
   .card { background: #111; border: 1px solid #222; border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem; }
   p { color: #ccc; font-size: 15px; line-height: 1.6; margin: 0 0 1rem; }
-  .champ { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid #333; background: #0a0a0a; color: #fff; font-size: 16px; font-family: inherit; margin-top: 8px; }
+  .champ { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid #333; background: #0a0a0a; color: #fff; font-size: 16px; font-family: inherit; }
   .champ:focus { outline: none; border-color: #FFEE00; }
   select { width: 100%; padding: 13px 14px; border-radius: 10px; border: 1px solid #333; background: #0a0a0a; color: #fff; font-size: 16px; font-family: inherit; }
-  .consent { display: flex; gap: 12px; align-items: flex-start; background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 14px; cursor: pointer; }
+  .consent { display: flex; gap: 12px; align-items: flex-start; background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 14px; cursor: pointer; margin-top: 14px; }
   .consent input { width: 22px; height: 22px; margin: 2px 0 0; flex-shrink: 0; accent-color: #FFEE00; }
   .consent span { font-size: 14px; line-height: 1.6; color: #ddd; }
   .btn { display: block; width: 100%; margin-top: 12px; background: #FFEE00; color: #0a0a0a; font-weight: 900; font-size: 17px; padding: 15px; border: none; border-radius: 10px; cursor: pointer; font-family: inherit; text-align: center; text-decoration: none; }
   .btn.sec { background: #1a1a1a; color: #fff; border: 1px solid #444; font-weight: 700; font-size: 15px; }
   .btn:disabled, .btn.off { opacity: .4; pointer-events: none; }
+  .modes { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 560px) { .modes { grid-template-columns: 1fr 1fr; } }
+  .mode { margin: 0; background: #1a1a1a; color: #fff; border: 2px solid #444; border-radius: 12px; padding: 14px 12px; font: 800 15px Arial, sans-serif; cursor: pointer; text-align: center; line-height: 1.4; }
+  .mode small { display: block; font-weight: 400; font-size: 12px; color: #aaa; margin-top: 4px; }
+  .mode.actif { border-color: #FFEE00; background: #1f1c00; }
+  .mode:disabled { opacity: .45; cursor: default; }
   .msg { margin-top: 1rem; font-size: 14px; line-height: 1.6; padding: 12px 14px; border-radius: 10px; }
   .msg-info { background: #0d1400; border: 1px solid #1B7B49; color: #b9f6ca; }
   .msg-warn { background: #1a1400; border: 1px solid #FFEE00; color: #ffe082; }
   .msg-err  { background: #1a0d0d; border: 1px solid #C0392B; color: #ffb3ab; }
   .petit { font-size: 12px; color: #777; line-height: 1.6; margin-top: 12px; }
+  .equipe { font-size: 15px; color: #ddd; line-height: 1.7; }
+  .equipe b { color: #FFEE00; }
+  .conseils { background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #ddd; line-height: 1.7; }
+  .conseils b { color: #FFEE00; }
+  .lien-import { display: block; text-align: center; margin-top: 12px; color: #aaa; font-size: 13px; text-decoration: underline; cursor: pointer; }
+  .lien-import.off, label.btn.off { opacity: .4; pointer-events: none; }
   .grille { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   @media (min-width: 520px) { .grille { grid-template-columns: repeat(3, 1fr); } }
-  .ph { position: relative; border-radius: 8px; overflow: hidden; background: #1a1a1a; aspect-ratio: 2 / 3; }
+  .ph { position: relative; border-radius: 8px; overflow: hidden; background: #1a1a1a; aspect-ratio: 2 / 3; cursor: pointer; }
   .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .ph .tag { position: absolute; top: 6px; left: 6px; background: #FFEE00; color: #0a0a0a; font-size: 11px; font-weight: 900; padding: 3px 7px; border-radius: 6px; }
-  .ph .dl { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.75); color: #FFEE00; font-size: 12px; font-weight: 700; padding: 6px 9px; border-radius: 6px; text-decoration: none; }
-  .ph .cadenas { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.7); font-size: 13px; padding: 4px 7px; border-radius: 6px; }
-  .compte { text-align: center; font-size: 15px; color: #ccc; margin: 0 0 1rem; }
-  .compte b { color: #FFEE00; font-size: 22px; }
-  .offre { text-align: center; }
-  .offre .prix { color: #FFEE00; font-size: 28px; font-weight: 900; margin: 4px 0; }
+  .ph .tag.pack { background: #1B7B49; color: #fff; }
+  .ph .coche { position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; font-weight: 900; color: #0a0a0a; }
+  body.en-choix .ph:not(.prise) .coche { display: flex; }
+  .ph.choisie { outline: 4px solid #FFEE00; outline-offset: -4px; }
+  .ph.choisie .coche { background: #FFEE00; border-color: #FFEE00; }
+  .ph.choisie .coche::after { content: '✓'; }
+  .ph .dl { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.78); color: #FFEE00; font-size: 12px; font-weight: 700; padding: 6px 9px; border-radius: 6px; text-decoration: none; }
+  .photographe { grid-column: 1 / -1; font-size: 13px; color: #888; font-weight: 700; margin: 8px 0 0; }
+  .barre { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; background: #111; border-top: 2px solid #FFEE00; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); }
+  .barre .in { max-width: 720px; margin: 0 auto; display: flex; gap: 10px; align-items: center; }
+  .barre .txt { flex: 1; font-size: 14px; color: #ddd; line-height: 1.4; }
+  .barre .txt b { color: #FFEE00; font-size: 18px; }
+  .barre .btn { width: auto; margin: 0; padding: 12px 16px; font-size: 15px; white-space: nowrap; }
+  .barre .zone { max-width: 720px; margin: 0 auto; }
   .voile { position: fixed; inset: 0; z-index: 10; background: rgba(10,10,10,.94); display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
   .chargement { text-align: center; }
   .chargement b { display: block; font-size: 22px; color: #fff; margin-bottom: 8px; }
   .chargement span { font-size: 14px; color: #aaa; }
   .rond { width: 54px; height: 54px; border: 5px solid #333; border-top-color: #FFEE00; border-radius: 50%; margin: 0 auto 18px; animation: tourne 1s linear infinite; }
   @keyframes tourne { to { transform: rotate(360deg); } }
-  .conseils { background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 12px 14px; margin-top: 14px; font-size: 14px; color: #ddd; line-height: 1.7; }
-  .conseils b { color: #FFEE00; }
-  .lien-import { display: block; text-align: center; margin-top: 12px; color: #aaa; font-size: 13px; text-decoration: underline; cursor: pointer; }
-  .lien-import.off { opacity: .4; pointer-events: none; }
-  .ph .choix { position: absolute; bottom: 6px; left: 6px; right: 6px; background: rgba(0,0,0,.8); color: #fff; border: 1px solid #555; font: 700 12px Arial, sans-serif; padding: 7px 4px; border-radius: 6px; cursor: pointer; }
-  .ph.choisie { outline: 3px solid #FFEE00; outline-offset: -3px; }
-  .ph.choisie .choix { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
-  .photographe { grid-column: 1 / -1; font-size: 13px; color: #888; font-weight: 700; margin: 8px 0 0; }
   .hidden { display: none !important; }
   .back { display: block; text-align: center; color: #888; text-decoration: none; font-size: 13px; margin-top: 1.5rem; }
 </style>
@@ -63,7 +76,7 @@
 <div class="wrap">
   <div class="logo"><img src="logo.jpg" alt="HTC La Buse"></div>
   <h1>Retrouve tes <span>photos</span> 📸</h1>
-  <div class="sub" id="sous-titre">Un selfie suffit</div>
+  <div class="sub" id="sous-titre">Chargement…</div>
 
   <!-- Choix de l'événement (seulement s'il y en a plusieurs) -->
   <div class="card hidden" id="bloc-evt">
@@ -71,28 +84,13 @@
     <select id="evt"></select>
   </div>
 
-  <!-- Consentement + selfie -->
-  <div class="card hidden" id="bloc-selfie">
-    <h2>Comment ça marche</h2>
-    <p>Prends un selfie : on le compare aux photos des photographes pour retrouver celles où tu apparais.
-      Tu en vois <strong id="nb-gratuites-txt">3</strong> gratuitement (pour ton équipe : Duo et binôme Parent / Enfant compris), et tu peux débloquer toutes les autres en haute définition.</p>
-    <label for="email" style="display:block;font-size:14px;color:#ccc;font-weight:700;margin-bottom:6px;">1. L'email de ton inscription</label>
-    <input type="email" id="email" class="champ" placeholder="ton.email@exemple.fr" autocomplete="email" style="margin:0 0 14px;">
-    <label class="consent">
-      <input type="checkbox" id="consent">
-      <span id="consent-txt"></span>
-    </label>
-    <div class="conseils">
-      <b>Pour de meilleurs résultats :</b><br>
-      👤 regarde l'objectif, <b>de face</b><br>
-      ☀️ mets-toi <b>face à la lumière</b><br>
-      🧢 <b>sans</b> lunettes de soleil ni casquette
-    </div>
-    <label class="btn" id="btn-selfie" for="in-selfie">📸 Prendre un selfie maintenant</label>
-    <input type="file" id="in-selfie" accept="image/*" capture="user" class="hidden">
-    <label class="lien-import" id="btn-import" for="in-import">ou choisir une photo de moi déjà prise (moins précis)</label>
-    <input type="file" id="in-import" accept="image/*" class="hidden">
-    <div id="msg-selfie"></div>
+  <!-- 1. Email -->
+  <div class="card hidden" id="bloc-email">
+    <h2>1. L'email de ton inscription</h2>
+    <p>Il nous permet de retrouver ton équipe, tes photos offertes et ton pack photo.</p>
+    <input type="email" id="email" class="champ" placeholder="ton.email@exemple.fr" autocomplete="email">
+    <button class="btn" id="btn-continuer">Continuer</button>
+    <div id="msg-email"></div>
   </div>
 
   <!-- Retour du paiement Stripe -->
@@ -101,38 +99,58 @@
     <div id="msg-retour"></div>
   </div>
 
-  <!-- Chargement -->
-  <div class="voile hidden" id="bloc-chargement">
-    <div class="chargement"><div class="rond"></div><b>Recherche en cours…</b><span id="chargement-txt"></span></div>
-  </div>
-
-  <!-- Résultats -->
-  <div id="bloc-resultats" class="hidden">
+  <div id="bloc-principal" class="hidden">
+    <!-- Ton équipe -->
     <div class="card">
-      <div class="compte" id="compte"></div>
-      <div class="grille" id="grille"></div>
-      <label class="btn sec" for="in-encore" style="margin-top:16px;">🔁 Il me manque des photos ? Réessaie avec un autre selfie</label>
-      <input type="file" id="in-encore" accept="image/*" class="hidden">
-      <div class="petit">Un autre angle, une autre lumière, sans lunettes… Les nouvelles photos trouvées s'ajoutent à ta liste.</div>
-      <div id="msg-encore"></div>
+      <div class="equipe" id="equipe-txt"></div>
+      <div id="bloc-mes-offertes" class="hidden">
+        <h3>🎁 Les photos offertes de ton équipe</h3>
+        <div class="grille" id="grille-offertes"></div>
+      </div>
+      <button class="btn sec" id="btn-changer-email" style="margin-top:14px;">Changer d'email</button>
     </div>
-    <div class="card" id="bloc-galerie">
-      <h2>🗂️ Toutes les photos de l'événement</h2>
-      <p>La reconnaissance n'est pas parfaite, surtout pour les enfants. Parcours toutes les photos et touche <strong>« C'est moi »</strong> sur celles où tu te reconnais : elles s'ajoutent à ta liste.</p>
-      <div class="compte hidden" id="compte-choisies"></div>
-      <button class="btn sec" id="btn-galerie">👀 Voir toutes les photos</button>
-      <div class="grille" id="grille-galerie" style="margin-top:12px;"></div>
+
+    <!-- 2. Selfie (facultatif) -->
+    <div class="card">
+      <h2>2. Retrouve-toi plus vite <span style="font-size:13px;color:#888;font-weight:400;">(facultatif)</span></h2>
+      <p id="selfie-intro">Prends un selfie : on met en haut de la galerie les photos où tu apparais probablement. La reconnaissance n'est pas parfaite (surtout pour les enfants) : vérifie aussi dans toutes les photos.</p>
+      <div class="conseils">
+        <b>Pour de meilleurs résultats :</b><br>
+        👤 regarde l'objectif, <b>de face</b><br>
+        ☀️ mets-toi <b>face à la lumière</b><br>
+        🧢 <b>sans</b> lunettes de soleil ni casquette
+      </div>
+      <label class="consent">
+        <input type="checkbox" id="consent">
+        <span id="consent-txt"></span>
+      </label>
+      <label class="btn off" id="btn-selfie" for="in-selfie">📸 Prendre un selfie maintenant</label>
+      <input type="file" id="in-selfie" accept="image/*" capture="user" class="hidden">
+      <label class="lien-import off" id="btn-import" for="in-import">ou choisir une photo déjà prise (moins précis)</label>
+      <input type="file" id="in-import" accept="image/*" class="hidden">
+      <div id="msg-selfie"></div>
+    </div>
+
+    <!-- 3. Choix -->
+    <div class="card">
+      <h2>3. Choisis tes photos</h2>
+      <div class="modes">
+        <button class="mode" id="mode-gratuit"></button>
+        <button class="mode" id="mode-pack"></button>
+      </div>
+      <div id="msg-mode"></div>
+    </div>
+
+    <!-- Galerie -->
+    <div class="card">
+      <div id="bloc-probables" class="hidden">
+        <h3 id="titre-probables">📸 Probablement toi</h3>
+        <div class="grille" id="grille-probables"></div>
+      </div>
+      <h3>🗂️ Toutes les photos de l'événement</h3>
+      <div class="grille" id="grille-galerie"></div>
       <button class="btn sec hidden" id="btn-galerie-plus">Voir plus de photos</button>
       <div id="msg-galerie"></div>
-    </div>
-    <div class="card offre" id="bloc-offre">
-      <h2>Débloque toutes tes photos</h2>
-      <p style="margin-bottom:4px;">En haute définition, sans filigrane, à télécharger.</p>
-      <div class="prix" id="prix">20 €</div>
-      <p class="petit" style="margin-top:0;" id="offre-txt">Tu as déjà pris le pack photo à ton inscription ? Il est inclus, rien à repayer.</p>
-      <button class="btn" id="btn-debloquer">🔓 Débloquer mes photos</button>
-      <div class="petit" style="margin-top:8px;">Le lien vers ton espace photo est envoyé à <strong id="email-rappel"></strong>.</div>
-      <div id="msg-debloquer"></div>
     </div>
   </div>
 
@@ -143,54 +161,46 @@
   <a class="back" href="index.html#accueil">← Retour au site</a>
 </div>
 
+<!-- Barre de sélection (en bas de l'écran pendant le choix) -->
+<div class="barre hidden" id="barre">
+  <div class="in">
+    <div class="txt" id="barre-txt"></div>
+    <button class="btn sec" id="barre-annuler">Annuler</button>
+    <button class="btn" id="barre-valider">Valider</button>
+  </div>
+  <div class="zone" id="barre-zone"></div>
+</div>
+
+<!-- Chargement -->
+<div class="voile hidden" id="bloc-chargement">
+  <div class="chargement"><div class="rond"></div><b>Recherche en cours…</b><span id="chargement-txt"></span></div>
+</div>
+
 <script type="module">
 import { chargerModeles, empreinteDuSelfie, modelesCharges, diagnostic } from './photos-visage.js';
 
+const $ = id => document.getElementById(id);
+const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ?apercu=1 depuis l'onglet de l'indexeur : voir un événement pas encore ouvert (admin).
+const apercu = new URLSearchParams(location.search).has('apercu') ? (sessionStorage.getItem('photos_pwd') || '') : '';
 // ?diag=1 : affiche ce que la reconnaissance a vu (pour dépanner un téléphone).
 diagnostic.actif = new URLSearchParams(location.search).has('diag');
-function afficherDiagnostic(erreur) {
-  if (!diagnostic.actif) return;
-  let gpu = '?';
-  try {
-    const gl = document.createElement('canvas').getContext('webgl');
-    const ext = gl && gl.getExtension('WEBGL_debug_renderer_info');
-    gpu = gl ? (ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : 'webgl sans détail') : 'pas de webgl';
-  } catch (e) {}
-  const lignes = [navigator.userAgent, 'carte graphique : ' + gpu, ...diagnostic.lignes];
-  if (derniereRecherche) {
-    lignes.push('empreinte : ' + signature(derniereRecherche.empreinte));
-    lignes.push('trouvées : ' + derniereRecherche.photos.map(p => `${p.via === '2e temps' ? '2e' : 'selfie'} ${p.distance}`).join(' | '));
-    derniereRecherche = null;
-  }
-  if (erreur) lignes.push('ERREUR : ' + erreur);
-  $('diag').innerHTML = `<div style="margin-top:1rem;padding:10px;border:1px dashed #666;border-radius:8px;font:11px/1.5 monospace;color:#aaa;white-space:pre-wrap;word-break:break-all;">`
-    + (diagnostic.apercu ? `<img src="${diagnostic.apercu}" style="display:block;max-width:160px;margin-bottom:8px;border:1px solid #444">` : '')
-    + lignes.map(l => l.replace(/</g, '&lt;')).join('\n') + '</div>';
-  diagnostic.lignes.length = 0;
-}
-
-const $ = id => document.getElementById(id);
 
 let evenement = null;
-let derniereRecherche = null;   // pour le diagnostic
-const signature = e => 'Σ=' + e.reduce((a, v) => a + v, 0).toFixed(4) + ' [' + e.slice(0, 3).map(v => v.toFixed(3)).join(', ') + ']';
-const photos = new Map();   // photo_id → { apercu, nette?, telecharger? }
-const bons = [];            // bons de recherche signés (un par selfie)
-let emailRecherche = '';    // l'email d'inscription utilisé pour la recherche
-let aLePack = false;
-const choisies = new Set();  // photos ajoutées à la main depuis la galerie
-let galerieSuivant = 0;      // position de la prochaine page de la galerie (null = fini)
-let photographeAffiche = '';
+let email = '';
+let profil = null;              // { equipe, a_le_pack, gratuites: {max, photos}, pack: {limite, deja} }
+let mode = null;                // null | 'gratuit' | 'pack'
+const selection = new Set();    // photos cochées dans le mode en cours
+const probables = new Map();    // photo_id → photo trouvée par selfie
+let galerieSuivant = 0, photographeAffiche = '';
 
 // ---------------------------------------------------------------- Outils
 function msg(id, type, texte) { $(id).innerHTML = texte ? `<div class="msg msg-${type}">${texte}</div>` : ''; }
 function montrer(id, oui = true) { $(id).classList.toggle('hidden', !oui); }
 
-// ?apercu=1 depuis l'onglet de l'indexeur : voir un événement pas encore ouvert (admin).
-const apercu = new URLSearchParams(location.search).has('apercu') ? (sessionStorage.getItem('photos_pwd') || '') : '';
-
-async function api(action, donnees = {}) {
-  const r = await fetch('/api/photos-recherche', {
+async function api(url, action, donnees = {}) {
+  const r = await fetch(url, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, ...donnees, ...(apercu ? { apercu } : {}) }),
   });
@@ -198,37 +208,52 @@ async function api(action, donnees = {}) {
   if (!r.ok) throw new Error(d.error || 'Erreur, réessaie dans un instant.');
   return d;
 }
+const apiR = (action, d = {}) => api('/api/photos-recherche', action, { evenement_id: evenement.id, ...d });
+const apiA = (action, d = {}) => api('/api/photos-acces', action, { evenement_id: evenement.id, ...d });
+
+const offertesIds = () => new Set((profil?.gratuites.photos || []).map(p => p.photo_id));
+const packIds = () => new Set(profil?.pack.deja || []);
+const resteGratuites = () => Math.max(0, profil.gratuites.max - profil.gratuites.photos.length);
+const restePack = () => Math.max(0, profil.pack.limite - profil.pack.deja.length);
+const prixTxt = () => (evenement.prix_pack_cents / 100).toLocaleString('fr-FR') + ' €';
 
 // ---------------------------------------------------------------- Événement
 function choisirEvenement(e) {
   evenement = e;
   const date = new Date(e.date_evenement + 'T12:00:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-  $('sous-titre').textContent = `${e.nom} — ${date}`;
-  $('nb-gratuites-txt').textContent = e.nb_gratuites;
-  $('prix').textContent = (e.prix_pack_cents / 100).toLocaleString('fr-FR') + ' €';
+  $('sous-titre').textContent = `${e.nom} — ${date}` + (apercu ? ' (aperçu admin)' : '');
   $('consent-txt').textContent = e.type === 'parent_enfant'
     ? "J'accepte que mon visage, ou celui de mon enfant (dont je suis responsable), soit analysé pour retrouver nos photos de l'événement."
     : "J'accepte que mon visage soit analysé pour retrouver mes photos de l'événement.";
-  photos.clear(); bons.length = 0; choisies.clear(); viderGalerie();
-  montrer('bloc-resultats', false);
-  montrer('bloc-selfie');
-  majBoutons();
+  reinitialiser();
+}
+
+function reinitialiser() {
+  profil = null; email = ''; nbSelfies = 0;
+  quitterMode();
+  probables.clear();
+  $('grille-probables').innerHTML = ''; montrer('bloc-probables', false);
+  $('grille-galerie').innerHTML = ''; galerieSuivant = 0; photographeAffiche = '';
+  montrer('btn-galerie-plus', false);
+  montrer('bloc-principal', false);
+  montrer('bloc-email');
+  msg('msg-selfie', '', ''); msg('msg-mode', '', ''); msg('msg-galerie', '', '');
 }
 
 async function demarrer() {
   try {
     const demande = new URLSearchParams(location.search).get('evt');
     if (demande) {
-      choisirEvenement((await api('evenement', { evenement_id: demande })).evenement);
+      choisirEvenement((await api('/api/photos-recherche', 'evenement', { evenement_id: demande })).evenement);
       return;
     }
-    const { evenements } = await api('evenements');
+    const { evenements } = await api('/api/photos-recherche', 'evenements');
     if (!evenements.length) {
       $('sous-titre').textContent = "Les photos ne sont pas encore en ligne. Reviens un peu plus tard !";
       return;
     }
     if (evenements.length > 1) {
-      $('evt').innerHTML = evenements.map((e, i) => `<option value="${i}">${e.nom}</option>`).join('');
+      $('evt').innerHTML = evenements.map((e, i) => `<option value="${i}">${esc(e.nom)}</option>`).join('');
       $('evt').onchange = () => choisirEvenement(evenements[+$('evt').value]);
       montrer('bloc-evt');
     }
@@ -238,233 +263,355 @@ async function demarrer() {
   }
 }
 
-// ---------------------------------------------------------------- Consentement
-const emailOk = () => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test($('email').value.trim());
-$('email').addEventListener('input', () => majBoutons());
-function majBoutons() {
-  const ok = $('consent').checked && emailOk();
-  $('btn-selfie').classList.toggle('off', !ok);
-  $('btn-import').classList.toggle('off', !ok);
+// ---------------------------------------------------------------- 1. Email → profil de l'équipe
+async function chargerProfil() {
+  profil = await apiR('profil', { email });
+  afficherProfil();
 }
-$('consent').onchange = () => {
-  majBoutons();
-  if ($('consent').checked) chargerModeles(); // on prépare la reconnaissance pendant qu'il se met en place
-};
 
-// ---------------------------------------------------------------- Recherche
-async function rechercher(fichier, zoneMsg) {
-  let erreurVue = null;
-  msg(zoneMsg, '', '');
-  if (!emailOk()) { msg(zoneMsg, 'warn', 'Entre d\'abord l\'email de ton inscription.'); return; }
-  if (!$('consent').checked) { msg(zoneMsg, 'warn', 'Coche d\'abord la case pour accepter l\'analyse de ton visage.'); return; }
-  const email = $('email').value.trim().toLowerCase();
-  // Changement d'email = nouvelle personne : on repart de zéro.
-  if (emailRecherche && email !== emailRecherche) { photos.clear(); bons.length = 0; choisies.clear(); viderGalerie(); }
-  montrer('bloc-chargement');
+$('btn-continuer').onclick = async () => {
+  const saisi = $('email').value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(saisi)) { msg('msg-email', 'warn', "Entre l'adresse email de ton inscription."); return; }
+  $('btn-continuer').disabled = true;
+  msg('msg-email', '', '');
   try {
-    $('chargement-txt').textContent = modelesCharges() ? 'Analyse de ton visage…' : 'Préparation de la reconnaissance (une seule fois)…';
-    await chargerModeles();
-    $('chargement-txt').textContent = 'Analyse de ton visage…';
-    const empreinte = await empreinteDuSelfie(fichier, t => { $('chargement-txt').textContent = t; });
-    if (!empreinte) {
-      msg(zoneMsg, 'err', "On n'a pas trouvé de visage sur cette photo. Essaie avec un selfie de face, bien éclairé, sans lunettes de soleil.");
-      return;
-    }
-    $('chargement-txt').textContent = 'On cherche dans les photos de l\'événement…';
-    const d = await api('rechercher', { evenement_id: evenement.id, empreinte, email });
-    emailRecherche = email;
-    aLePack = d.a_le_pack;
-    derniereRecherche = { empreinte, photos: d.photos };
-    bons.push(d.bon);
-    let nouvelles = 0;
-    for (const p of d.photos) {
-      if (!photos.has(p.photo_id)) { photos.set(p.photo_id, p); nouvelles++; }
-    }
-    afficher();
-    if (bons.length === 1) window.scrollTo({ top: 0 });
-    if (bons.length > 1) {
-      msg(zoneMsg, nouvelles ? 'info' : 'warn', nouvelles
-        ? `${nouvelles} nouvelle(s) photo(s) ajoutée(s) à ta liste.`
-        : 'Pas de nouvelle photo avec ce selfie. Tu peux en essayer un autre.');
-    }
+    email = saisi;
+    await chargerProfil();
+    montrer('bloc-email', false);
+    montrer('bloc-principal');
+    await pageGalerie();
   } catch (e) {
-    msg(zoneMsg, 'err', e.message);
-    erreurVue = e.stack || e.message;
+    email = '';
+    msg('msg-email', 'err', esc(e.message));
   } finally {
-    montrer('bloc-chargement', false);
-    afficherDiagnostic(erreurVue);
+    $('btn-continuer').disabled = false;
   }
+};
+$('email').addEventListener('keydown', e => { if (e.key === 'Enter') $('btn-continuer').onclick(); });
+$('btn-changer-email').onclick = () => { reinitialiser(); $('email').focus(); };
+
+function afficherProfil() {
+  const eq = profil.equipe, n = profil.gratuites.max;
+  const autre = eq.partenaire ? esc(eq.partenaire) : (eq.type === 'parent_enfant' ? 'ton enfant' : 'ton/ta partenaire');
+  const nbOff = profil.gratuites.photos.length, reste = resteGratuites();
+  const lim = profil.pack.limite, deja = profil.pack.deja.length;
+  const lignes = [];
+  if (eq.type === 'solo') {
+    lignes.push('🏃 Solo');
+    lignes.push(`🎁 <b>${n} photos offertes</b> pour toi.`);
+  } else {
+    lignes.push((eq.type === 'duo' ? '👥 Duo' : '👨‍👧 Binôme Parent / Enfant') + ` : <b>toi + ${autre}</b>`);
+    lignes.push(`🎁 <b>${n} photos offertes pour ton équipe</b>, à <b>partager entre vous deux</b> (pas ${n} chacun).`);
+  }
+  if (nbOff && reste) lignes.push(`➡️ Ton équipe en a déjà choisi <b>${nbOff}</b> : il en reste <b>${reste}</b>.`);
+  if (nbOff && !reste) lignes.push(`➡️ Les ${n} photos offertes de ton équipe sont choisies : elles sont juste en dessous.`);
+  lignes.push(profil.a_le_pack
+    ? `🔓 <b>Ton équipe a le pack photo</b> : jusqu'à ${lim} photos en HD.` + (deja ? ` Déjà choisies : <b>${deja} / ${lim}</b>.` : '')
+    : `🔓 Pack photo : <b>${prixTxt()}</b> pour toute l'équipe, jusqu'à <b>${lim} photos</b> en HD.`);
+  $('equipe-txt').innerHTML = lignes.join('<br>');
+
+  $('grille-offertes').innerHTML = profil.gratuites.photos.map(p =>
+    `<div class="ph" style="cursor:default"><a href="${esc(p.nette)}" target="_blank" rel="noopener"><img src="${esc(p.nette)}" alt="Photo offerte" loading="lazy"></a>
+      <span class="tag">🎁 OFFERTE</span><a class="dl" href="${esc(p.telecharger)}">⬇ Télécharger</a></div>`).join('');
+  montrer('bloc-mes-offertes', nbOff > 0);
+
+  $('mode-gratuit').innerHTML = reste
+    ? `🎁 Choisir mes photos offertes<small>${reste} à choisir pour ton équipe</small>`
+    : `🎁 Photos offertes<small>déjà toutes choisies</small>`;
+  $('mode-gratuit').disabled = !reste;
+  $('mode-pack').innerHTML = restePack()
+    ? `🔓 Choisir les photos de mon pack<small>jusqu'à ${restePack()} photos${profil.a_le_pack ? '' : ' · ' + prixTxt()}</small>`
+    : `🔓 Pack photo<small>complet (${lim} photos)</small>`;
+  $('mode-pack').disabled = !restePack();
+  majSelfie();
+  rafraichirTuiles();
 }
 
-function afficher() {
-  const liste = [...photos.values()];
-  montrer('bloc-selfie', false);
-  montrer('bloc-resultats');
-  // Le serveur décide des photos offertes (N par équipe) : on affiche nettes celles qu'il a marquées.
-  let offertes = 0;
-  const html = liste.map(p => {
-    if (p.nette) {
-      offertes++;
-      return `<div class="ph"><a href="${p.nette}" target="_blank" rel="noopener"><img src="${p.nette}" alt="Photo offerte" loading="lazy"></a>
-        <span class="tag">🎁 OFFERTE</span><a class="dl" href="${p.telecharger}">⬇ Télécharger</a></div>`;
-    }
-    return `<div class="ph"><a href="${p.apercu}" target="_blank" rel="noopener"><img src="${p.apercu}" alt="Aperçu" loading="lazy"></a><span class="cadenas">🔒</span></div>`;
+// Duo / Parent-Enfant : un selfie pour chacun, les photos trouvées s'additionnent.
+let nbSelfies = 0;
+function majSelfie() {
+  const eq = profil.equipe;
+  const autre = eq.partenaire ? esc(eq.partenaire) : (eq.type === 'parent_enfant' ? 'ton enfant' : 'ton/ta partenaire');
+  const duo = eq.type !== 'solo';
+  $('selfie-intro').innerHTML = duo
+    ? `Vous êtes deux : <b>fais un selfie de chacun</b> (toi, puis ${autre}). On met en haut de la galerie les photos où vous apparaissez probablement : les résultats des selfies <b>s'additionnent</b>. La reconnaissance n'est pas parfaite (surtout pour les enfants) : vérifie aussi dans toutes les photos.`
+    : "Prends un selfie : on met en haut de la galerie les photos où tu apparais probablement. La reconnaissance n'est pas parfaite : vérifie aussi dans toutes les photos.";
+  $('titre-probables').textContent = duo ? '📸 Probablement vous' : '📸 Probablement toi';
+  $('btn-selfie').textContent = !nbSelfies ? '📸 Prendre un selfie maintenant'
+    : duo && nbSelfies === 1 ? `📸 Maintenant le selfie de ${eq.partenaire || (eq.type === 'parent_enfant' ? 'ton enfant' : 'ton/ta partenaire')}`
+    : '📸 Faire un autre selfie';
+}
+
+// ---------------------------------------------------------------- Tuiles (galerie + « probablement toi »)
+function tuile(p) {
+  return `<div class="ph" data-id="${esc(p.photo_id)}" data-apercu="${esc(p.apercu)}">
+    <img src="${esc(p.apercu)}" alt="" loading="lazy"><span class="coche"></span></div>`;
+}
+
+// Met à jour toutes les tuiles (une même photo peut être dans les deux grilles).
+function rafraichirTuiles() {
+  const off = offertesIds(), pack = packIds();
+  document.querySelectorAll('.ph[data-id]').forEach(t => {
+    const id = t.dataset.id;
+    const dejaOff = off.has(id), dejaPack = pack.has(id);
+    t.classList.toggle('prise', mode === 'gratuit' ? dejaOff : mode === 'pack' ? dejaPack : false);
+    t.classList.toggle('choisie', selection.has(id));
+    const texte = dejaOff ? '🎁 OFFERTE' : dejaPack ? '✓ DANS TON PACK' : '';
+    let tag = t.querySelector('.tag');
+    if (!texte) { if (tag) tag.remove(); return; }
+    if (!tag) { tag = document.createElement('span'); t.appendChild(tag); }
+    tag.className = 'tag' + (dejaOff ? '' : ' pack');
+    tag.textContent = texte;
   });
-  // Photos offertes en premier.
-  html.sort((a, b) => (b.includes('OFFERTE') ? 1 : 0) - (a.includes('OFFERTE') ? 1 : 0));
-  $('grille').innerHTML = html.join('');
-  const verrouillees = liste.length - offertes;
-  $('compte').innerHTML = liste.length
-    ? `<b>${liste.length}</b> photo(s) de toi trouvée(s)` +
-      (verrouillees ? `<br><span style="font-size:13px;color:#888;">${offertes} offerte(s) · ${verrouillees} à débloquer</span>` : '')
-    : "Aucune photo trouvée avec ce selfie.<br><span style=\"font-size:13px;color:#888;\">Réessaie avec un autre selfie, ou cherche-toi dans toutes les photos ci-dessous.</span>";
-  majChoisies();
-  $('email-rappel').textContent = emailRecherche;
-  $('offre-txt').textContent = aLePack
-    ? '✅ Ton équipe a le pack photo : il est inclus, rien à payer.'
-    : 'Tu as déjà pris le pack photo à ton inscription ? Il est inclus, rien à repayer.';
-  $('btn-debloquer').textContent = aLePack ? '📩 Recevoir toutes mes photos par mail' : '🔓 Débloquer mes photos';
-}
-
-$('in-selfie').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) rechercher(f, 'msg-selfie'); };
-$('in-import').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) rechercher(f, 'msg-selfie'); };
-$('in-encore').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) rechercher(f, 'msg-encore'); };
-
-// ---------------------------------------------------------------- Galerie complète
-function viderGalerie() {
-  galerieSuivant = 0; photographeAffiche = '';
-  $('grille-galerie').innerHTML = '';
-  montrer('btn-galerie'); montrer('btn-galerie-plus', false);
-  msg('msg-galerie', '', '');
-}
-
-function majChoisies() {
-  const n = choisies.size;
-  $('compte-choisies').innerHTML = `<b>${n}</b> photo(s) ajoutée(s) à la main`;
-  montrer('compte-choisies', n > 0);
-  // Le pack se propose dès qu'une recherche a été faite (même sans photo trouvée).
-  montrer('bloc-offre', bons.length > 0 && !apercu);
 }
 
 async function pageGalerie() {
   if (galerieSuivant === null) return;
-  $('btn-galerie').disabled = $('btn-galerie-plus').disabled = true;
+  $('btn-galerie-plus').disabled = true;
   msg('msg-galerie', '', '');
   try {
-    const d = await api('galerie', { evenement_id: evenement.id, email: emailRecherche, debut: galerieSuivant });
+    const d = await apiR('galerie', { email, debut: galerieSuivant });
     const morceaux = [];
     for (const p of d.photos) {
       if (p.photographe !== photographeAffiche) {
         photographeAffiche = p.photographe;
-        morceaux.push(`<div class="photographe">📷 ${String(p.photographe).replace(/</g, '&lt;')}</div>`);
+        morceaux.push(`<div class="photographe">📷 ${esc(p.photographe)}</div>`);
       }
-      const trouvee = photos.has(p.photo_id);
-      const choisie = choisies.has(p.photo_id);
-      morceaux.push(`<div class="ph${trouvee || choisie ? ' choisie' : ''}" data-id="${p.photo_id}">
-        <a href="${p.apercu}" target="_blank" rel="noopener"><img src="${p.apercu}" alt="" loading="lazy"></a>
-        <button class="choix"${trouvee ? ' disabled' : ''}>${trouvee ? '✓ Déjà trouvée' : choisie ? "✓ C'est moi" : "C'est moi ?"}</button></div>`);
+      morceaux.push(tuile(p));
     }
     $('grille-galerie').insertAdjacentHTML('beforeend', morceaux.join(''));
     galerieSuivant = d.suivant;
-    montrer('btn-galerie', false);
     montrer('btn-galerie-plus', d.suivant !== null);
-    $('btn-galerie-plus').textContent = `Voir plus de photos (${d.total - (d.suivant ?? d.total)} restantes)`;
+    $('btn-galerie-plus').textContent = `Voir plus de photos (encore ${d.total - (d.suivant ?? d.total)})`;
+    if (!d.total) msg('msg-galerie', 'warn', 'Les photos ne sont pas encore en ligne. Reviens un peu plus tard !');
+    rafraichirTuiles();
   } catch (e) {
-    msg('msg-galerie', 'err', e.message);
+    msg('msg-galerie', 'err', esc(e.message));
   } finally {
-    $('btn-galerie').disabled = $('btn-galerie-plus').disabled = false;
+    $('btn-galerie-plus').disabled = false;
   }
 }
-$('btn-galerie').onclick = pageGalerie;
 $('btn-galerie-plus').onclick = pageGalerie;
-$('grille-galerie').onclick = e => {
-  const bouton = e.target.closest('.choix');
-  if (!bouton || bouton.disabled) return;
-  const tuile = bouton.closest('.ph');
-  const id = tuile.dataset.id;
-  if (choisies.has(id)) choisies.delete(id); else choisies.add(id);
-  const oui = choisies.has(id);
-  tuile.classList.toggle('choisie', oui);
-  bouton.textContent = oui ? "✓ C'est moi" : "C'est moi ?";
-  majChoisies();
+
+// Toucher une photo : hors choix → l'agrandir ; pendant le choix → la cocher.
+document.addEventListener('click', e => {
+  const t = e.target.closest('.ph[data-id]');
+  if (!t || e.target.closest('a')) return;
+  const id = t.dataset.id;
+  if (!mode) { window.open(t.dataset.apercu, '_blank', 'noopener'); return; }
+  if (t.classList.contains('prise')) return;
+  if (selection.has(id)) selection.delete(id);
+  else {
+    const max = mode === 'gratuit' ? resteGratuites() : restePack();
+    if (selection.size >= max) {
+      majBarre(mode === 'gratuit'
+        ? `Tu as déjà coché tes ${max} photo(s) offerte(s). Décoche-en une pour en choisir une autre.`
+        : `Ton pack est limité à ${profil.pack.limite} photos : tu ne peux plus en ajouter.`);
+      return;
+    }
+    selection.add(id);
+  }
+  rafraichirTuiles();
+  majBarre();
+});
+
+// ---------------------------------------------------------------- 3. Modes de choix
+function entrerMode(m) {
+  mode = m;
+  selection.clear();
+  document.body.classList.add('en-choix');
+  $('mode-gratuit').classList.toggle('actif', m === 'gratuit');
+  $('mode-pack').classList.toggle('actif', m === 'pack');
+  msg('msg-mode', 'info', m === 'gratuit'
+    ? `Touche les photos que tu veux dans la galerie ci-dessous (<b>${resteGratuites()}</b> au maximum), puis « Valider » en bas de l'écran. ⚠️ Ce choix est <b>définitif</b> et vaut pour toute ton équipe.`
+    : `Touche les photos que tu veux dans la galerie ci-dessous (<b>${restePack()}</b> au maximum), puis « ${profil.a_le_pack ? 'Recevoir' : 'Débloquer'} » en bas de l'écran.`);
+  montrer('barre');
+  majBarre();
+  rafraichirTuiles();
+}
+
+function quitterMode() {
+  mode = null;
+  selection.clear();
+  document.body.classList.remove('en-choix');
+  $('mode-gratuit').classList.remove('actif');
+  $('mode-pack').classList.remove('actif');
+  msg('msg-mode', '', '');
+  montrer('barre', false);
+  $('barre-zone').innerHTML = '';
+  rafraichirTuiles();
+}
+
+$('mode-gratuit').onclick = () => mode === 'gratuit' ? quitterMode() : entrerMode('gratuit');
+$('mode-pack').onclick = () => mode === 'pack' ? quitterMode() : entrerMode('pack');
+$('barre-annuler').onclick = quitterMode;
+
+let confirmation = false;
+function majBarre(alerte = '') {
+  confirmation = false;
+  const n = selection.size;
+  if (mode === 'gratuit') {
+    $('barre-txt').innerHTML = `🎁 <b>${n} / ${resteGratuites()}</b> photo(s) offerte(s)`;
+    $('barre-valider').textContent = 'Valider';
+  } else if (mode === 'pack') {
+    $('barre-txt').innerHTML = `🔓 <b>${n} / ${restePack()}</b> photo(s) pour ton pack`;
+    $('barre-valider').textContent = profil.a_le_pack ? 'Recevoir' : 'Débloquer';
+  }
+  $('barre-valider').disabled = !n;
+  $('barre-zone').innerHTML = alerte ? `<div class="msg msg-warn" style="margin-top:10px;">${alerte}</div>` : '';
+}
+
+$('barre-valider').onclick = () => {
+  if (!selection.size) return;
+  return mode === 'gratuit' ? validerGratuites() : validerPack();
 };
 
-// ---------------------------------------------------------------- Déblocage
-$('btn-debloquer').onclick = async () => {
-  const email = emailRecherche;
-  $('btn-debloquer').disabled = true;
-  msg('msg-debloquer', '', '');
+// Photos offertes : choix définitif → on demande une confirmation dans la page.
+async function validerGratuites() {
+  if (!confirmation) {
+    confirmation = true;
+    $('barre-valider').textContent = 'Oui, je valide';
+    $('barre-zone').innerHTML = `<div class="msg msg-warn" style="margin-top:10px;">Tu choisis <b>${selection.size}</b> photo(s) offerte(s) pour ton équipe. Ce choix est <b>définitif</b>. Touche « Oui, je valide » pour confirmer.</div>`;
+    return;
+  }
+  $('barre-valider').disabled = true;
   try {
-    const r = await fetch('/api/photos-acces', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'debloquer', evenement_id: evenement.id, email, bons, choisies: [...choisies] }),
-    });
-    const d = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(d.error || 'Erreur, réessaie dans un instant.');
+    const d = await apiR('gratuites', { email, photo_ids: [...selection] });
+    profil.gratuites = d.gratuites;
+    quitterMode();
+    afficherProfil();
+    msg('msg-mode', 'info', "✅ C'est fait ! Tes photos offertes sont en haut de la page, sans filigrane : touche « ⬇ Télécharger » sur chacune.");
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) {
+    majBarre(esc(e.message));
+  }
+}
+
+// Pack : débloque (si l'équipe a le pack) ou propose le paiement.
+async function validerPack() {
+  $('barre-valider').disabled = true;
+  try {
+    const d = await apiA('debloquer', { email, choisies: [...selection] });
     if (d.paiement_requis) {
       const prix = (d.prix_cents / 100).toLocaleString('fr-FR') + ' €';
-      $('msg-debloquer').innerHTML = `<div class="msg msg-warn">Ton équipe n'a pas encore le pack photo. Un seul paiement suffit pour toute l'équipe (Duo ou binôme Parent / Enfant).</div>
-        <button class="btn" id="btn-payer">💳 Payer ${prix} et débloquer mes photos</button>
+      $('barre-zone').innerHTML = `<div class="msg msg-warn" style="margin-top:10px;">Ton équipe n'a pas encore le pack photo. Un seul paiement suffit pour toute l'équipe (Duo ou binôme Parent / Enfant).</div>
+        <button class="btn" id="btn-payer">💳 Payer ${prix} et recevoir mes ${selection.size} photos</button>
         <div class="petit" style="margin-top:6px;">Paiement sécurisé par Stripe. Après le paiement, tu reviens ici et tu reçois le lien de tes photos par mail.</div>`;
       $('btn-payer').onclick = payer;
-    } else {
-      msg('msg-debloquer', 'info', `✅ C'est envoyé ! Ouvre le mail reçu sur <strong>${d.email_masque}</strong> pour accéder à toutes tes photos. Pense à regarder dans les spams.`);
+      $('barre-valider').disabled = false;
+      return;
     }
+    const n = selection.size;
+    await chargerProfil();
+    quitterMode();
+    msg('msg-mode', 'info', `✅ C'est envoyé ! ${n} photo(s) ajoutée(s) à ton espace photo. Ouvre le mail reçu sur <strong>${esc(d.email_masque)}</strong> pour les télécharger en HD. Pense à regarder dans les spams.`);
   } catch (e) {
-    msg('msg-debloquer', 'err', e.message);
-  } finally {
-    $('btn-debloquer').disabled = false;
+    majBarre(esc(e.message));
   }
-};
+}
 
-// ---------------------------------------------------------------- Paiement Stripe
 async function payer() {
   $('btn-payer').disabled = true;
   try {
-    // On garde la recherche pour la reprendre au retour de Stripe (même onglet).
-    try { sessionStorage.setItem('photos_paiement', JSON.stringify({ evt: evenement.id, email: emailRecherche, bons, choisies: [...choisies] })); } catch (e) {}
-    const r = await fetch('/api/photos-acces', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'payer', evenement_id: evenement.id, email: emailRecherche }),
-    });
-    const d = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(d.error || 'Erreur, réessaie dans un instant.');
-    if (d.deja_pack) { $('btn-debloquer').onclick(); return; }   // un coéquipier vient de payer
+    // On garde la sélection pour la reprendre au retour de Stripe (même onglet).
+    try { sessionStorage.setItem('photos_paiement', JSON.stringify({ evt: evenement.id, email, choisies: [...selection] })); } catch (e) {}
+    const d = await apiA('payer', { email });
+    if (d.deja_pack) { profil.a_le_pack = true; return validerPack(); }   // un coéquipier vient de payer
     location.href = d.url;
   } catch (e) {
-    msg('msg-debloquer', 'err', e.message);
-    $('btn-payer').disabled = false;
+    majBarre(esc(e.message));
   }
 }
 
 // Retour de Stripe (?paye=1) : le webhook coche le pack en quelques secondes ;
 // on relance le déblocage jusqu'à ce qu'il réussisse, ce qui envoie le mail.
 async function retourPaiement() {
-  if (!new URLSearchParams(location.search).has('paye')) return false;
+  if (!new URLSearchParams(location.search).has('paye') || !evenement) return;
   history.replaceState(null, '', location.pathname + '?evt=' + encodeURIComponent(evenement.id));
   let attente = null;
   try { attente = JSON.parse(sessionStorage.getItem('photos_paiement') || 'null'); } catch (e) {}
-  if (!attente || attente.evt !== evenement.id) return false;
-  montrer('bloc-selfie', false);
+  if (!attente || attente.evt !== evenement.id) return;
+  montrer('bloc-email', false);
   montrer('bloc-retour');
-  msg('msg-retour', 'info', 'Merci ! On prépare l\'envoi de tes photos… (quelques secondes)');
+  msg('msg-retour', 'info', "Merci ! On prépare l'envoi de tes photos… (quelques secondes)");
   for (let essai = 0; essai < 20; essai++) {
     try {
-      const r = await fetch('/api/photos-acces', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'debloquer', evenement_id: attente.evt, email: attente.email, bons: attente.bons, choisies: attente.choisies || [] }),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (r.ok && d.ok) {
+      const d = await apiA('debloquer', { email: attente.email, choisies: attente.choisies || [] });
+      if (d.ok) {
         try { sessionStorage.removeItem('photos_paiement'); } catch (e) {}
-        msg('msg-retour', 'info', `✅ C'est envoyé ! Ouvre le mail reçu sur <strong>${d.email_masque}</strong> pour accéder à toutes tes photos en haute définition. Pense à regarder dans les spams.`);
-        return true;
+        msg('msg-retour', 'info', `✅ C'est envoyé ! Ouvre le mail reçu sur <strong>${esc(d.email_masque)}</strong> pour accéder à tes photos en haute définition. Pense à regarder dans les spams.`);
+        return;
       }
     } catch (e) {}
     await new Promise(ok => setTimeout(ok, 3000));
   }
-  msg('msg-retour', 'warn', "Ton paiement est bien pris en compte, mais sa confirmation prend un peu plus de temps que prévu. Reviens sur cette page dans quelques minutes : refais ton selfie avec le même email, puis clique sur « Recevoir toutes mes photos par mail ». Rien à repayer.");
-  return true;
+  msg('msg-retour', 'warn', "Ton paiement est bien pris en compte, mais sa confirmation prend un peu plus de temps que prévu. Reviens sur cette page dans quelques minutes, entre ton email, puis choisis les photos de ton pack : rien à repayer.");
+}
+
+// ---------------------------------------------------------------- 2. Selfie (facultatif)
+$('consent').onchange = () => {
+  const ok = $('consent').checked;
+  $('btn-selfie').classList.toggle('off', !ok);
+  $('btn-import').classList.toggle('off', !ok);
+  if (ok) chargerModeles(); // on prépare la reconnaissance pendant qu'il se met en place
+};
+
+async function rechercher(fichier) {
+  let erreurVue = null, empreinte = null, trouvees = [];
+  msg('msg-selfie', '', '');
+  montrer('bloc-chargement');
+  try {
+    $('chargement-txt').textContent = modelesCharges() ? 'Analyse de ton visage…' : 'Préparation de la reconnaissance (une seule fois)…';
+    await chargerModeles();
+    $('chargement-txt').textContent = 'Analyse de ton visage…';
+    empreinte = await empreinteDuSelfie(fichier, t => { $('chargement-txt').textContent = t; });
+    if (!empreinte) {
+      msg('msg-selfie', 'err', "On n'a pas trouvé de visage sur cette photo. Essaie avec un selfie de face, bien éclairé, sans lunettes de soleil.");
+      return;
+    }
+    $('chargement-txt').textContent = "On cherche dans les photos de l'événement…";
+    const d = await apiR('rechercher', { empreinte, email });
+    trouvees = d.photos;
+    nbSelfies++;
+    majSelfie();
+    let nouvelles = 0;
+    for (const p of d.photos) if (!probables.has(p.photo_id)) { probables.set(p.photo_id, p); nouvelles++; }
+    $('grille-probables').innerHTML = [...probables.values()].map(tuile).join('');
+    montrer('bloc-probables', probables.size > 0);
+    rafraichirTuiles();
+    msg('msg-selfie', nouvelles ? 'info' : 'warn', nouvelles
+      ? `📸 ${nouvelles} nouvelle(s) photo(s) probable(s), ajoutée(s) en haut de la galerie.` + (profil.equipe.type !== 'solo' && nbSelfies === 1
+          ? ` Fais maintenant le selfie de ${profil.equipe.partenaire ? esc(profil.equipe.partenaire) : (profil.equipe.type === 'parent_enfant' ? 'ton enfant' : 'ton/ta partenaire')} : ses photos s'ajouteront.`
+          : ' Il en manque ? Refais un selfie (autre angle, autre lumière), ou cherche dans toutes les photos.')
+      : "Pas de nouvelle photo avec ce selfie. Réessaie avec un autre selfie, ou cherche-toi dans toutes les photos.");
+    if (probables.size) $('bloc-probables').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    msg('msg-selfie', 'err', esc(e.message));
+    erreurVue = e.stack || e.message;
+  } finally {
+    montrer('bloc-chargement', false);
+    afficherDiagnostic(erreurVue, empreinte, trouvees);
+  }
+}
+$('in-selfie').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) rechercher(f); };
+$('in-import').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) rechercher(f); };
+
+function afficherDiagnostic(erreur, empreinte, trouvees) {
+  if (!diagnostic.actif) return;
+  let gpu = '?';
+  try {
+    const gl = document.createElement('canvas').getContext('webgl');
+    const ext = gl && gl.getExtension('WEBGL_debug_renderer_info');
+    gpu = gl ? (ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : 'webgl sans détail') : 'pas de webgl';
+  } catch (e) {}
+  const lignes = [navigator.userAgent, 'carte graphique : ' + gpu, ...diagnostic.lignes];
+  if (empreinte) lignes.push('empreinte : Σ=' + empreinte.reduce((a, v) => a + v, 0).toFixed(4));
+  if (trouvees.length) lignes.push('trouvées : ' + trouvees.map(p => `${p.via === '2e temps' ? '2e' : 'selfie'} ${p.distance}`).join(' | '));
+  if (erreur) lignes.push('ERREUR : ' + erreur);
+  $('diag').innerHTML = `<div style="margin-top:1rem;padding:10px;border:1px dashed #666;border-radius:8px;font:11px/1.5 monospace;color:#aaa;white-space:pre-wrap;word-break:break-all;">`
+    + (diagnostic.apercu ? `<img src="${diagnostic.apercu}" style="display:block;max-width:160px;margin-bottom:8px;border:1px solid #444">` : '')
+    + lignes.map(esc).join('\n') + '</div>';
+  diagnostic.lignes.length = 0;
 }
 
 demarrer().then(retourPaiement);

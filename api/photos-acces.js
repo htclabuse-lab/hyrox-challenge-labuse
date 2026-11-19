@@ -5,7 +5,7 @@ import { FROM as FROM_PE, REPLY_TO, TYPE_STRIPE_PACK as TYPE_PACK_PE } from '../
 import { lienSigne, clesPhoto } from '../lib/r2.js';
 import {
   lireBon, emailValide, inscriptionsPourEmail, inscriptionEtPack, personnesCouvertes, SELFIES_PAR_PERSONNE,
-  photosValides,
+  photosValides, photosPackEquipe, LIMITE_PACK,
 } from '../lib/photos.js';
 
 // ============================================================================
@@ -23,7 +23,7 @@ import {
 //  POST { action: 'espace', jeton }        → photos de l'espace (nettes + HD)
 //  POST { action: 'ajouter', jeton, bon }  → ajoute les photos d'un nouveau selfie
 //  POST { action: 'choisir', jeton, photo_ids }  → ajoute des photos choisies dans la galerie
-//        (avec le pack, toutes les photos de l'événement sont accessibles)
+//        Limite : LIMITE_PACK photos par équipe (solo, Duo ou binôme), tous ajouts compris.
 // ============================================================================
 
 const ANTI_SPAM_MS = 2 * 60 * 1000;  // pas plus d'un mail toutes les 2 min par accès
@@ -110,8 +110,9 @@ export default async function handler(req, res) {
       const { data: evt } = await db.from('photos_evenements').select('*').eq('id', String(b.evenement_id || '')).maybeSingle();
       if (!evt || (evt.statut !== 'ouvert' && evt.id !== 'test')) return res.status(404).json({ error: 'Événement introuvable.' });
 
+      // Photos choisies dans la galerie (+ anciens « bons » de recherche, s'il y en a).
       const { ids: idsBons, valides } = photosDesBons(b.bons, evt.id);
-      if (!valides) return res.status(400).json({ error: 'Ta recherche a expiré : refais un selfie, puis réessaie.' });
+      const ids = [...new Set([...idsBons, ...await photosValides(db, evt.id, b.choisies)])];
 
       const inscriptions = await inscriptionsPourEmail(db, evt, email);
       if (!inscriptions.length) {
@@ -119,12 +120,18 @@ export default async function handler(req, res) {
       }
 
       const { insc, origine } = await inscriptionEtPack(db, evt, inscriptions);
+      // Limite du pack, vérifiée AVANT le paiement pour ne jamais faire payer une sélection refusée.
+      const dejaEquipe = await photosPackEquipe(db, evt.id, insc.id);
+      const nouvellesEquipe = ids.filter(id => !dejaEquipe.has(id));
+      const reste = Math.max(0, LIMITE_PACK - dejaEquipe.size);
+      if (nouvellesEquipe.length > reste) {
+        return res.status(400).json({ error: `Le pack permet ${LIMITE_PACK} photos par équipe : il t'en reste ${reste}. Retire quelques photos de ta sélection.` });
+      }
+      if (!ids.length && !dejaEquipe.size) return res.status(400).json({ error: 'Choisis au moins une photo.' });
       if (!origine) {
         return res.status(200).json({ paiement_requis: true, prix_cents: evt.prix_pack_cents });
       }
 
-      // Photos trouvées par les selfies + photos choisies à la main dans la galerie.
-      const ids = [...new Set([...idsBons, ...await photosValides(db, evt.id, b.choisies)])];
       const maxSelfies = personnesCouvertes(evt, insc, email) * SELFIES_PAR_PERSONNE;
       const { data: existant } = await db.from('photos_acces').select('*')
         .eq('evenement_id', evt.id).eq('inscription_id', insc.id).eq('email', email).maybeSingle();
@@ -223,6 +230,8 @@ export default async function handler(req, res) {
         prenom: insc.prenom || '',
         photos,
         selfies_restants: Math.max(0, personnes * SELFIES_PAR_PERSONNE - acces.nb_visages),
+        limite: LIMITE_PACK,
+        equipe_total: (await photosPackEquipe(db, evt.id, acces.inscription_id)).size,
         peut_ajouter: personnes > 1 ? (evt.type === 'parent_enfant' ? 'enfant' : 'partenaire') : null,
       });
     }
@@ -240,7 +249,13 @@ export default async function handler(req, res) {
       const { ids, valides } = photosDesBons([b.bon], evt.id);
       if (!valides) return res.status(400).json({ error: 'Recherche expirée, refais le selfie.' });
       const avant = new Set(acces.photo_ids);
-      const nouvelles = ids.filter(id => !avant.has(id));
+      const equipeA = await photosPackEquipe(db, evt.id, acces.inscription_id);
+      let place = Math.max(0, LIMITE_PACK - equipeA.size);   // limite du pack de l'équipe
+      const nouvelles = [];
+      for (const id of ids.filter(i => !avant.has(i))) {
+        if (equipeA.has(id)) nouvelles.push(id);
+        else if (place > 0) { nouvelles.push(id); place--; }
+      }
       const { error } = await db.from('photos_acces').update({
         photo_ids: [...acces.photo_ids, ...nouvelles], nb_visages: acces.nb_visages + 1, updated_at: new Date().toISOString(),
       }).eq('id', acces.id);
@@ -253,7 +268,12 @@ export default async function handler(req, res) {
       const acces = await lireAcces(db, b.jeton);
       if (!acces) return res.status(404).json({ error: 'Lien invalide ou expiré.' });
       const avant = new Set(acces.photo_ids);
+      const equipe = await photosPackEquipe(db, acces.evenement_id, acces.inscription_id);
       const nouvelles = (await photosValides(db, acces.evenement_id, b.photo_ids)).filter(id => !avant.has(id));
+      const pourEquipe = nouvelles.filter(id => !equipe.has(id));
+      if (equipe.size + pourEquipe.length > LIMITE_PACK) {
+        return res.status(400).json({ error: `Ton pack est complet : ${LIMITE_PACK} photos par équipe au maximum.` });
+      }
       if (nouvelles.length) {
         const { error } = await db.from('photos_acces').update({
           photo_ids: [...acces.photo_ids, ...nouvelles], updated_at: new Date().toISOString(),

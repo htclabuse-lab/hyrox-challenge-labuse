@@ -74,26 +74,27 @@
       <div class="petit">Un téléchargement ne marche plus ? Recharge simplement la page.</div>
     </div>
 
-    <!-- Nouveau selfie -->
+    <!-- Ajouter des photos -->
     <div class="card" id="bloc-ajout">
       <h2>Il te manque des photos ?</h2>
-      <p id="ajout-txt">Relance la recherche avec un autre selfie (autre angle, autre lumière, sans lunettes) : les nouvelles photos trouvées s'ajoutent ici.</p>
+      <p>Ton pack comprend jusqu'à <strong id="limite-txt">50</strong> photos pour ton équipe : <strong id="compteur-txt"></strong>. Ajoute celles qui manquent depuis la galerie ci-dessous. Un selfie peut t'aider à les retrouver (toi, ton enfant ou ton/ta partenaire).</p>
       <label class="consent">
         <input type="checkbox" id="consent">
         <span id="consent-txt">J'accepte que ce visage soit analysé pour retrouver les photos de l'événement.</span>
       </label>
-      <label class="btn sec off" id="btn-encore" for="in-encore">🔁 Il me manque des photos</label>
+      <label class="btn sec off" id="btn-encore" for="in-encore">📸 Retrouver des photos avec un selfie</label>
       <input type="file" id="in-encore" accept="image/*" class="hidden">
-      <label class="btn sec off hidden" id="btn-ajout" for="in-ajout"></label>
-      <input type="file" id="in-ajout" accept="image/*" class="hidden">
-      <div class="petit" id="restants"></div>
       <div id="msg-ajout"></div>
     </div>
 
     <!-- Galerie complète -->
     <div class="card">
       <h2>🗂️ Toutes les photos de l'événement</h2>
-      <p>La reconnaissance n'est pas parfaite, surtout pour les enfants. Parcours toutes les photos et touche <strong>« ＋ Ajouter »</strong> sur celles où tu te reconnais : elles rejoignent tes photos en haute définition, ci-dessus.</p>
+      <p>Touche <strong>« ＋ Ajouter »</strong> sur les photos que tu veux : elles rejoignent tes photos en haute définition, ci-dessus.</p>
+      <div id="bloc-probables" class="hidden">
+        <div class="photographe">📸 Probablement toi (d'après ton selfie)</div>
+        <div class="grille" id="grille-probables" style="margin:8px 0 14px;"></div>
+      </div>
       <button class="btn sec" id="btn-galerie">👀 Voir toutes les photos</button>
       <div class="grille" id="grille-galerie" style="margin-top:12px;"></div>
       <button class="btn sec hidden" id="btn-galerie-plus">Voir plus de photos</button>
@@ -157,20 +158,13 @@ async function charger() {
   }).join('');
   $('paquets').querySelectorAll('button').forEach(b => { b.onclick = () => telechargerPaquet(+b.dataset.paquet, b); });
 
-  // Ajout d'un selfie
-  if (espace.peut_ajouter) {
-    $('btn-ajout').textContent = espace.peut_ajouter === 'enfant' ? '➕ Ajouter les photos de mon enfant' : '➕ Ajouter mon/ma partenaire';
-    $('consent-txt').textContent = espace.peut_ajouter === 'enfant'
-      ? "J'accepte que ce visage (le mien ou celui de mon enfant, dont je suis responsable) soit analysé pour retrouver nos photos."
-      : "J'accepte que ce visage soit analysé pour retrouver les photos de l'événement (si c'est ton/ta partenaire, il/elle doit être d'accord).";
-    montrer('btn-ajout');
+  // Limite du pack (par équipe)
+  $('limite-txt').textContent = espace.limite;
+  $('compteur-txt').textContent = `${espace.equipe_total} / ${espace.limite} déjà choisies`;
+  if (espace.evenement.type === 'parent_enfant') {
+    $('consent-txt').textContent = "J'accepte que ce visage (le mien ou celui de mon enfant, dont je suis responsable) soit analysé pour retrouver nos photos.";
   }
-  const r = espace.selfies_restants;
-  $('restants').textContent = r > 0 ? `Encore ${r} recherche${r > 1 ? 's' : ''} possible${r > 1 ? 's' : ''} avec ce pack.` : '';
-  if (r <= 0) {
-    $('consent').disabled = true;
-    msg('msg-ajout', 'warn', "Tu as utilisé toutes les recherches de ce pack. S'il manque encore des photos, écris-nous à htclabuse@gmail.com.");
-  }
+  rafraichirBoutons();
   montrer('contenu');
 }
 
@@ -208,15 +202,14 @@ async function telechargerPaquet(i, bouton) {
   }
 }
 
-// ---------------------------------------------------------------- Nouveau selfie
+// ---------------------------------------------------------------- Selfie : aide à retrouver ses photos
 $('consent').onchange = () => {
   const ok = $('consent').checked;
   $('btn-encore').classList.toggle('off', !ok);
-  $('btn-ajout').classList.toggle('off', !ok);
   if (ok) chargerModeles();
 };
 
-async function ajouter(fichier) {
+async function chercherAvecSelfie(fichier) {
   msg('msg-ajout', '', '');
   montrer('bloc-chargement');
   try {
@@ -228,13 +221,17 @@ async function ajouter(fichier) {
       msg('msg-ajout', 'err', "On n'a pas trouvé de visage sur cette photo. Essaie avec un selfie de face, bien éclairé.");
       return;
     }
-    $('chargement-txt').textContent = 'On cherche dans les photos de l\'événement…';
-    const recherche = await api('/api/photos-recherche', 'rechercher', { evenement_id: espace.evenement.id, empreinte, jeton });
-    const d = await api('/api/photos-acces', 'ajouter', { jeton, bon: recherche.bon });
-    await charger();
-    msg('msg-ajout', d.nouvelles ? 'info' : 'warn', d.nouvelles
-      ? `✅ ${d.nouvelles} nouvelle(s) photo(s) ajoutée(s) !`
-      : 'Pas de nouvelle photo avec ce selfie.');
+    $('chargement-txt').textContent = "On cherche dans les photos de l'événement…";
+    const d = await api('/api/photos-recherche', 'rechercher', { evenement_id: espace.evenement.id, empreinte, jeton });
+    const miennes = new Set(espace.photos.map(p => p.photo_id));
+    const nouvelles = d.photos.filter(p => !miennes.has(p.photo_id));
+    $('grille-probables').innerHTML = nouvelles.map(p => tuileGalerie(p, false)).join('');
+    montrer('bloc-probables', nouvelles.length > 0);
+    rafraichirBoutons();
+    msg('msg-ajout', nouvelles.length ? 'info' : 'warn', nouvelles.length
+      ? `📸 ${nouvelles.length} photo(s) probable(s) pas encore dans ton espace : elles sont en haut de la galerie, touche « ＋ Ajouter » sur celles que tu veux.`
+      : 'Pas de nouvelle photo avec ce selfie. Cherche aussi dans toutes les photos ci-dessous.');
+    if (nouvelles.length) $('bloc-probables').scrollIntoView({ behavior: 'smooth' });
   } catch (e) {
     msg('msg-ajout', 'err', e.message);
   } finally {
@@ -243,6 +240,8 @@ async function ajouter(fichier) {
     $('consent').onchange();
   }
 }
+$('in-encore').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) chercherAvecSelfie(f); };
+
 // ---------------------------------------------------------------- Galerie complète
 let galerieSuivant = 0, photographeAffiche = '';
 async function pageGalerie() {
@@ -258,12 +257,10 @@ async function pageGalerie() {
         photographeAffiche = p.photographe;
         morceaux.push(`<div class="photographe">📷 ${String(p.photographe).replace(/</g, '&lt;')}</div>`);
       }
-      const dedans = miennes.has(p.photo_id);
-      morceaux.push(`<div class="ph${dedans ? ' dedans' : ''}" data-id="${p.photo_id}">
-        <a href="${p.apercu}" target="_blank" rel="noopener"><img src="${p.apercu}" alt="" loading="lazy"></a>
-        <button class="choix"${dedans ? ' disabled' : ''}>${dedans ? '✓ Dans tes photos' : '＋ Ajouter'}</button></div>`);
+      morceaux.push(tuileGalerie(p, miennes.has(p.photo_id)));
     }
     $('grille-galerie').insertAdjacentHTML('beforeend', morceaux.join(''));
+    rafraichirBoutons();
     galerieSuivant = d.suivant;
     montrer('btn-galerie', false);
     montrer('btn-galerie-plus', d.suivant !== null);
@@ -276,7 +273,29 @@ async function pageGalerie() {
 }
 $('btn-galerie').onclick = pageGalerie;
 $('btn-galerie-plus').onclick = pageGalerie;
-$('grille-galerie').onclick = async e => {
+function tuileGalerie(p, dedans) {
+  return `<div class="ph${dedans ? ' dedans' : ''}" data-id="${p.photo_id}">
+    <a href="${p.apercu}" target="_blank" rel="noopener"><img src="${p.apercu}" alt="" loading="lazy"></a>
+    <button class="choix"${dedans ? ' disabled' : ''}>${dedans ? '✓ Dans tes photos' : '＋ Ajouter'}</button></div>`;
+}
+
+// Pack complet (limite de l'équipe atteinte) : on grise les « ＋ Ajouter ».
+function rafraichirBoutons() {
+  if (!espace) return;
+  const miennes = new Set(espace.photos.map(p => p.photo_id));
+  const complet = espace.equipe_total >= espace.limite;
+  document.querySelectorAll('.ph[data-id]').forEach(t => {
+    const b = t.querySelector('.choix');
+    if (!b) return;
+    const dedans = miennes.has(t.dataset.id);
+    t.classList.toggle('dedans', dedans);
+    b.disabled = dedans || complet;
+    b.textContent = dedans ? '✓ Dans tes photos' : complet ? 'Pack complet' : '＋ Ajouter';
+  });
+}
+
+document.getElementById('contenu').addEventListener('click', async e => {
+  if (!e.target.closest('#grille-galerie, #grille-probables')) return;
   const bouton = e.target.closest('.choix');
   if (!bouton || bouton.disabled) return;
   const tuile = bouton.closest('.ph');
@@ -292,10 +311,8 @@ $('grille-galerie').onclick = async e => {
     bouton.textContent = '＋ Ajouter';
     msg('msg-galerie', 'err', err.message);
   }
-};
+});
 
-$('in-encore').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) ajouter(f); };
-$('in-ajout').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) ajouter(f); };
 
 charger();
 </script>
