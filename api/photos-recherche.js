@@ -32,7 +32,7 @@ import {
 const CHAMPS_EVT = 'id,nom,date_evenement,type,nb_gratuites,prix_pack_cents,statut,inscriptions_depuis,visages_effaces_le';
 
 // Aperçu admin : avec le mot de passe photos, on voit un événement pas encore ouvert
-// (pour vérifier la page des athlètes avant l'ouverture). Rien n'est enregistré.
+// (pour tester la page des athlètes avant l'ouverture, avec de vraies inscriptions).
 const estApercu = b => !!process.env.PHOTOS_ADMIN_PASSWORD && b.apercu === process.env.PHOTOS_ADMIN_PASSWORD;
 
 async function evenementVisible(db, id, apercu = false) {
@@ -143,7 +143,6 @@ export default async function handler(req, res) {
     }
 
     if (b.action === 'gratuites') {
-      if (estApercu(b)) return res.status(403).json({ error: "En mode aperçu, rien n'est enregistré : le choix des photos offertes est désactivé." });
       const ids = await choisirGratuites(db, evt, qui.insc.id, b.photo_ids);
       return res.status(200).json({ gratuites: { max: evt.nb_gratuites, photos: await liensGratuites(evt, ids) } });
     }

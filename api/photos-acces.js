@@ -97,6 +97,10 @@ async function lireAcces(db, jeton) {
   return data;
 }
 
+// Aperçu admin (mot de passe photos) : parcours complet sur un événement pas encore
+// ouvert, pour tester avec de vraies inscriptions avant l'ouverture.
+const estApercu = b => !!process.env.PHOTOS_ADMIN_PASSWORD && b.apercu === process.env.PHOTOS_ADMIN_PASSWORD;
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' });
   const b = req.body || {};
@@ -108,7 +112,7 @@ export default async function handler(req, res) {
       const email = String(b.email || '').trim().toLowerCase();
       if (!emailValide(email)) return res.status(400).json({ error: 'Adresse email invalide.' });
       const { data: evt } = await db.from('photos_evenements').select('*').eq('id', String(b.evenement_id || '')).maybeSingle();
-      if (!evt || (evt.statut !== 'ouvert' && evt.id !== 'test')) return res.status(404).json({ error: 'Événement introuvable.' });
+      if (!evt || (evt.statut !== 'ouvert' && evt.id !== 'test' && !estApercu(b))) return res.status(404).json({ error: 'Événement introuvable.' });
 
       // Photos choisies dans la galerie (+ anciens « bons » de recherche, s'il y en a).
       const { ids: idsBons, valides } = photosDesBons(b.bons, evt.id);
@@ -169,7 +173,7 @@ export default async function handler(req, res) {
       const email = String(b.email || '').trim().toLowerCase();
       if (!emailValide(email)) return res.status(400).json({ error: 'Adresse email invalide.' });
       const { data: evt } = await db.from('photos_evenements').select('*').eq('id', String(b.evenement_id || '')).maybeSingle();
-      if (!evt || (evt.statut !== 'ouvert' && evt.id !== 'test')) return res.status(404).json({ error: 'Événement introuvable.' });
+      if (!evt || (evt.statut !== 'ouvert' && evt.id !== 'test' && !estApercu(b))) return res.status(404).json({ error: 'Événement introuvable.' });
       const inscriptions = await inscriptionsPourEmail(db, evt, email);
       if (!inscriptions.length) {
         return res.status(404).json({ error: "Aucune inscription trouvée avec cet email pour cet événement. Utilise bien l'adresse de ton inscription." });
