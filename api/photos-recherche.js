@@ -3,7 +3,7 @@ import { SUPABASE_URL } from '../lib/kids.js';
 import { lienSigne, clesPhoto } from '../lib/r2.js';
 import {
   rechercherPhotos, empreinteValide, signerBon, emailValide, inscriptionsPourEmail, inscriptionEtPack,
-  pageGalerie, equipe, gratuitesEquipe, choisirGratuites, photosPackEquipe, LIMITE_PACK,
+  pageGalerie, equipe, gratuitesEquipe, choisirGratuites, photosPackEquipe, LIMITE_PACK, filtrerEquipe, libelleEquipe,
 } from '../lib/photos.js';
 
 // ============================================================================
@@ -56,10 +56,16 @@ async function identifier(db, evt, b) {
   }
   const email = String(b.email || '').trim().toLowerCase();
   if (!emailValide(email)) return { code: 400, erreur: "Entre l'adresse email de ton inscription." };
-  const inscriptions = await inscriptionsPourEmail(db, evt, email);
-  if (!inscriptions.length) {
+  const toutes = await inscriptionsPourEmail(db, evt, email);
+  if (!toutes.length) {
     return { code: 404, erreur: "Aucune inscription trouvée avec cet email pour cet événement. Utilise bien l'adresse de ton inscription." };
   }
+  // Plusieurs équipes avec cet email : il faut choisir laquelle.
+  if (toutes.length > 1 && !b.inscription_id) {
+    return { choix: toutes.map(r => ({ id: r.id, libelle: libelleEquipe(r, email) })) };
+  }
+  const inscriptions = filtrerEquipe(toutes, b.inscription_id);
+  if (!inscriptions.length) return { code: 404, erreur: 'Équipe introuvable : recommence avec ton email.' };
   const { insc, origine } = await inscriptionEtPack(db, evt, inscriptions);
   return { insc, email, aLePack: !!origine };
 }
@@ -100,6 +106,10 @@ export default async function handler(req, res) {
     }
     const qui = await identifier(db, evt, b);
     if (qui.erreur) return res.status(qui.code).json({ error: qui.erreur });
+    if (qui.choix) {
+      if (b.action === 'profil') return res.status(200).json({ choix_equipe: qui.choix });
+      return res.status(400).json({ error: 'Choisis d\'abord ton équipe.' });
+    }
 
     if (b.action === 'profil') {
       const [gratuites, pack] = await Promise.all([
@@ -108,6 +118,7 @@ export default async function handler(req, res) {
       ]);
       return res.status(200).json({
         evenement: evt,
+        inscription_id: qui.insc.id,
         prenom: qui.insc.email?.toLowerCase() === qui.email ? (qui.insc.prenom || '') : '',
         equipe: equipe(evt, qui.insc, qui.email),
         a_le_pack: qui.aLePack,

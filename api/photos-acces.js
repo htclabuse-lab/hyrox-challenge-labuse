@@ -5,7 +5,7 @@ import { FROM as FROM_PE, REPLY_TO, TYPE_STRIPE_PACK as TYPE_PACK_PE } from '../
 import { lienSigne, clesPhoto } from '../lib/r2.js';
 import {
   lireBon, emailValide, inscriptionsPourEmail, inscriptionEtPack, personnesCouvertes, SELFIES_PAR_PERSONNE,
-  photosValides, photosPackEquipe, LIMITE_PACK,
+  photosValides, photosPackEquipe, LIMITE_PACK, filtrerEquipe,
 } from '../lib/photos.js';
 
 // ============================================================================
@@ -123,7 +123,9 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: "Aucune inscription trouvée avec cet email pour cet événement. Utilise bien l'adresse de ton inscription." });
       }
 
-      const { insc, origine } = await inscriptionEtPack(db, evt, inscriptions);
+      const equipeChoisie = filtrerEquipe(inscriptions, b.inscription_id);
+      if (!equipeChoisie.length) return res.status(404).json({ error: 'Équipe introuvable : recommence avec ton email.' });
+      const { insc, origine } = await inscriptionEtPack(db, evt, equipeChoisie);
       // Limite du pack, vérifiée AVANT le paiement pour ne jamais faire payer une sélection refusée.
       const dejaEquipe = await photosPackEquipe(db, evt.id, insc.id);
       const nouvellesEquipe = ids.filter(id => !dejaEquipe.has(id));
@@ -178,7 +180,9 @@ export default async function handler(req, res) {
       if (!inscriptions.length) {
         return res.status(404).json({ error: "Aucune inscription trouvée avec cet email pour cet événement. Utilise bien l'adresse de ton inscription." });
       }
-      const { insc, origine } = await inscriptionEtPack(db, evt, inscriptions);
+      const equipeChoisie = filtrerEquipe(inscriptions, b.inscription_id);
+      if (!equipeChoisie.length) return res.status(404).json({ error: 'Équipe introuvable : recommence avec ton email.' });
+      const { insc, origine } = await inscriptionEtPack(db, evt, equipeChoisie);
       if (origine) return res.status(200).json({ deja_pack: true });
 
       const hyrox = evt.compte_stripe === 'hyrox';
