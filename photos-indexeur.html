@@ -136,6 +136,7 @@ const HD_MAX_OCTETS = 8 * 1024 * 1024;
 const WEB_MAX = 1600;
 const APERCU_MAX = 900;
 const FILIGRANE = 'HTC LA BUSE · APERÇU';
+const ZEROS_MAX = 25;          // photos de suite sans visage → reconnaissance bloquée, on arrête
 const EN_PARALLELE = 2;        // photos traitées en même temps
 
 const $ = id => document.getElementById(id);
@@ -367,7 +368,7 @@ async function deposer(url, blob) {
 }
 
 // ---------------------------------------------------------------- Traitement d'une photo
-async function traiter(fichier, evenementId, photographe) {
+async function traiter(fichier, evenementId, photographe, idExistant = null) {
   const nom = fichier.webkitRelativePath || fichier.name;
   const image = await createImageBitmap(fichier, { imageOrientation: 'from-image' });
   try {
@@ -375,6 +376,12 @@ async function traiter(fichier, evenementId, photographe) {
 
     const analyse = canvasRedim(image, W, H, TAILLE_ANALYSE);
     const visages = await avecGPU(() => detecter(analyse));
+
+    // Photo déjà en ligne mais sans visage : on ne la renvoie pas, on refait juste l'analyse.
+    if (idExistant) {
+      await api('terminer', { photo_id: idExistant, visages });
+      return visages.length;
+    }
 
     let hd;
     if (fichier.type === 'image/jpeg' && fichier.size <= HD_MAX_OCTETS && Math.max(W, H) <= HD_MAX) {
@@ -474,9 +481,14 @@ $('btn-go').onclick = async () => {
     journal('Chargement de la reconnaissance faciale…');
     await chargerModeles();
     journal('Vérification des photos déjà en ligne…');
-    const deja = new Set((await api('deja_faits', { evenement_id: evenementId, photographe })).noms);
-    const aFaire = fichiers.filter(f => !deja.has(f.webkitRelativePath || f.name));
-    journal(`${deja.size} déjà en ligne, ${aFaire.length} à traiter.`);
+    const dj = await api('deja_faits', { evenement_id: evenementId, photographe });
+    const deja = new Set(dj.noms);
+    const sansVisage = dj.sans_visage || {};
+    const nomDe = f => f.webkitRelativePath || f.name;
+    const aFaire = fichiers.filter(f => !deja.has(nomDe(f)) || sansVisage[nomDe(f)]);
+    const aReanalyser = aFaire.filter(f => sansVisage[nomDe(f)]).length;
+    journal(`${deja.size} déjà en ligne, ${aFaire.length} à traiter` + (aReanalyser ? ` (dont ${aReanalyser} déjà en ligne sans visage, ré-analysées sans renvoi).` : '.'));
+    let zerosDeSuite = 0, bloquee = false;
 
     const debut = Date.now();
     let index = 0, terminees = 0;
@@ -487,11 +499,15 @@ $('btn-go').onclick = async () => {
         const f = aFaire[index++];
         const nom = f.webkitRelativePath || f.name;
         try {
-          const n = await traiter(f, evenementId, photographe);
+          const n = await traiter(f, evenementId, photographe, sansVisage[nom] || null);
           stats.faites++;
           stats.visages += n;
           if (!n) stats.sans++;
           journal(`✓ ${nom} — ${n} visage(s)`);
+          // Garde-fou : si la reconnaissance décroche (carte graphique saturée, ordinateur
+          // en veille…), elle ne trouve plus aucun visage SANS signaler d'erreur. On s'arrête.
+          zerosDeSuite = n ? 0 : zerosDeSuite + 1;
+          if (zerosDeSuite >= ZEROS_MAX && !bloquee) { bloquee = true; arret = true; }
         } catch (e) {
           stats.erreurs++;
           journal(`✗ ${nom} — ${e.message}`);
@@ -508,7 +524,10 @@ $('btn-go').onclick = async () => {
     if (!total) $('barre').style.width = '100%';
     await Promise.all(Array.from({ length: EN_PARALLELE }, ouvrier));
 
-    if (arret) {
+    if (bloquee) {
+      msg('choix-msg', 'err', `⚠️ Arrêt automatique : ${ZEROS_MAX} photos de suite sans aucun visage, la reconnaissance semble bloquée.<br>
+        <strong>Recharge la page</strong> (Cmd + R), reconnecte-toi, puis relance sur le même dossier : les photos sans visage seront ré-analysées, sans être renvoyées.`);
+    } else if (arret) {
       msg('choix-msg', 'info', `⏸ En pause. ${stats.faites} photo(s) mises en ligne. Relance quand tu veux : les photos déjà faites seront sautées.`);
     } else if (stats.erreurs) {
       msg('choix-msg', 'err', `Terminé avec ${stats.erreurs} erreur(s). Relance l'analyse sur le même dossier : seules les photos manquantes seront refaites.`);

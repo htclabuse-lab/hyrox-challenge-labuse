@@ -13,6 +13,7 @@ import { rechercherPhotos, empreinteValide, SEUIL_SELFIE, SEUIL_DEUXIEME_TEMPS }
 //        → ouvre / ferme un événement aux athlètes
 //  POST { password, action: 'deja_faits', evenement_id, photographe }
 //        → noms des fichiers déjà traités (pour reprendre là où on s'était arrêté)
+//          + sans_visage { nom: photo_id } : photos en ligne sans visage, à ré-analyser
 //  POST { password, action: 'preparer', evenement_id, photographe, nom_origine, largeur, hauteur, taille_octets }
 //        → crée la ligne photo + 3 tickets de dépôt R2 (hd, web, apercu), valables 15 min
 //  POST { password, action: 'terminer', photo_id, visages: [{ empreinte: [128 nombres], cadre, score }] }
@@ -67,16 +68,22 @@ export default async function handler(req, res) {
 
     if (b.action === 'deja_faits') {
       const noms = [];
+      // Photos déjà en ligne mais sans aucun visage : l'indexeur les ré-analyse (sans
+      // les renvoyer), au cas où la reconnaissance aurait décroché pendant l'envoi.
+      const sans_visage = {};
       // Supabase renvoie 1000 lignes max par requête : on lit par paquets.
       for (let debut = 0; ; debut += 1000) {
-        const { data, error } = await db.from('photos_fichiers').select('nom_origine')
+        const { data, error } = await db.from('photos_fichiers').select('id,nom_origine,nb_visages')
           .eq('evenement_id', b.evenement_id).eq('photographe', b.photographe).eq('statut', 'pret')
-          .range(debut, debut + 999);
+          .order('nom_origine').range(debut, debut + 999);
         if (error) throw error;
-        noms.push(...data.map(r => r.nom_origine));
+        for (const r of data) {
+          noms.push(r.nom_origine);
+          if (!r.nb_visages) sans_visage[r.nom_origine] = r.id;
+        }
         if (data.length < 1000) break;
       }
-      return res.status(200).json({ noms });
+      return res.status(200).json({ noms, sans_visage });
     }
 
     if (b.action === 'preparer') {
