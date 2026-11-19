@@ -47,6 +47,14 @@
   .chargement span { font-size: 14px; color: #aaa; }
   .rond { width: 54px; height: 54px; border: 5px solid #333; border-top-color: #FFEE00; border-radius: 50%; margin: 0 auto 18px; animation: tourne 1s linear infinite; }
   @keyframes tourne { to { transform: rotate(360deg); } }
+  .conseils { background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 12px 14px; margin-top: 14px; font-size: 14px; color: #ddd; line-height: 1.7; }
+  .conseils b { color: #FFEE00; }
+  .lien-import { display: block; text-align: center; margin-top: 12px; color: #aaa; font-size: 13px; text-decoration: underline; cursor: pointer; }
+  .lien-import.off { opacity: .4; pointer-events: none; }
+  .ph .choix { position: absolute; bottom: 6px; left: 6px; right: 6px; background: rgba(0,0,0,.8); color: #fff; border: 1px solid #555; font: 700 12px Arial, sans-serif; padding: 7px 4px; border-radius: 6px; cursor: pointer; }
+  .ph.choisie { outline: 3px solid #FFEE00; outline-offset: -3px; }
+  .ph.choisie .choix { background: #FFEE00; color: #0a0a0a; border-color: #FFEE00; }
+  .photographe { grid-column: 1 / -1; font-size: 13px; color: #888; font-weight: 700; margin: 8px 0 0; }
   .hidden { display: none !important; }
   .back { display: block; text-align: center; color: #888; text-decoration: none; font-size: 13px; margin-top: 1.5rem; }
 </style>
@@ -74,11 +82,16 @@
       <input type="checkbox" id="consent">
       <span id="consent-txt"></span>
     </label>
-    <label class="btn" id="btn-selfie" for="in-selfie">📸 Prendre un selfie</label>
+    <div class="conseils">
+      <b>Pour de meilleurs résultats :</b><br>
+      👤 regarde l'objectif, <b>de face</b><br>
+      ☀️ mets-toi <b>face à la lumière</b><br>
+      🧢 <b>sans</b> lunettes de soleil ni casquette
+    </div>
+    <label class="btn" id="btn-selfie" for="in-selfie">📸 Prendre un selfie maintenant</label>
     <input type="file" id="in-selfie" accept="image/*" capture="user" class="hidden">
-    <label class="btn sec" id="btn-import" for="in-import">🖼️ Choisir une photo de moi</label>
+    <label class="lien-import" id="btn-import" for="in-import">ou choisir une photo de moi déjà prise (moins précis)</label>
     <input type="file" id="in-import" accept="image/*" class="hidden">
-    <div class="petit">Conseil : visage bien éclairé, de face, sans lunettes de soleil ni casquette.</div>
     <div id="msg-selfie"></div>
   </div>
 
@@ -102,6 +115,15 @@
       <input type="file" id="in-encore" accept="image/*" class="hidden">
       <div class="petit">Un autre angle, une autre lumière, sans lunettes… Les nouvelles photos trouvées s'ajoutent à ta liste.</div>
       <div id="msg-encore"></div>
+    </div>
+    <div class="card" id="bloc-galerie">
+      <h2>🗂️ Toutes les photos de l'événement</h2>
+      <p>La reconnaissance n'est pas parfaite, surtout pour les enfants. Parcours toutes les photos et touche <strong>« C'est moi »</strong> sur celles où tu te reconnais : elles s'ajoutent à ta liste.</p>
+      <div class="compte hidden" id="compte-choisies"></div>
+      <button class="btn sec" id="btn-galerie">👀 Voir toutes les photos</button>
+      <div class="grille" id="grille-galerie" style="margin-top:12px;"></div>
+      <button class="btn sec hidden" id="btn-galerie-plus">Voir plus de photos</button>
+      <div id="msg-galerie"></div>
     </div>
     <div class="card offre" id="bloc-offre">
       <h2>Débloque toutes tes photos</h2>
@@ -156,15 +178,21 @@ const photos = new Map();   // photo_id → { apercu, nette?, telecharger? }
 const bons = [];            // bons de recherche signés (un par selfie)
 let emailRecherche = '';    // l'email d'inscription utilisé pour la recherche
 let aLePack = false;
+const choisies = new Set();  // photos ajoutées à la main depuis la galerie
+let galerieSuivant = 0;      // position de la prochaine page de la galerie (null = fini)
+let photographeAffiche = '';
 
 // ---------------------------------------------------------------- Outils
 function msg(id, type, texte) { $(id).innerHTML = texte ? `<div class="msg msg-${type}">${texte}</div>` : ''; }
 function montrer(id, oui = true) { $(id).classList.toggle('hidden', !oui); }
 
+// ?apercu=1 depuis l'onglet de l'indexeur : voir un événement pas encore ouvert (admin).
+const apercu = new URLSearchParams(location.search).has('apercu') ? (sessionStorage.getItem('photos_pwd') || '') : '';
+
 async function api(action, donnees = {}) {
   const r = await fetch('/api/photos-recherche', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, ...donnees }),
+    body: JSON.stringify({ action, ...donnees, ...(apercu ? { apercu } : {}) }),
   });
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d.error || 'Erreur, réessaie dans un instant.');
@@ -181,7 +209,7 @@ function choisirEvenement(e) {
   $('consent-txt').textContent = e.type === 'parent_enfant'
     ? "J'accepte que mon visage, ou celui de mon enfant (dont je suis responsable), soit analysé pour retrouver nos photos de l'événement."
     : "J'accepte que mon visage soit analysé pour retrouver mes photos de l'événement.";
-  photos.clear(); bons.length = 0;
+  photos.clear(); bons.length = 0; choisies.clear(); viderGalerie();
   montrer('bloc-resultats', false);
   montrer('bloc-selfie');
   majBoutons();
@@ -231,7 +259,7 @@ async function rechercher(fichier, zoneMsg) {
   if (!$('consent').checked) { msg(zoneMsg, 'warn', 'Coche d\'abord la case pour accepter l\'analyse de ton visage.'); return; }
   const email = $('email').value.trim().toLowerCase();
   // Changement d'email = nouvelle personne : on repart de zéro.
-  if (emailRecherche && email !== emailRecherche) { photos.clear(); bons.length = 0; }
+  if (emailRecherche && email !== emailRecherche) { photos.clear(); bons.length = 0; choisies.clear(); viderGalerie(); }
   montrer('bloc-chargement');
   try {
     $('chargement-txt').textContent = modelesCharges() ? 'Analyse de ton visage…' : 'Préparation de la reconnaissance (une seule fois)…';
@@ -270,12 +298,8 @@ async function rechercher(fichier, zoneMsg) {
 
 function afficher() {
   const liste = [...photos.values()];
-  montrer('bloc-selfie', !liste.length);
-  montrer('bloc-resultats', liste.length > 0);
-  if (!liste.length) {
-    msg('msg-selfie', 'warn', "Aucune photo trouvée pour l'instant. Réessaie avec un autre selfie (de face, bien éclairé), ou reviens plus tard : les photos sont parfois mises en ligne en plusieurs fois.");
-    return;
-  }
+  montrer('bloc-selfie', false);
+  montrer('bloc-resultats');
   // Le serveur décide des photos offertes (N par équipe) : on affiche nettes celles qu'il a marquées.
   let offertes = 0;
   const html = liste.map(p => {
@@ -290,9 +314,11 @@ function afficher() {
   html.sort((a, b) => (b.includes('OFFERTE') ? 1 : 0) - (a.includes('OFFERTE') ? 1 : 0));
   $('grille').innerHTML = html.join('');
   const verrouillees = liste.length - offertes;
-  $('compte').innerHTML = `<b>${liste.length}</b> photo(s) de toi trouvée(s)` +
-    (verrouillees ? `<br><span style="font-size:13px;color:#888;">${offertes} offerte(s) · ${verrouillees} à débloquer</span>` : '');
-  montrer('bloc-offre', verrouillees > 0);
+  $('compte').innerHTML = liste.length
+    ? `<b>${liste.length}</b> photo(s) de toi trouvée(s)` +
+      (verrouillees ? `<br><span style="font-size:13px;color:#888;">${offertes} offerte(s) · ${verrouillees} à débloquer</span>` : '')
+    : "Aucune photo trouvée avec ce selfie.<br><span style=\"font-size:13px;color:#888;\">Réessaie avec un autre selfie, ou cherche-toi dans toutes les photos ci-dessous.</span>";
+  majChoisies();
   $('email-rappel').textContent = emailRecherche;
   $('offre-txt').textContent = aLePack
     ? '✅ Ton équipe a le pack photo : il est inclus, rien à payer.'
@@ -304,6 +330,65 @@ $('in-selfie').onchange = e => { const f = e.target.files[0]; e.target.value = '
 $('in-import').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) rechercher(f, 'msg-selfie'); };
 $('in-encore').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) rechercher(f, 'msg-encore'); };
 
+// ---------------------------------------------------------------- Galerie complète
+function viderGalerie() {
+  galerieSuivant = 0; photographeAffiche = '';
+  $('grille-galerie').innerHTML = '';
+  montrer('btn-galerie'); montrer('btn-galerie-plus', false);
+  msg('msg-galerie', '', '');
+}
+
+function majChoisies() {
+  const n = choisies.size;
+  $('compte-choisies').innerHTML = `<b>${n}</b> photo(s) ajoutée(s) à la main`;
+  montrer('compte-choisies', n > 0);
+  // Le pack se propose dès qu'une recherche a été faite (même sans photo trouvée).
+  montrer('bloc-offre', bons.length > 0 && !apercu);
+}
+
+async function pageGalerie() {
+  if (galerieSuivant === null) return;
+  $('btn-galerie').disabled = $('btn-galerie-plus').disabled = true;
+  msg('msg-galerie', '', '');
+  try {
+    const d = await api('galerie', { evenement_id: evenement.id, email: emailRecherche, debut: galerieSuivant });
+    const morceaux = [];
+    for (const p of d.photos) {
+      if (p.photographe !== photographeAffiche) {
+        photographeAffiche = p.photographe;
+        morceaux.push(`<div class="photographe">📷 ${String(p.photographe).replace(/</g, '&lt;')}</div>`);
+      }
+      const trouvee = photos.has(p.photo_id);
+      const choisie = choisies.has(p.photo_id);
+      morceaux.push(`<div class="ph${trouvee || choisie ? ' choisie' : ''}" data-id="${p.photo_id}">
+        <a href="${p.apercu}" target="_blank" rel="noopener"><img src="${p.apercu}" alt="" loading="lazy"></a>
+        <button class="choix"${trouvee ? ' disabled' : ''}>${trouvee ? '✓ Déjà trouvée' : choisie ? "✓ C'est moi" : "C'est moi ?"}</button></div>`);
+    }
+    $('grille-galerie').insertAdjacentHTML('beforeend', morceaux.join(''));
+    galerieSuivant = d.suivant;
+    montrer('btn-galerie', false);
+    montrer('btn-galerie-plus', d.suivant !== null);
+    $('btn-galerie-plus').textContent = `Voir plus de photos (${d.total - (d.suivant ?? d.total)} restantes)`;
+  } catch (e) {
+    msg('msg-galerie', 'err', e.message);
+  } finally {
+    $('btn-galerie').disabled = $('btn-galerie-plus').disabled = false;
+  }
+}
+$('btn-galerie').onclick = pageGalerie;
+$('btn-galerie-plus').onclick = pageGalerie;
+$('grille-galerie').onclick = e => {
+  const bouton = e.target.closest('.choix');
+  if (!bouton || bouton.disabled) return;
+  const tuile = bouton.closest('.ph');
+  const id = tuile.dataset.id;
+  if (choisies.has(id)) choisies.delete(id); else choisies.add(id);
+  const oui = choisies.has(id);
+  tuile.classList.toggle('choisie', oui);
+  bouton.textContent = oui ? "✓ C'est moi" : "C'est moi ?";
+  majChoisies();
+};
+
 // ---------------------------------------------------------------- Déblocage
 $('btn-debloquer').onclick = async () => {
   const email = emailRecherche;
@@ -312,7 +397,7 @@ $('btn-debloquer').onclick = async () => {
   try {
     const r = await fetch('/api/photos-acces', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'debloquer', evenement_id: evenement.id, email, bons }),
+      body: JSON.stringify({ action: 'debloquer', evenement_id: evenement.id, email, bons, choisies: [...choisies] }),
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(d.error || 'Erreur, réessaie dans un instant.');
@@ -337,7 +422,7 @@ async function payer() {
   $('btn-payer').disabled = true;
   try {
     // On garde la recherche pour la reprendre au retour de Stripe (même onglet).
-    try { sessionStorage.setItem('photos_paiement', JSON.stringify({ evt: evenement.id, email: emailRecherche, bons })); } catch (e) {}
+    try { sessionStorage.setItem('photos_paiement', JSON.stringify({ evt: evenement.id, email: emailRecherche, bons, choisies: [...choisies] })); } catch (e) {}
     const r = await fetch('/api/photos-acces', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'payer', evenement_id: evenement.id, email: emailRecherche }),
@@ -367,7 +452,7 @@ async function retourPaiement() {
     try {
       const r = await fetch('/api/photos-acces', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'debloquer', evenement_id: attente.evt, email: attente.email, bons: attente.bons }),
+        body: JSON.stringify({ action: 'debloquer', evenement_id: attente.evt, email: attente.email, bons: attente.bons, choisies: attente.choisies || [] }),
       });
       const d = await r.json().catch(() => ({}));
       if (r.ok && d.ok) {

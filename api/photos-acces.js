@@ -5,12 +5,13 @@ import { FROM as FROM_PE, REPLY_TO, TYPE_STRIPE_PACK as TYPE_PACK_PE } from '../
 import { lienSigne, clesPhoto } from '../lib/r2.js';
 import {
   lireBon, emailValide, inscriptionsPourEmail, inscriptionEtPack, personnesCouvertes, SELFIES_PAR_PERSONNE,
+  photosValides,
 } from '../lib/photos.js';
 
 // ============================================================================
 // Plateforme photos — déblocage et espace photo personnel.
 //
-//  POST { action: 'debloquer', evenement_id, email, bons: [bon, ...] }
+//  POST { action: 'debloquer', evenement_id, email, bons: [bon, ...], choisies?: [photo_id, ...] }
 //        → si l'inscription liée à cet email a le pack : crée/complète l'accès et
 //          ENVOIE LE LIEN PAR MAIL à cet email (jamais affiché à l'écran).
 //          Sinon : { paiement_requis: true }.
@@ -21,6 +22,8 @@ import {
 //          pack photo ») ; au retour, la page relance 'debloquer'.
 //  POST { action: 'espace', jeton }        → photos de l'espace (nettes + HD)
 //  POST { action: 'ajouter', jeton, bon }  → ajoute les photos d'un nouveau selfie
+//  POST { action: 'choisir', jeton, photo_ids }  → ajoute des photos choisies dans la galerie
+//        (avec le pack, toutes les photos de l'événement sont accessibles)
 // ============================================================================
 
 const ANTI_SPAM_MS = 2 * 60 * 1000;  // pas plus d'un mail toutes les 2 min par accès
@@ -107,7 +110,7 @@ export default async function handler(req, res) {
       const { data: evt } = await db.from('photos_evenements').select('*').eq('id', String(b.evenement_id || '')).maybeSingle();
       if (!evt || (evt.statut !== 'ouvert' && evt.id !== 'test')) return res.status(404).json({ error: 'Événement introuvable.' });
 
-      const { ids, valides } = photosDesBons(b.bons, evt.id);
+      const { ids: idsBons, valides } = photosDesBons(b.bons, evt.id);
       if (!valides) return res.status(400).json({ error: 'Ta recherche a expiré : refais un selfie, puis réessaie.' });
 
       const inscriptions = await inscriptionsPourEmail(db, evt, email);
@@ -120,6 +123,8 @@ export default async function handler(req, res) {
         return res.status(200).json({ paiement_requis: true, prix_cents: evt.prix_pack_cents });
       }
 
+      // Photos trouvées par les selfies + photos choisies à la main dans la galerie.
+      const ids = [...new Set([...idsBons, ...await photosValides(db, evt.id, b.choisies)])];
       const maxSelfies = personnesCouvertes(evt, insc, email) * SELFIES_PAR_PERSONNE;
       const { data: existant } = await db.from('photos_acces').select('*')
         .eq('evenement_id', evt.id).eq('inscription_id', insc.id).eq('email', email).maybeSingle();
@@ -240,6 +245,21 @@ export default async function handler(req, res) {
         photo_ids: [...acces.photo_ids, ...nouvelles], nb_visages: acces.nb_visages + 1, updated_at: new Date().toISOString(),
       }).eq('id', acces.id);
       if (error) throw error;
+      return res.status(200).json({ nouvelles: nouvelles.length });
+    }
+
+    // ------------------------------------------------------------ choix dans la galerie
+    if (b.action === 'choisir') {
+      const acces = await lireAcces(db, b.jeton);
+      if (!acces) return res.status(404).json({ error: 'Lien invalide ou expiré.' });
+      const avant = new Set(acces.photo_ids);
+      const nouvelles = (await photosValides(db, acces.evenement_id, b.photo_ids)).filter(id => !avant.has(id));
+      if (nouvelles.length) {
+        const { error } = await db.from('photos_acces').update({
+          photo_ids: [...acces.photo_ids, ...nouvelles], updated_at: new Date().toISOString(),
+        }).eq('id', acces.id);
+        if (error) throw error;
+      }
       return res.status(200).json({ nouvelles: nouvelles.length });
     }
 
