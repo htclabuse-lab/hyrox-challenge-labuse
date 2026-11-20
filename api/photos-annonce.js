@@ -60,13 +60,13 @@ function mailBenevole(evtId, prenom) {
     html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
       + `<p>${salut}</p>`
       + `<p>Encore un immense merci pour ton aide ${pe ? 'samedi' : 'dimanche'} sur le <strong>${nom}</strong> 💛🖤</p>`
-      + '<p>Pour te remercier, tu as accès à la galerie photos de l\'événement, avec <strong>3 photos offertes</strong> 🎁</p>'
+      + '<p>Pour te remercier, tu as accès à la galerie photos de l\'événement 🎁</p>'
       + `<p>👉 <strong>Retrouve tes photos ici :</strong><br><a href="${PAGE_PHOTOS(evtId)}">${PAGE_PHOTOS(evtId)}</a></p>`
       + '<p><strong>Comment ça marche :</strong></p>'
       + '<ol style="padding-left:20px;margin:0 0 14px;">'
       + '<li style="margin-bottom:6px;">Entre <strong>l\'email de ton inscription bénévole</strong> (celui sur lequel tu reçois ce mail).</li>'
       + '<li style="margin-bottom:6px;">Parcours toutes les photos de l\'événement. Tu peux aussi faire un <strong>selfie</strong> pour qu\'on t\'aide à retrouver les tiennes : ton selfie reste sur ton téléphone, il n\'est ni envoyé ni enregistré.</li>'
-      + '<li>Choisis tes <strong>3 photos offertes</strong>, puis appuie sur le bouton jaune en bas de l\'écran. Attention, le choix est définitif !</li>'
+      + '<li>Choisis tes <strong>photos offertes</strong>, puis appuie sur le bouton jaune en bas de l\'écran. Attention, le choix est définitif !</li>'
       + '</ol>'
       + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:12px 16px;margin:14px 0;border-radius:4px;">'
       + '⚠️ La reconnaissance par selfie n\'est pas parfaite : pense à parcourir toutes les photos pour ne rien rater !'
