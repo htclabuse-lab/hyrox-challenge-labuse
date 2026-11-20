@@ -303,7 +303,7 @@
 
       const nbDone = finished.length;
       const nbRunning = running.length;
-      const podium = podiums[g.cat];
+      if (!finished.length) return;   // catégorie sans classé : on ne l'affiche pas
       html += `<div class="group">`;
       html += `<div class="group-head"><span>🏆 ${k}</span></div>`;
 
