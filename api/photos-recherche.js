@@ -4,6 +4,7 @@ import { lienSigne, clesPhoto } from '../lib/r2.js';
 import {
   rechercherPhotos, empreinteValide, signerBon, emailValide, inscriptionsPourEmail, inscriptionEtPack,
   pageGalerie, equipe, gratuitesEquipe, choisirGratuites, photosPackEquipe, LIMITE_PACK, filtrerEquipe, libelleEquipe,
+  benevolePourEmail, gratuitesBenevole, choisirGratuitesBenevole,
 } from '../lib/photos.js';
 
 // ============================================================================
@@ -58,6 +59,9 @@ async function identifier(db, evt, b) {
   if (!emailValide(email)) return { code: 400, erreur: "Entre l'adresse email de ton inscription." };
   const toutes = await inscriptionsPourEmail(db, evt, email);
   if (!toutes.length) {
+    // Pas athlète : peut-être bénévole ce jour-là (galerie + photos offertes, pas de pack).
+    const benevole = await benevolePourEmail(db, evt, email);
+    if (benevole) return { benevole, email, aLePack: false };
     return { code: 404, erreur: "Aucune inscription trouvée avec cet email pour cet événement. Utilise bien l'adresse de ton inscription." };
   }
   // Plusieurs équipes avec cet email : il faut choisir laquelle.
@@ -109,6 +113,24 @@ export default async function handler(req, res) {
     if (qui.choix) {
       if (b.action === 'profil') return res.status(200).json({ choix_equipe: qui.choix });
       return res.status(400).json({ error: 'Choisis d\'abord ton équipe.' });
+    }
+
+    if (qui.benevole) {
+      if (b.action === 'profil') {
+        return res.status(200).json({
+          evenement: evt,
+          inscription_id: null,
+          prenom: qui.benevole.prenom,
+          equipe: { type: 'solo', partenaire: null, benevole: true },
+          a_le_pack: false,
+          gratuites: { max: evt.nb_gratuites, photos: await liensGratuites(evt, await gratuitesBenevole(db, evt.id, qui.email)) },
+          pack: { limite: 0, deja: [] },
+        });
+      }
+      if (b.action === 'gratuites') {
+        const ids = await choisirGratuitesBenevole(db, evt, qui.email, b.photo_ids);
+        return res.status(200).json({ gratuites: { max: evt.nb_gratuites, photos: await liensGratuites(evt, ids) } });
+      }
     }
 
     if (b.action === 'profil') {

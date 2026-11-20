@@ -349,6 +349,13 @@ function afficherProfil() {
   if (nbOff && !reste) lignes.push(`➡️ Les ${n} photos offertes de ton équipe sont choisies : elles sont juste en dessous.`);
   lignes.push(`🔓 Pack photo : <b>${prixTxt()}</b> pour toute l'équipe, tes photos en HD.`);
   }
+  if (eq.benevole) {   // bénévole : photos offertes seulement, pas de pack
+    lignes.length = 0;
+    lignes.push('🙌 <b>Bénévole</b> : merci pour ton aide !');
+    lignes.push(`🎁 <b>${n} photos offertes</b> pour toi.`);
+    if (nbOff && reste) lignes.push(`➡️ Tu en as déjà choisi <b>${nbOff}</b> : il en reste <b>${reste}</b>.`);
+    if (nbOff && !reste) lignes.push(`➡️ Tes ${n} photos offertes sont choisies : elles sont juste en dessous.`);
+  }
   $('equipe-txt').innerHTML = lignes.join('<br>');
 
   $('grille-offertes').innerHTML = profil.gratuites.photos.map(p =>
@@ -372,11 +379,16 @@ function afficherProfil() {
     $('explic-choix').innerHTML = `🎁 <b style="color:#FFEE00;">Tu as déjà choisi tes ${n} photos offertes.</b> Elles sont en haut de la page, à télécharger.<br>
       🔓 Tu en veux d'autres ? Prends le pack photo à <b>${prixTxt()}</b> pour toute l'équipe : appuie sur le bouton ci-dessous, puis sélectionne tes photos ${valider}`;
   }
+  if (eq.benevole) {
+    $('explic-choix').innerHTML = reste
+      ? `🎁 <b style="color:#FFEE00;">Merci pour ton aide !</b> Tu as ${offTxt}.<br>👉 <b>Appuie sur le bouton ci-dessous</b>, puis sélectionne tes photos ${valider}`
+      : `🎁 <b style="color:#FFEE00;">Tu as déjà choisi tes ${n} photos offertes.</b> Elles sont en haut de la page, à télécharger.`;
+  }
   $('mode-pack').innerHTML = profil.a_le_pack
     ? '🔓 Sélectionner les photos de mon pack'
     : `🔓 PAYANT : prendre le pack photo<small>${prixTxt()} pour toute l'équipe · photos en HD sans filigrane</small>`;
   $('mode-gratuit').innerHTML = `🎁 GRATUIT : choisir mes ${reste} photos offertes<small>${eq.type === 'solo' ? '' : 'pour toute ton équipe · '}choix définitif</small>`;
-  montrer('mode-pack', restePack() > 0);
+  montrer('mode-pack', !eq.benevole && restePack() > 0);
   montrer('mode-gratuit', !profil.a_le_pack && reste > 0);
   majSelfie();
   rafraichirTuiles();
