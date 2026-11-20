@@ -47,7 +47,7 @@
 
     /* NAV */
     .nav { display: flex; gap: 4px; background: #050505; border-bottom: 3px solid #FFEE00; overflow-x: auto; position: sticky; top: 0; z-index: 100; padding: 6px 4px 0; }
-    .nav-btn { flex: 1; min-width: 90px; padding: 16px 8px; background: #1a1a1a; border: 1px solid #2a2a2a; border-bottom: none; border-radius: 8px 8px 0 0; color: #888; font-size: 13px; font-weight: 800; cursor: pointer; font-family: sans-serif; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.15s; }
+    .nav-btn { flex: 1 1 0; min-width: 150px; padding: 16px 8px; background: #1a1a1a; border: 1px solid #2a2a2a; border-bottom: none; border-radius: 8px 8px 0 0; color: #888; font-size: 13px; font-weight: 800; cursor: pointer; font-family: sans-serif; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.15s; }
     .nav-btn.active { color: #0a0a0a; background: #FFEE00; border-color: #FFEE00; box-shadow: 0 -2px 8px rgba(255,238,0,0.35); }
     .nav-btn:hover:not(.active) { color: #fff; background: #2a2a2a; border-color: #3a3a3a; }
     .nav-btn.nav-juge { color: #FFEE00; background: #1a1400; border-color: #3a2f00; }
@@ -186,8 +186,8 @@
 <!-- NAV -->
 <div class="nav">
   <button type="button" class="nav-btn active" id="nav-passes" onclick="showTab('passes')">📅 Nos évènements</button>
-  <button type="button" class="nav-btn" id="nav-hc" style="flex:none;padding:16px 12px;" onclick="showTab('hc')">🔥 Hyrox Challenge</button>
-  <button type="button" class="nav-btn" id="nav-pe" style="flex:none;padding:16px 12px;" onclick="showTab('pe')">👨‍👧 Parents / Enfants</button>
+  <button type="button" class="nav-btn" id="nav-hc" onclick="showTab('hc')">🔥 Hyrox Challenge</button>
+  <button type="button" class="nav-btn" id="nav-pe" onclick="showTab('pe')">👨‍👧 Parents / Enfants</button>
   <button type="button" class="nav-btn" id="nav-elite" onclick="window.location.href='elite12.html'">🏆 ELITE 12</button>
 </div>
 
