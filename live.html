@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Hyrox Challenge La Buse #3 — 15 novembre 2026</title>
+  <title>Leaderboard Hyrox Challenge La Buse #3 — 15 novembre 2026</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -59,7 +59,7 @@
 <body>
 <div class="wrap">
   <div class="header">
-    <h1><span class="live-dot"></span>LIVE — Hyrox Challenge La Buse #3</h1>
+    <h1>🏆 Leaderboard — Hyrox Challenge La Buse #3</h1>
     <p>Dimanche 15 novembre 2026 · Crossfit La Buse</p>
   </div>
 
@@ -82,9 +82,9 @@
     </div>
   </div>
 
-  <div id="stats" class="stats"></div>
+  <div id="stats" class="stats" style="display:none"></div>
   <div id="content"></div>
-  <div class="last-refresh" id="refresh-info">Chargement…</div>
+  <div class="last-refresh" id="refresh-info" style="display:none">Chargement…</div>
 </div>
 
 <script>
@@ -305,7 +305,7 @@
       const nbRunning = running.length;
       const podium = podiums[g.cat];
       html += `<div class="group">`;
-      html += `<div class="group-head"><span>🏆 ${k}${podium ? ' <span class="podium-time">🏆 Podium ~ ' + podium + '</span>' : ''}</span><span class="count">${nbDone} terminé${nbDone>1?'s':''} · ${nbRunning} en course${absents.length ? ' · ' + absents.length + ' absent' + (absents.length>1?'s':'') : ''}${abandoned.length ? ' · ' + abandoned.length + ' abandon' + (abandoned.length>1?'s':'') : ''}</span></div>`;
+      html += `<div class="group-head"><span>🏆 ${k}</span></div>`;
 
       // Finished (podium)
       finished.forEach((d, idx) => {
@@ -320,7 +320,7 @@
       });
 
       // Running
-      running.forEach(d => {
+      running.slice(0,0).forEach(d => {
         const st = getMaxStation(d.id);
         html += `<div class="athlete running">`;
         html += `<div class="rank running">🏃</div>`;
@@ -330,7 +330,7 @@
       });
 
       // Pending (not started or not yet at station 1)
-      pending.forEach(d => {
+      pending.slice(0,0).forEach(d => {
         html += `<div class="athlete">`;
         html += `<div class="rank other">–</div>`;
         html += `<div class="info">${formatInfo(d)}</div>`;
@@ -339,7 +339,7 @@
       });
 
       // Abandons
-      abandoned.forEach(d => {
+      abandoned.slice(0,0).forEach(d => {
         html += `<div class="athlete abandon">`;
         html += `<div class="rank other">🚫</div>`;
         html += `<div class="info">${formatInfo(d)}</div>`;
@@ -348,7 +348,7 @@
       });
 
       // Absents
-      absents.forEach(d => {
+      absents.slice(0,0).forEach(d => {
         html += `<div class="athlete absent">`;
         html += `<div class="rank other">⚫</div>`;
         html += `<div class="info"><div class="name"><span class="dossard">${d.dossard}</span>${(d.prenom||'').trim()} ${(d.nom||'').trim()}</div>${d.nom_equipe ? '<div class="team">🏷 '+d.nom_equipe+'</div>' : ''}</div>`;
