@@ -337,16 +337,18 @@ function afficherProfil() {
   const lignes = [];
   if (eq.type === 'solo') {
     lignes.push('🏃 Solo');
-    lignes.push(`🎁 <b>${n} photos offertes</b> pour toi.`);
+    if (!profil.a_le_pack) lignes.push(`🎁 <b>${n} photos offertes</b> pour toi.`);
   } else {
     lignes.push((eq.type === 'duo' ? '👥 Duo' : '👨‍👧 Binôme Parent / Enfant') + ` : <b>toi + ${autre}</b>`);
-    lignes.push(`🎁 <b>${n} photos offertes pour ton équipe</b>, à <b>partager entre vous deux</b> (pas ${n} chacun).`);
+    if (!profil.a_le_pack) lignes.push(`🎁 <b>${n} photos offertes pour ton équipe</b>, à <b>partager entre vous deux</b> (pas ${n} chacun).`);
   }
+  if (profil.a_le_pack) {
+    lignes.push(`✅ <b>Ton équipe a le pack photo : profite${eq.type === 'solo' ? '' : 'z'}-en !</b> Tes photos en HD, sans filigrane.` + (deja ? ` Déjà choisies : <b>${deja}</b>.` : ''));
+  } else {
   if (nbOff && reste) lignes.push(`➡️ Ton équipe en a déjà choisi <b>${nbOff}</b> : il en reste <b>${reste}</b>.`);
   if (nbOff && !reste) lignes.push(`➡️ Les ${n} photos offertes de ton équipe sont choisies : elles sont juste en dessous.`);
-  lignes.push(profil.a_le_pack
-    ? `🔓 <b>Ton équipe a le pack photo</b> : tes photos en HD.` + (deja ? ` Déjà choisies : <b>${deja}</b>.` : '')
-    : `🔓 Pack photo : <b>${prixTxt()}</b> pour toute l'équipe, tes photos en HD.`);
+  lignes.push(`🔓 Pack photo : <b>${prixTxt()}</b> pour toute l'équipe, tes photos en HD.`);
+  }
   $('equipe-txt').innerHTML = lignes.join('<br>');
 
   $('grille-offertes').innerHTML = profil.gratuites.photos.map(p =>
