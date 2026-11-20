@@ -16,7 +16,7 @@ import { SUPABASE_URL } from '../lib/kids.js';
 
 const FROM = 'Hyrox Challenge La Buse <noreply@htclabuse.fr>';
 const REPLY_TO = 'htclabuse@gmail.com';
-const SITE = 'https://hyrox-challenge-labuse.vercel.app/#accueil';
+const PAGE_PHOTOS = id => `https://hyrox-challenge-labuse.vercel.app/photos.html?evt=${id}`;
 const EVENEMENTS = ['pe2', 'hc3'];
 
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -31,8 +31,7 @@ function mailPhotos(evtId, prenom) {
       + `<p>${salut}</p>`
       + (pe ? '<p>Les photos du <strong>Hyrox Parents / Enfants #2</strong> sont en ligne 👨‍👧</p>'
             : '<p>Les photos du <strong>Hyrox Challenge La Buse #3</strong> sont en ligne 🔥</p>')
-      + '<p>👉 Rendez-vous sur le site, onglet <strong>📅 Nos évènements</strong>, puis <strong>📸 Retrouve tes photos</strong> :<br>'
-      + `<a href="${SITE}">${SITE}</a></p>`
+      + `<p>👉 <strong>Retrouve tes photos ici :</strong><br><a href="${PAGE_PHOTOS(evtId)}">${PAGE_PHOTOS(evtId)}</a></p>`
       + '<p><strong>Comment ça marche :</strong></p>'
       + '<ol style="padding-left:20px;margin:0 0 14px;">'
       + '<li style="margin-bottom:6px;">Entre <strong>l\'email de ton inscription</strong> (celui sur lequel tu reçois ce mail).</li>'
