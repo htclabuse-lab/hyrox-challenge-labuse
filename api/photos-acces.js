@@ -4,7 +4,7 @@ import { SUPABASE_URL } from '../lib/kids.js';
 import { FROM as FROM_PE, REPLY_TO, TYPE_STRIPE_PACK as TYPE_PACK_PE } from '../lib/parent-enfant.js';
 import { lienSigne, clesPhoto } from '../lib/r2.js';
 import {
-  lireBon, emailValide, inscriptionsPourEmail, inscriptionEtPack, personnesCouvertes, SELFIES_PAR_PERSONNE,
+  lireBon, emailValide, inscriptionsPourEmail, emailInscription, inscriptionEtPack, personnesCouvertes, SELFIES_PAR_PERSONNE,
   photosValides, photosPackEquipe, LIMITE_PACK, filtrerEquipe,
 } from '../lib/photos.js';
 
@@ -109,10 +109,11 @@ export default async function handler(req, res) {
   try {
     // ------------------------------------------------------------ déblocage
     if (b.action === 'debloquer') {
-      const email = String(b.email || '').trim().toLowerCase();
+      let email = String(b.email || '').trim().toLowerCase();
       if (!emailValide(email)) return res.status(400).json({ error: 'Adresse email invalide.' });
       const { data: evt } = await db.from('photos_evenements').select('*').eq('id', String(b.evenement_id || '')).maybeSingle();
       if (!evt || (evt.statut !== 'ouvert' && evt.id !== 'test' && !estApercu(b))) return res.status(404).json({ error: 'Événement introuvable.' });
+      email = await emailInscription(db, evt, email);   // Gmail : points ignorés si besoin
 
       // Photos choisies dans la galerie (+ anciens « bons » de recherche, s'il y en a).
       const { ids: idsBons, valides } = photosDesBons(b.bons, evt.id);
@@ -172,10 +173,11 @@ export default async function handler(req, res) {
 
     // ------------------------------------------------------------ paiement
     if (b.action === 'payer') {
-      const email = String(b.email || '').trim().toLowerCase();
+      let email = String(b.email || '').trim().toLowerCase();
       if (!emailValide(email)) return res.status(400).json({ error: 'Adresse email invalide.' });
       const { data: evt } = await db.from('photos_evenements').select('*').eq('id', String(b.evenement_id || '')).maybeSingle();
       if (!evt || (evt.statut !== 'ouvert' && evt.id !== 'test' && !estApercu(b))) return res.status(404).json({ error: 'Événement introuvable.' });
+      email = await emailInscription(db, evt, email);   // Gmail : points ignorés si besoin
       const inscriptions = await inscriptionsPourEmail(db, evt, email);
       if (!inscriptions.length) {
         return res.status(404).json({ error: "Aucune inscription trouvée avec cet email pour cet événement. Utilise bien l'adresse de ton inscription." });

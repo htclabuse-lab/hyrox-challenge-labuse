@@ -4,7 +4,7 @@ import { lienSigne, clesPhoto } from '../lib/r2.js';
 import {
   rechercherPhotos, empreinteValide, signerBon, emailValide, inscriptionsPourEmail, inscriptionEtPack,
   pageGalerie, equipe, gratuitesEquipe, choisirGratuites, photosPackEquipe, LIMITE_PACK, filtrerEquipe, libelleEquipe,
-  benevolePourEmail, gratuitesBenevole, choisirGratuitesBenevole,
+  benevolePourEmail, gratuitesBenevole, choisirGratuitesBenevole, emailInscription,
 } from '../lib/photos.js';
 
 // ============================================================================
@@ -55,8 +55,9 @@ async function identifier(db, evt, b) {
       .eq('id', acces.inscription_id).single();
     return { insc, email: acces.email, aLePack: true };
   }
-  const email = String(b.email || '').trim().toLowerCase();
-  if (!emailValide(email)) return { code: 400, erreur: "Entre l'adresse email de ton inscription." };
+  const tapee = String(b.email || '').trim().toLowerCase();
+  if (!emailValide(tapee)) return { code: 400, erreur: "Entre l'adresse email de ton inscription." };
+  const email = await emailInscription(db, evt, tapee);   // Gmail : points ignorés si besoin
   const toutes = await inscriptionsPourEmail(db, evt, email);
   if (!toutes.length) {
     // Pas athlète : peut-être bénévole ce jour-là (galerie + photos offertes, pas de pack).
