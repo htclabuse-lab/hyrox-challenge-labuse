@@ -104,6 +104,69 @@ async function destinatairesBenevoles(db, evtId, athletes) {
   });
 }
 
+// ---------------------------------------------------------------- Relance pack (21/11/2026)
+// 1) équipes avec pack qui n'ont encore RIEN récupéré ;
+// 2) équipes qui n'ont pris que très peu de photos (EQUIPES_PEU) : « il reste de la place ».
+// Les équipes de test (pack offert pour essayer la page) ne sont pas relancées.
+const EQUIPES_TEST = [771, 774, 781, 782];
+const EQUIPES_PEU = [484, 590];
+const NOM_EVT = { pe2: 'Hyrox Parents / Enfants #2', hc3: 'Hyrox Challenge La Buse #3' };
+
+function mailRelance(evtId, prenom, peu) {
+  const salut = prenom ? `Salut <strong>${esc(prenom)}</strong> !` : 'Salut à toi !';
+  const intro = peu
+    ? `<p>Ton équipe a déjà récupéré quelques photos avec votre <strong>pack photo</strong> du <strong>${NOM_EVT[evtId]}</strong>… mais il reste plein de place 😉</p>`
+      + '<p>Chacun de vous peut se connecter avec <strong>son propre email d\'inscription</strong> et choisir ses photos.</p>'
+    : `<p>Tu as pris le <strong>pack photo</strong> du <strong>${NOM_EVT[evtId]}</strong>, mais tu n'as pas encore choisi tes photos 📸</p>`;
+  return {
+    subject: peu ? '📸 Il reste de la place dans ton pack photo !' : '📸 Ton pack photo t\'attend !',
+    html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#111;line-height:1.55;font-size:15px;">'
+      + `<p>${salut}</p>` + intro
+      + `<p>👉 <strong>Choisis tes photos ici :</strong><br><a href="${PAGE_PHOTOS(evtId)}">${PAGE_PHOTOS(evtId)}</a></p>`
+      + '<ol style="padding-left:20px;margin:0 0 14px;">'
+      + '<li style="margin-bottom:6px;">Entre <strong>l\'email de ton inscription</strong> (celui sur lequel tu reçois ce mail).</li>'
+      + '<li style="margin-bottom:6px;">Sélectionne tes photos dans la galerie (tu peux t\'aider d\'un selfie), puis appuie sur le <strong>bouton jaune en bas de l\'écran</strong>.</li>'
+      + '<li>Tu reçois tes photos en HD, sans filigrane.</li>'
+      + '</ol>'
+      + '<div style="background:#FFF8E1;border-left:4px solid #FFA726;padding:12px 16px;margin:14px 0;border-radius:4px;">'
+      + '⚠️ La reconnaissance par selfie n\'est pas parfaite : pense à parcourir toutes les photos pour ne rien rater !'
+      + '</div>'
+      + '<p>À très vite 💛🖤</p>'
+      + '<p><strong>Hyrox Training Club La Buse — Maryan, Romuald et Stéphanie</strong></p>'
+      + '</div>',
+  };
+}
+
+async function destinatairesRelance(db, evtId) {
+  const { data: evt, error: e1 } = await db.from('photos_evenements').select('id,type,inscriptions_depuis').eq('id', evtId).single();
+  if (e1) throw e1;
+  const { data, error } = await db.from('Inscriptions')
+    .select('id,prenom,email,co1_prenom,co1_email,categorie,statut_paiement,pack_photo')
+    .gte('created_at', evt.inscriptions_depuis);
+  if (error) throw error;
+  const { data: acces, error: e2 } = await db.from('photos_acces').select('inscription_id,origine,statut,photo_ids').eq('evenement_id', evtId);
+  if (e2) throw e2;
+  const achetes = new Set(acces.filter(a => a.origine === 'achat_en_ligne' && a.statut === 'actif').map(a => a.inscription_id));
+  const servis = new Set(acces.filter(a => a.statut === 'actif' && (a.photo_ids || []).length).map(a => a.inscription_id));
+  const sortie = [];
+  for (const r of data || []) {
+    const statut = String(r.statut_paiement || '').toLowerCase();
+    if (statut !== 'paye' && statut !== 'payé') continue;
+    const cat = String(r.categorie || '');
+    if (evt.type === 'parent_enfant' ? cat !== 'Parent-Enfant' : (cat === 'Parent-Enfant' || cat.toLowerCase().includes('kids'))) continue;
+    if (!(r.pack_photo === true || achetes.has(r.id)) || EQUIPES_TEST.includes(r.id)) continue;
+    const peu = EQUIPES_PEU.includes(r.id);
+    if (servis.has(r.id) && !peu) continue;
+    for (const [prenom, email] of [[r.prenom, r.email], [r.co1_prenom, r.co1_email]]) {
+      const e = String(email || '').trim().toLowerCase();
+      if (e.includes('@')) sortie.push({ inscription_id: r.id, email: e, prenom: String(prenom || '').trim() || null, peu });
+    }
+  }
+  // Une adresse = un mail par événement.
+  const vus = new Set();
+  return sortie.filter(d => !vus.has(d.email) && vus.add(d.email));
+}
+
 async function destinataires(db, evtId) {
   const { data: evt, error: e1 } = await db.from('photos_evenements').select('id,type,inscriptions_depuis').eq('id', evtId).single();
   if (e1) throw e1;
@@ -153,6 +216,38 @@ export default async function handler(req, res) {
   try {
     const listes = {};
     for (const id of EVENEMENTS) listes[id] = await destinataires(db, id);
+
+    // { cible: 'relance' } : relance des packs non récupérés (+ équipes « peu de photos »).
+    if (b.cible === 'relance') {
+      const rel = {};
+      for (const id of EVENEMENTS) rel[id] = await destinatairesRelance(db, id);
+      const compte = Object.fromEntries(EVENEMENTS.map(id => [id, {
+        adresses: rel[id].length,
+        equipes: new Set(rel[id].map(d => d.inscription_id)).size,
+        dont_peu_de_photos: rel[id].filter(d => d.peu).length,
+      }]));
+      if (b.test_to) {
+        const to = String(b.test_to).trim();
+        const n = await resendBatch(resendKey, [
+          { from: FROM, to, reply_to: REPLY_TO, ...mailRelance('hc3', 'Stéphanie (APERÇU)', false) },
+          { from: FROM, to, reply_to: REPLY_TO, ...mailRelance('hc3', 'Stéphanie (APERÇU)', true) },
+        ], `photos-relance-test-${Date.now()}`);
+        return res.status(200).json({ test: true, envoyes: n, destinataires_reels: compte });
+      }
+      if (b.envoyer !== true) return res.status(200).json({ dry_run: true, nombre: compte });
+      const resultat = {};
+      for (const id of EVENEMENTS) {
+        const liste = rel[id];
+        let envoyes = 0;
+        for (let i = 0; i < liste.length; i += 100) {
+          envoyes += await resendBatch(resendKey,
+            liste.slice(i, i + 100).map(d => ({ from: FROM, to: d.email, reply_to: REPLY_TO, ...mailRelance(id, d.prenom, d.peu) })),
+            `photos-relance-${id}-lot${i / 100}-v1`);
+        }
+        resultat[id] = { nombre: liste.length, envoyes };
+      }
+      return res.status(200).json({ envoye: true, resultat });
+    }
 
     // { cible: 'benevoles' } : même fonctionnement (dry_run / test_to / envoyer) pour le mail bénévoles.
     if (b.cible === 'benevoles') {
