@@ -202,8 +202,9 @@ function afficherTableau(evenements) {
       <div class="chiffres">
         <span><b>${e.nb_photos}</b> photos</span>
         <span><b>${e.nb_visages}</b> visages</span>
-        ${e.nb_packs === null ? '' : `<span><b>${e.nb_packs}</b> inscriptions avec pack</span>`}
-        <span><b>${e.nb_espaces}</b> espaces photo ouverts</span>
+        ${e.nb_packs === null ? '' : `<span><b>${e.nb_packs}</b> packs</span>
+        <span><b>${e.nb_recuperes}</b> récupérés</span>
+        <span style="color:#ff8a65;"><b style="color:#ff8a65;">${e.nb_restants}</b> restants à récupérer${e.nb_packs ? ` (${Math.round(100 * e.nb_restants / e.nb_packs)} %)` : ''}</span>`}
       </div>
       ${action}
     </div>`;

@@ -8,7 +8,7 @@ import { rechercherPhotos, empreinteValide, SEUIL_SELFIE, SEUIL_DEUXIEME_TEMPS }
 // Protégé par le mot de passe PHOTOS_ADMIN_PASSWORD (variable Vercel).
 //
 //  POST { password, action: 'evenements' }
-//        → événements + chiffres (photos, visages, espaces photo, inscriptions avec pack)
+//        → événements + chiffres (photos, visages, packs par équipe : total / récupérés / restants)
 //  POST { password, action: 'statut', evenement_id, statut: 'brouillon'|'ouvert'|'ferme' }
 //        → ouvre / ferme un événement aux athlètes
 //  POST { password, action: 'deja_faits', evenement_id, photographe }
@@ -23,6 +23,8 @@ import { rechercherPhotos, empreinteValide, SEUIL_SELFIE, SEUIL_DEUXIEME_TEMPS }
 // ============================================================================
 
 const MAX_VISAGES_PAR_PHOTO = 60;
+// Équipes de test (exclues des chiffres de packs) — même liste que api/photos-annonce.js.
+const EQUIPES_TEST = [771, 774, 781, 782];
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Méthode non autorisée' });
@@ -41,17 +43,30 @@ export default async function handler(req, res) {
       if (error) throw error;
       const compter = q => q.then(r => r.count || 0);
       for (const e of data) {
-        // Inscriptions payées de l'événement ayant le pack (à l'inscription OU acheté ensuite, en ligne compris)
-        let packs = db.from('Inscriptions').select('id', { count: 'exact', head: true })
-          .eq('pack_photo', true).in('statut_paiement', ['paye', 'payé']).gte('created_at', e.inscriptions_depuis);
-        packs = e.type === 'parent_enfant' ? packs.eq('categorie', 'Parent-Enfant')
-          : packs.neq('categorie', 'Parent-Enfant').not('categorie', 'ilike', '%kids%');
-        [e.nb_photos, e.nb_visages, e.nb_espaces, e.nb_packs] = await Promise.all([
+        [e.nb_photos, e.nb_visages] = await Promise.all([
           compter(db.from('photos_fichiers').select('id', { count: 'exact', head: true }).eq('evenement_id', e.id).eq('statut', 'pret')),
           compter(db.from('photos_visages').select('id', { count: 'exact', head: true }).eq('evenement_id', e.id)),
-          compter(db.from('photos_acces').select('id', { count: 'exact', head: true }).eq('evenement_id', e.id).eq('statut', 'actif')),
-          e.id === 'test' ? Promise.resolve(null) : compter(packs),
         ]);
+        e.nb_packs = e.nb_recuperes = e.nb_restants = null;
+        if (e.id === 'test') continue;
+        // Packs comptés PAR ÉQUIPE (inscription), sans les équipes de test :
+        // pack à l'inscription OU acheté en ligne ensuite. « Récupéré » = au moins
+        // un espace photo actif contenant des photos pour cette équipe.
+        let q = db.from('Inscriptions').select('id,pack_photo,categorie')
+          .in('statut_paiement', ['paye', 'payé']).gte('created_at', e.inscriptions_depuis);
+        q = e.type === 'parent_enfant' ? q.eq('categorie', 'Parent-Enfant')
+          : q.neq('categorie', 'Parent-Enfant').not('categorie', 'ilike', '%kids%');
+        const [{ data: ins, error: e1 }, { data: acces, error: e2 }] = await Promise.all([
+          q, db.from('photos_acces').select('inscription_id,origine,photo_ids').eq('evenement_id', e.id).eq('statut', 'actif'),
+        ]);
+        if (e1) throw e1;
+        if (e2) throw e2;
+        const achetes = new Set(acces.filter(a => a.origine === 'achat_en_ligne').map(a => a.inscription_id));
+        const servis = new Set(acces.filter(a => (a.photo_ids || []).length).map(a => a.inscription_id));
+        const equipes = ins.filter(r => (r.pack_photo === true || achetes.has(r.id)) && !EQUIPES_TEST.includes(r.id));
+        e.nb_packs = equipes.length;
+        e.nb_recuperes = equipes.filter(r => servis.has(r.id)).length;
+        e.nb_restants = e.nb_packs - e.nb_recuperes;
       }
       return res.status(200).json({ evenements: data });
     }
