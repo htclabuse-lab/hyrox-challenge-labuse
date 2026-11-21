@@ -205,6 +205,8 @@
         if (im !== -1) note = n.slice(im + 6 + D.length).split('|')[0].trim();
         var tag = x.carnet ? '<span class="tag" style="background:#1a1a0a;border:1px solid #FFEE00;color:#FFEE00;">🎟️ carnet · ' + x.seances_restantes + '</span>'
           : (n.indexOf('seance_essai') !== -1 ? '<span class="tag" style="background:#001018;border:1px solid #00d8ff;color:#00d8ff;">🧪 essai</span>' : '');
+        // Marqueur « impaye » dans niveau : l'enfant vient, mais le mois n'est pas réglé.
+        if (n.indexOf('impaye') !== -1) tag += ' <span class="tag" style="background:#1a0505;border:1px solid #ff4d4d;color:#ff4d4d;">⚠️ non payé</span>';
         var cls = x.present === true ? ' ok' : (x.present === false ? ' no' : '');
         h += '<div class="appel-row' + cls + '">';
         h += '<div class="who"><div class="nom">' + esc(x.enfant) + ' ' + tag + '</div>';
