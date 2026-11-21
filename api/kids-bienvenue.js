@@ -32,6 +32,10 @@ import { createClient } from '@supabase/supabase-js';
 //     salle en travaux, pas de cours d'ici fin septembre, reprise le samedi
 //     3 octobre, et rien n'est prélevé pour septembre.
 //
+//  7. mode 'impaye' (mot de passe JUGES_PASSWORD requis) — prélèvement mensuel
+//     échoué : l'abonnement Stripe a été coupé. Deux étapes pour la famille,
+//     régler le mois dû via `lien_paiement`, puis refaire l'inscription.
+//
 //  6. mode 'pascours' (mot de passe JUGES_PASSWORD requis) — aux familles
 //     INSCRITES : pas de cours le samedi 14 novembre, l'équipe est sur
 //     l'organisation du Hyrox Parents / Enfants, reprise le 21 novembre.
@@ -316,6 +320,35 @@ function mailPasCours(rows) {
   return { subject: 'Training Kids — pas de cours ce samedi 14 novembre', html: enveloppe('Pas de cours samedi 14 novembre', corps) };
 }
 
+// Mail de régularisation : prélèvement échoué, abonnement coupé par Stripe.
+// `lien` est le lien de paiement Stripe du mois dû, créé à la main par l'orga.
+function mailImpaye(rows, lien) {
+  const r0 = rows[0];
+  const parent = esc((r0.prenom || '').trim()) || 'à vous';
+  const enfants = rows.map(r => esc((r.co1_prenom || '').trim()) || 'votre enfant');
+  const listeNoms = enfants.join(' et ');
+  const corps = `
+<p>Salut ${parent},</p>
+<p>Je t'écris au sujet de l'abonnement Training Kids de ${listeNoms}. Le prélèvement de <strong>30 €</strong> du 1er novembre n'est pas passé, et Stripe a automatiquement mis fin à l'abonnement après plusieurs tentatives. Celui d'octobre était bien passé, c'est novembre qui n'est pas réglé.</p>
+<p>Il y a donc <strong>deux choses à faire</strong>, et les deux sont nécessaires 😊</p>
+<p style="background:#141400;border-left:3px solid #A6D402;padding:12px 14px;margin:1rem 0;">
+<strong>① Régler le mois de novembre — 30 €</strong><br>
+C'est le mois qui n'a pas été prélevé. Tu peux payer ici, avec la carte de ton choix :<br>
+<a href="${lien}" style="display:inline-block;background:#A6D402;color:#0a0a0a;font-weight:800;padding:12px 20px;border-radius:8px;text-decoration:none;margin:8px 0;">💳 Payer les 30 € de novembre</a><br>
+<span style="font-size:12px;color:#888;">Si le bouton ne marche pas :<br><a href="${lien}" style="color:#A6D402;">${lien}</a></span></p>
+<p style="background:#141400;border-left:3px solid #A6D402;padding:12px 14px;margin:1rem 0;">
+<strong>② Remettre l'abonnement en route pour la suite</strong><br>
+L'abonnement n'existe plus, le paiement ci-dessus ne le relance pas. Il faut refaire l'inscription de ${listeNoms} sur la page du club :<br>
+<a href="${PAGE_INSCRIPTION}" style="display:inline-block;background:#A6D402;color:#0a0a0a;font-weight:800;padding:12px 20px;border-radius:8px;text-decoration:none;margin:8px 0;">👉 Refaire l'inscription</a><br>
+<span style="font-size:12px;color:#888;">Si le bouton ne marche pas :<br><a href="${PAGE_INSCRIPTION}" style="color:#A6D402;">${PAGE_INSCRIPTION}</a></span></p>
+<p><strong>Rien ne te sera prélevé le jour de l'inscription</strong> : le premier prélèvement tombera le <strong>1er décembre</strong>, puis tous les 1ers du mois. Les conditions ne changent pas, 30 €/mois sans engagement de durée.</p>
+<p>En résumé : le lien ① paie novembre, la page ② couvre décembre et les mois suivants. Si tu ne fais que l'un des deux, il manquera quelque chose.</p>
+<p>L'abonnement de Maelys, lui, est parfaitement à jour — il n'y a rien à faire de ce côté-là.</p>
+<p>${listeNoms} continue de venir au cours pendant ce temps. Si quoi que ce soit bloque, réponds-moi.</p>
+<p>À samedi !</p>`;
+  return { subject: `Training Kids — deux choses à faire pour ${listeNoms}`, html: enveloppe('Régulariser l\'abonnement', corps) };
+}
+
 async function envoyer(resendKey, to, { subject, html }) {
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -336,7 +369,7 @@ export default async function handler(req, res) {
   const db = createClient(SUPABASE_URL, serviceKey);
 
   const body = req.body || {};
-  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : body.mode === 'travaux' ? 'travaux' : body.mode === 'rappel' ? 'rappel' : body.mode === 'carnet' ? 'carnet' : body.mode === 'essai' ? 'essai' : body.mode === 'pascours' ? 'pascours' : 'auto';
+  const mode = body.mode === 'lancement' ? 'lancement' : body.mode === 'ouverture' ? 'ouverture' : body.mode === 'travaux' ? 'travaux' : body.mode === 'rappel' ? 'rappel' : body.mode === 'carnet' ? 'carnet' : body.mode === 'essai' ? 'essai' : body.mode === 'pascours' ? 'pascours' : body.mode === 'impaye' ? 'impaye' : 'auto';
 
   try {
     // ------------------------------------------------------------ mode auto
@@ -365,12 +398,15 @@ export default async function handler(req, res) {
     if (ids.length === 0) return res.status(400).json({ error: 'ids requis (liste explicite, non vide)' });
     const dryRun = body.dry_run === true || body.dry_run === 1 || body.dry_run === '1';
 
-    const categorieAttendue = (mode === 'carnet' || mode === 'essai' || mode === 'pascours') ? CATEGORIE_KIDS_INSCRIPTION : CATEGORIE_KIDS;
+    const categorieAttendue = (mode === 'carnet' || mode === 'essai' || mode === 'pascours' || mode === 'impaye') ? CATEGORIE_KIDS_INSCRIPTION : CATEGORIE_KIDS;
+    // Lien de paiement Stripe du mois dû, fourni par l'orga (mode 'impaye').
+    const lienPaiement = String(body.lien_paiement || '').trim();
+    if (mode === 'impaye' && !/^https:\/\//.test(lienPaiement)) return res.status(400).json({ error: 'lien_paiement requis (https://…)' });
     const { data: rows, error } = await db.from('Inscriptions').select('*').in('id', ids).eq('categorie', categorieAttendue);
     if (error) return res.status(500).json({ error: error.message });
 
     const resultats = [];
-    if (mode === 'ouverture' || mode === 'travaux' || mode === 'rappel' || mode === 'carnet' || mode === 'essai' || mode === 'pascours') {
+    if (mode === 'ouverture' || mode === 'travaux' || mode === 'rappel' || mode === 'carnet' || mode === 'essai' || mode === 'pascours' || mode === 'impaye') {
       // Un mail par parent : regroupe les fiches par email (fratrie)
       const parEmail = new Map();
       for (const r of rows) {
@@ -385,7 +421,8 @@ export default async function handler(req, res) {
         premier = false;
         const m = mode === 'travaux' ? mailTravaux(grp) : mode === 'rappel' ? mailRappel(grp)
           : mode === 'carnet' ? mailCarnet(grp) : mode === 'essai' ? mailEssai(grp)
-          : mode === 'pascours' ? mailPasCours(grp) : mailOuverture(grp);
+          : mode === 'pascours' ? mailPasCours(grp)
+          : mode === 'impaye' ? mailImpaye(grp, lienPaiement) : mailOuverture(grp);
         const ids = grp.map(r => r.id), enfants = grp.map(r => r.co1_prenom);
         if (!emailValide(to)) { resultats.push({ ids, skipped: 'email invalide' }); continue; }
         if (dryRun) { resultats.push({ ids, to, enfants, subject: m.subject, dry_run: true }); continue; }
